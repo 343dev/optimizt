@@ -1,10 +1,10 @@
-# @funboxteam/optimizt
+# @343dev/optimizt
 
 <img align="right" width="192" height="192"
      alt="Optimizt avatar: OK sign with Mona Lisa picture between the fingers"
      src="./images/logo.png">
 
-[![npm](https://img.shields.io/npm/v/@funboxteam/optimizt.svg)](https://www.npmjs.com/package/@funboxteam/optimizt)
+[![npm](https://img.shields.io/npm/v/@343dev/optimizt.svg)](https://www.npmjs.com/package/@343dev/optimizt)
 
 **Optimizt** is a CLI tool that helps you prepare images during frontend development.
 
@@ -23,7 +23,7 @@ and created one tool that does everything we want.
 Install the tool:
 
 ```sh
-npm i -g @funboxteam/optimizt
+npm i -g @343dev/optimizt
 ```
 
 Optimize!
@@ -385,7 +385,7 @@ jobs:
           node-version: 14
 
       - name: Install Optimizt
-        run: npm install --global @funboxteam/optimizt
+        run: npm install --global @343dev/optimizt
 
       - uses: actions/checkout@v2
         with:
@@ -453,11 +453,11 @@ docker pull 343dev/optimizt:4.1.0
 If you want to manually build the Docker image, you need to:
 
 1. Clone this repo and cd into it.
-2. Run `docker build -t funbox/optimizt .`.
+2. Run `docker build -t 343dev/optimizt .`.
 
 OR:
 
-- Run `docker build -t funbox/optimizt https://github.com/funbox/optimizt.git`, but keep in mind that the
+- Run `docker build -t 343dev/optimizt https://github.com/343dev/optimizt.git`, but keep in mind that the
 [.dockerignore](.dockerignore) file will be [ignored](https://github.com/docker/cli/issues/2827).
 
 ### Run the container
@@ -467,11 +467,11 @@ Inside the container WORKDIR is set to `/src`, so by default all paths will be r
 Usage example:
 
 ```bash
-docker run -v $(pwd):/src funbox/optimizt --webp image.png
+docker run -v $(pwd):/src 343dev/optimizt --webp image.png
 ```
 
 ## Credits
 
 Cute picture for the project was made by [Igor Garybaldi](http://pandabanda.com/).
 
-[![Sponsored by FunBox](https://funbox.ru/badges/sponsored_by_funbox_centered.svg)](https://funbox.ru)
+![Sponsored by DOPAMINE](images/sponsored_by_dopamine.svg)

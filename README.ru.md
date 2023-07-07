@@ -1,10 +1,10 @@
-# @funboxteam/optimizt
+# @343dev/optimizt
 
 <img align="right" width="192" height="192"
      alt="Аватар Оптимизта: «OK» жест с картиной Моной Лизой между пальцами"
      src="./images/logo.png">
 
-[![npm](https://img.shields.io/npm/v/@funboxteam/optimizt.svg)](https://www.npmjs.com/package/@funboxteam/optimizt)
+[![npm](https://img.shields.io/npm/v/@343dev/optimizt.svg)](https://www.npmjs.com/package/@343dev/optimizt)
 
 **Optimizt** — это консольная утилита, помогающая подготавливать картинки для фронтенда.
 
@@ -21,7 +21,7 @@
 Установить:
 
 ```sh
-npm i -g @funboxteam/optimizt
+npm i -g @343dev/optimizt
 ```
 
 Оптимизировать!
@@ -390,7 +390,7 @@ jobs:
           node-version: 14
 
       - name: Install Optimizt
-        run: npm install --global @funboxteam/optimizt
+        run: npm install --global @343dev/optimizt
 
       - uses: actions/checkout@v2
         with:
@@ -460,11 +460,11 @@ docker pull 343dev/optimizt:4.1.0
 Для того чтобы самостоятельно собрать Докер образ, нужно:
 
 1. Клонировать этот репозиторий и перейти в него.
-2. Выполнить `docker build -t funbox/optimizt .`.
+2. Выполнить `docker build -t 343dev/optimizt .`.
 
 ИЛИ:
 
-- Выполнить `docker build -t funbox/optimizt https://github.com/funbox/optimizt.git`, но нужно иметь ввиду, что файл
+- Выполнить `docker build -t 343dev/optimizt https://github.com/343dev/optimizt.git`, но нужно иметь ввиду, что файл
   [.dockerignore](.dockerignore) будет [проигнорирован](https://github.com/docker/cli/issues/2827).
 
 ### Запуск контейнера
@@ -474,11 +474,11 @@ docker pull 343dev/optimizt:4.1.0
 Пример использования:
 
 ```bash
-docker run -v $(pwd):/src funbox/optimizt --webp image.png
+docker run -v $(pwd):/src 343dev/optimizt --webp image.png
 ```
 
 ## Благодарности
 
 Клёвую картинку для репозитория нарисовал [Игорь Гарибальди](http://pandabanda.com/).
 
-[![Sponsored by FunBox](https://funbox.ru/badges/sponsored_by_funbox_centered.svg)](https://funbox.ru)
+![Sponsored by DOPAMINE](images/sponsored_by_dopamine.svg)
