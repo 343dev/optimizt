@@ -58,7 +58,7 @@ jobs:
 
       - name: Install Optimizt via npm
         if: env.IMAGES_PATHS != '' || env.IMAGES_PATHS_AVIF != ''
-        run: npm install --global @funboxteam/optimizt
+        run: npm install --global @343dev/optimizt
 
       - name: Optimize images
         if: env.IMAGES_PATHS != ''
