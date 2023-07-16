@@ -21,9 +21,7 @@
     ".optimiztrc.js"
   ],
   "scripts": {
-    "lint-src": "eslint --config .eslintrc.cjs --ignore-pattern 'tests/*' ./",
-    "lint-tests": "eslint --config tests/.eslintrc.cjs tests/",
-    "lint": "npm run lint-src && npm run lint-tests",
+    "lint": "npx eslint ./",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest tests",
     "update-git-hooks": "npx simple-git-hooks"
   },
@@ -44,10 +42,9 @@
     "svgo": "2.6.1"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.17.0",
-    "@funboxteam/eslint-config": "^7.1.0",
-    "eslint": "^7.32.0",
-    "eslint-plugin-jest": "^26.2.2",
+    "eslint": "^8.44.0",
+    "eslint-plugin-import": "2.27.5",
+    "eslint-plugin-unicorn": "^47.0.0",
     "jest": "^28.1.0",
     "lint-staged": "^12.4.1",
     "simple-git-hooks": "^2.7.0"
@@ -56,14 +53,14 @@
     "pre-commit": "npx lint-staged"
   },
   "lint-staged": {
-    "!(tests)/**/*.js": [
-      "eslint --fix --config .eslintrc.cjs"
-    ],
-    "./*.js": [
-      "eslint --fix --config .eslintrc.cjs"
-    ],
-    "tests/**/*.js": [
-      "eslint --fix --config tests/.eslintrc.cjs"
+    "*.js": [
+      "eslint --fix"
+    ]
+  },
+  "eslintConfig": {
+    "extends": "plugin:unicorn/recommended",
+    "plugins": [
+      "import"
     ]
   }
 }

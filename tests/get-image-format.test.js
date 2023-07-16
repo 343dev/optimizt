@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import getImageFormat from '../lib/getImageFormat.js';
+import getImageFormat from '../lib/get-image-format.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 

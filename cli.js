@@ -26,7 +26,7 @@ program
   .description(packageJson.description)
   .parse(process.argv);
 
-if (!program.args.length) {
+if (program.args.length === 0) {
   program.help();
 } else {
   optimizt({

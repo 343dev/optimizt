@@ -7,20 +7,20 @@ import { fileURLToPath } from 'node:url';
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const cliPath = path.resolve('cli.js');
-const imagesDir = path.resolve(dirname, 'images');
+const images = path.resolve(dirname, 'images');
 
-let tempDir = null;
-let workDir = null;
+let temporary;
+let workDirectory;
 
 beforeEach(() => {
-  tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'optimizt-test-'));
-  workDir = `${tempDir}${path.sep}`;
-  copyRecursive(imagesDir, tempDir);
+  temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'optimizt-test-'));
+  workDirectory = `${temporary}${path.sep}`;
+  copyRecursive(images, temporary);
 });
 
 afterEach(() => {
-  if (tempDir) {
-    fs.rmdirSync(tempDir, { recursive: true });
+  if (temporary) {
+    fs.rmSync(temporary, { recursive: true });
   }
 });
 
@@ -29,34 +29,34 @@ describe('CLI', () => {
     describe('Lossy', () => {
       test('SVG should be optimized', () => {
         const file = 'svg-not-optimized.svg';
-        const stdout = runCliWithParams(`${workDir}${file}`);
+        const stdout = runCliWithParameters(`${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 80, minRatio: 75 });
       });
 
       test('JPEG/JPG should be optimized', () => {
         const file = 'jpeg-not-optimized.jpeg';
-        const stdout = runCliWithParams(`${workDir}${file}`);
+        const stdout = runCliWithParameters(`${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 55, minRatio: 50 });
       });
 
       test('PNG should be optimized', () => {
         const file = 'png-not-optimized.png';
-        const stdout = runCliWithParams(`${workDir}${file}`);
+        const stdout = runCliWithParameters(`${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 80, minRatio: 75 });
       });
 
       test('GIF should be optimized', () => {
         const file = 'gif-not-optimized.gif';
-        const stdout = runCliWithParams(`${workDir}${file}`);
+        const stdout = runCliWithParameters(`${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 40, minRatio: 35 });
       });
 
       test('Files should not be optimized if ratio <= 0', () => {
-        const stdout = runCliWithParams(`${workDir}svg-optimized.svg ${workDir}jpeg-one-pixel.jpg`);
+        const stdout = runCliWithParameters(`${workDirectory}svg-optimized.svg ${workDirectory}jpeg-one-pixel.jpg`);
 
         expectStringContains(stdout, 'Optimizing 2 images (lossy)...');
         expectStringContains(stdout, 'Done!');
@@ -65,7 +65,7 @@ describe('CLI', () => {
       });
 
       test('Files in provided directory should be optimized', () => {
-        const stdout = runCliWithParams(workDir);
+        const stdout = runCliWithParameters(workDirectory);
 
         expectStringContains(stdout, 'Optimizing 8 images (lossy)...');
         expectTotalRatio({ maxRatio: 60, minRatio: 55, stdout });
@@ -75,27 +75,27 @@ describe('CLI', () => {
     describe('Lossless (--lossless)', () => {
       test('JPEG/JPG should be optimized', () => {
         const file = 'jpeg-not-optimized.jpeg';
-        const stdout = runCliWithParams(`--lossless ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--lossless ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 50, minRatio: 45 });
       });
 
       test('PNG should be optimized', () => {
         const file = 'png-not-optimized.png';
-        const stdout = runCliWithParams(`--lossless ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--lossless ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 25, minRatio: 20 });
       });
 
       test('GIF should be optimized', () => {
         const file = 'gif-not-optimized.gif';
-        const stdout = runCliWithParams(`--lossless ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--lossless ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 10, minRatio: 5 });
       });
 
       test('Files should not be optimized if ratio <= 0', () => {
-        const stdout = runCliWithParams(`--lossless ${workDir}jpeg-one-pixel.jpg`);
+        const stdout = runCliWithParameters(`--lossless ${workDirectory}jpeg-one-pixel.jpg`);
 
         expectStringContains(stdout, 'Optimizing 1 image (lossless)...');
         expectStringContains(stdout, 'Done!');
@@ -103,7 +103,7 @@ describe('CLI', () => {
       });
 
       test('Files in provided directory should be optimized', () => {
-        const stdout = runCliWithParams(`--lossless ${workDir}`);
+        const stdout = runCliWithParameters(`--lossless ${workDirectory}`);
 
         expectStringContains(stdout, 'Optimizing 8 images (lossless)...');
         expectTotalRatio({ maxRatio: 25, minRatio: 15, stdout });
@@ -114,12 +114,12 @@ describe('CLI', () => {
   describe('SVGO', () => {
     test('Should containing “fill="none"”', () => {
       const fileBasename = 'svg-not-optimized';
-      const stdout = runCliWithParams(`${workDir}${fileBasename}.svg`);
+      const stdout = runCliWithParameters(`${workDirectory}${fileBasename}.svg`);
 
-      expectStringContains(stdout, `${workDir}svg-not-optimized.svg`);
+      expectStringContains(stdout, `${workDirectory}svg-not-optimized.svg`);
 
-      const origBuffer = fs.readFileSync(path.join(imagesDir, `${fileBasename}.svg`));
-      const modifiedBuffer = fs.readFileSync(path.join(tempDir, `${fileBasename}.svg`));
+      const origBuffer = fs.readFileSync(path.join(images, `${fileBasename}.svg`));
+      const modifiedBuffer = fs.readFileSync(path.join(temporary, `${fileBasename}.svg`));
       const isBufferEquals = origBuffer.equals(modifiedBuffer);
 
       expect(isBufferEquals).toBeFalsy();
@@ -128,12 +128,12 @@ describe('CLI', () => {
 
     test('Should containing “stroke="none"”', () => {
       const fileBasename = 'svg-not-optimized';
-      const stdout = runCliWithParams(`${workDir}${fileBasename}.svg`);
+      const stdout = runCliWithParameters(`${workDirectory}${fileBasename}.svg`);
 
-      expectStringContains(stdout, `${workDir}svg-not-optimized.svg`);
+      expectStringContains(stdout, `${workDirectory}svg-not-optimized.svg`);
 
-      const origBuffer = fs.readFileSync(path.join(imagesDir, `${fileBasename}.svg`));
-      const modifiedBuffer = fs.readFileSync(path.join(tempDir, `${fileBasename}.svg`));
+      const origBuffer = fs.readFileSync(path.join(images, `${fileBasename}.svg`));
+      const modifiedBuffer = fs.readFileSync(path.join(temporary, `${fileBasename}.svg`));
       const isBufferEquals = origBuffer.equals(modifiedBuffer);
 
       expect(isBufferEquals).toBeFalsy();
@@ -145,7 +145,7 @@ describe('CLI', () => {
     describe('Lossy', () => {
       test('JPEG should be converted', () => {
         const file = 'jpeg-not-optimized.jpeg';
-        const stdout = runCliWithParams(`--avif ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--avif ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 90, minRatio: 85, outputExt: 'avif' });
         expectFileNotModified(file);
@@ -153,7 +153,7 @@ describe('CLI', () => {
 
       test('PNG should be converted', () => {
         const file = 'png-not-optimized.png';
-        const stdout = runCliWithParams(`--avif ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--avif ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 95, minRatio: 90, outputExt: 'avif' });
         expectFileNotModified(file);
@@ -161,7 +161,7 @@ describe('CLI', () => {
 
       test('GIF should be converted', () => {
         const file = 'gif-not-optimized.gif';
-        const stdout = runCliWithParams(`--avif ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--avif ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 95, minRatio: 90, outputExt: 'avif' });
         expectFileNotModified(file);
@@ -169,7 +169,7 @@ describe('CLI', () => {
 
       test('Files should not be converted if ratio <= 0', () => {
         const fileBasename = 'jpeg-one-pixel';
-        const stdout = runCliWithParams(`--avif ${workDir}${fileBasename}.jpg`);
+        const stdout = runCliWithParameters(`--avif ${workDirectory}${fileBasename}.jpg`);
 
         expectStringContains(stdout, 'Converting 1 image (lossy)...');
         expectStringContains(stdout, 'Done!');
@@ -179,7 +179,7 @@ describe('CLI', () => {
 
       test('Files in provided directory should be converted', () => {
         const fileBasename = 'png-not-optimized';
-        const stdout = runCliWithParams(`--avif ${workDir}`);
+        const stdout = runCliWithParameters(`--avif ${workDirectory}`);
         const stdoutRatio = grepTotalRatio(stdout);
 
         expectStringContains(stdout, 'Converting 6 images (lossy)...');
@@ -195,7 +195,7 @@ describe('CLI', () => {
 
       test('PNG should be converted', () => {
         const file = 'png-not-optimized.png';
-        const stdout = runCliWithParams(`--avif --lossless ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--avif --lossless ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 40, minRatio: 35, outputExt: 'avif' });
         expectFileNotModified(file);
@@ -203,7 +203,7 @@ describe('CLI', () => {
 
       test('GIF should be converted', () => {
         const file = 'gif-not-optimized.gif';
-        const stdout = runCliWithParams(`--avif --lossless ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--avif --lossless ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 75, minRatio: 70, outputExt: 'avif' });
         expectFileNotModified(file);
@@ -211,7 +211,7 @@ describe('CLI', () => {
 
       test('Files should not be converted if ratio <= 0', () => {
         const fileBasename = 'jpeg-one-pixel';
-        const stdout = runCliWithParams(`--avif --lossless ${workDir}${fileBasename}.jpg`);
+        const stdout = runCliWithParameters(`--avif --lossless ${workDirectory}${fileBasename}.jpg`);
 
         expectStringContains(stdout, 'Converting 1 image (lossless)...');
         expectStringContains(stdout, 'Done!');
@@ -221,7 +221,7 @@ describe('CLI', () => {
 
       test('Files in provided directory should be converted', () => {
         const fileBasename = 'png-not-optimized';
-        const stdout = runCliWithParams(`--avif --lossless ${workDir}`);
+        const stdout = runCliWithParameters(`--avif --lossless ${workDirectory}`);
         const stdoutRatio = grepTotalRatio(stdout);
 
         expectStringContains(stdout, 'Converting 6 images (lossless)...');
@@ -236,7 +236,7 @@ describe('CLI', () => {
     describe('Lossy', () => {
       test('JPEG should be converted', () => {
         const file = 'jpeg-not-optimized.jpeg';
-        const stdout = runCliWithParams(`--webp ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--webp ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 75, minRatio: 70, outputExt: 'webp' });
         expectFileNotModified(file);
@@ -244,7 +244,7 @@ describe('CLI', () => {
 
       test('PNG should be converted', () => {
         const file = 'png-not-optimized.png';
-        const stdout = runCliWithParams(`--webp ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--webp ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 85, minRatio: 80, outputExt: 'webp' });
         expectFileNotModified(file);
@@ -252,7 +252,7 @@ describe('CLI', () => {
 
       test('GIF should be converted', () => {
         const file = 'gif-not-optimized.gif';
-        const stdout = runCliWithParams(`--webp ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--webp ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 40, minRatio: 35, outputExt: 'webp' });
         expectFileNotModified(file);
@@ -260,7 +260,7 @@ describe('CLI', () => {
 
       test('Files should not be converted if ratio <= 0', () => {
         const fileBasename = 'jpeg-low-quality';
-        const stdout = runCliWithParams(`--webp ${workDir}${fileBasename}.jpg`);
+        const stdout = runCliWithParameters(`--webp ${workDirectory}${fileBasename}.jpg`);
 
         expectStringContains(stdout, 'Converting 1 image (lossy)...');
         expectStringContains(stdout, 'Done!');
@@ -270,7 +270,7 @@ describe('CLI', () => {
 
       test('Files in provided directory should be converted', () => {
         const fileBasename = 'png-not-optimized';
-        const stdout = runCliWithParams(`--webp ${workDir}`);
+        const stdout = runCliWithParameters(`--webp ${workDirectory}`);
         const stdoutRatio = grepTotalRatio(stdout);
 
         expectStringContains(stdout, 'Converting 6 images (lossy)...');
@@ -283,7 +283,7 @@ describe('CLI', () => {
     describe('Lossless (--lossless)', () => {
       test('JPEG should be converted', () => {
         const file = 'jpeg-one-pixel.jpg';
-        const stdout = runCliWithParams(`--webp --lossless ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--webp --lossless ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 80, minRatio: 75, outputExt: 'webp' });
         expectFileNotModified(file);
@@ -291,7 +291,7 @@ describe('CLI', () => {
 
       test('PNG should be converted', () => {
         const file = 'png-not-optimized.png';
-        const stdout = runCliWithParams(`--webp --lossless ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--webp --lossless ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 45, minRatio: 40, outputExt: 'webp' });
         expectFileNotModified(file);
@@ -299,7 +299,7 @@ describe('CLI', () => {
 
       test('GIF should be converted', () => {
         const file = 'gif-not-optimized.gif';
-        const stdout = runCliWithParams(`--webp --lossless ${workDir}${file}`);
+        const stdout = runCliWithParameters(`--webp --lossless ${workDirectory}${file}`);
 
         expectFileRatio({ stdout, file, maxRatio: 25, minRatio: 20, outputExt: 'webp' });
         expectFileNotModified(file);
@@ -307,7 +307,7 @@ describe('CLI', () => {
 
       test('Files should not be converted if ratio <= 0', () => {
         const fileBasename = 'jpeg-low-quality';
-        const stdout = runCliWithParams(`--webp --lossless ${workDir}${fileBasename}.jpg`);
+        const stdout = runCliWithParameters(`--webp --lossless ${workDirectory}${fileBasename}.jpg`);
 
         expectStringContains(stdout, 'Converting 1 image (lossless)...');
         expectStringContains(stdout, 'Done!');
@@ -317,7 +317,7 @@ describe('CLI', () => {
 
       test('Files in provided directory should be converted', () => {
         const fileBasename = 'png-not-optimized';
-        const stdout = runCliWithParams(`--webp --lossless ${workDir}`);
+        const stdout = runCliWithParameters(`--webp --lossless ${workDirectory}`);
         const stdoutRatio = grepTotalRatio(stdout);
 
         expectStringContains(stdout, 'Converting 6 images (lossless)...');
@@ -332,11 +332,11 @@ describe('CLI', () => {
     describe('Lossy', () => {
       test('AVIF and WebP should be created', () => {
         const fileBasename = 'png-not-optimized';
-        const stdout = runCliWithParams(`--avif --webp ${workDir}${fileBasename}.png`);
+        const stdout = runCliWithParameters(`--avif --webp ${workDirectory}${fileBasename}.png`);
         const stdoutRatio = grepTotalRatio(stdout);
 
         expectStringContains(stdout, 'Converting 1 image (lossy)...');
-        expectStringContains(stdout, path.join(tempDir, `${fileBasename}.png`));
+        expectStringContains(stdout, path.join(temporary, `${fileBasename}.png`));
         expectRatio(stdoutRatio, 85, 90);
         expectFileNotModified(`${fileBasename}.png`);
         expectFileExists(`${fileBasename}.avif`);
@@ -344,7 +344,7 @@ describe('CLI', () => {
       });
 
       test('AVIF and WebP should not be created if ratio <= 0', () => {
-        const stdout = runCliWithParams(`--avif --webp ${workDir}jpeg-low-quality.jpg ${workDir}jpeg-one-pixel.jpg`);
+        const stdout = runCliWithParameters(`--avif --webp ${workDirectory}jpeg-low-quality.jpg ${workDirectory}jpeg-one-pixel.jpg`);
 
         expectStringContains(stdout, 'Converting 2 images (lossy)...');
         expectFileNotModified('jpeg-low-quality.jpg');
@@ -357,11 +357,11 @@ describe('CLI', () => {
     describe('Lossless (--lossless)', () => {
       test('AVIF and WebP should be created', () => {
         const fileBasename = 'png-not-optimized';
-        const stdout = runCliWithParams(`--avif --webp --lossless ${workDir}${fileBasename}.png`);
+        const stdout = runCliWithParameters(`--avif --webp --lossless ${workDirectory}${fileBasename}.png`);
         const stdoutRatio = grepTotalRatio(stdout);
 
         expectStringContains(stdout, 'Converting 1 image (lossless)...');
-        expectStringContains(stdout, path.join(tempDir, `${fileBasename}.png`));
+        expectStringContains(stdout, path.join(temporary, `${fileBasename}.png`));
         expectRatio(stdoutRatio, 40, 45);
         expectFileNotModified(`${fileBasename}.png`);
         expectFileExists(`${fileBasename}.avif`);
@@ -370,7 +370,7 @@ describe('CLI', () => {
 
       test('AVIF and WebP should not be created if ratio <= 0', () => {
         const fileBasename = 'jpeg-low-quality';
-        const stdout = runCliWithParams(`--avif --webp --lossless ${workDir}${fileBasename}.jpg`);
+        const stdout = runCliWithParameters(`--avif --webp --lossless ${workDirectory}${fileBasename}.jpg`);
 
         expectStringContains(stdout, 'Converting 1 image (lossless)...');
         expectStringContains(stdout, 'Done!');
@@ -384,37 +384,37 @@ describe('CLI', () => {
   describe('Force rewrite AVIF or WebP (--force)', () => {
     test('Should not be overwritten', () => {
       const fileBasename = 'png-not-optimized';
-      const params = `--avif --webp ${workDir}${fileBasename}.png`;
+      const parameters = `--avif --webp ${workDirectory}${fileBasename}.png`;
 
-      runCliWithParams(params);
-      const stdout = runCliWithParams(params);
+      runCliWithParameters(parameters);
+      const stdout = runCliWithParameters(parameters);
 
-      expectStringContains(stdout, `File already exists, '${workDir}${fileBasename}.avif'`);
-      expectStringContains(stdout, `File already exists, '${workDir}${fileBasename}.webp'`);
+      expectStringContains(stdout, `File already exists, '${workDirectory}${fileBasename}.avif'`);
+      expectStringContains(stdout, `File already exists, '${workDirectory}${fileBasename}.webp'`);
     });
 
     test('Should be overwritten', () => {
       const fileBasename = 'png-not-optimized';
-      const params = `--avif --webp --force ${workDir}${fileBasename}.png`;
+      const parameters = `--avif --webp --force ${workDirectory}${fileBasename}.png`;
 
-      runCliWithParams(params);
-      const stdout = runCliWithParams(params);
+      runCliWithParameters(parameters);
+      const stdout = runCliWithParameters(parameters);
 
-      expectStringNotContains(stdout, `File already exists, '${workDir}${fileBasename}.avif'`);
-      expectStringNotContains(stdout, `File already exists, '${workDir}${fileBasename}.webp'`);
+      expectStringNotContains(stdout, `File already exists, '${workDirectory}${fileBasename}.avif'`);
+      expectStringNotContains(stdout, `File already exists, '${workDirectory}${fileBasename}.webp'`);
     });
   });
 
   describe('Output to provided directory (--output)', () => {
-    let outputDir = null;
+    let outputDirectory;
 
     beforeEach(() => {
-      outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'optimizt-test-'));
+      outputDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'optimizt-test-'));
     });
 
     afterEach(() => {
-      if (outputDir) {
-        fs.rmdirSync(outputDir, { recursive: true });
+      if (outputDirectory) {
+        fs.rmSync(outputDirectory, { recursive: true });
       }
     });
 
@@ -422,14 +422,14 @@ describe('CLI', () => {
       test('Should output one file', () => {
         const fileName = 'png-not-optimized.png';
 
-        runCliWithParams(`--output ${outputDir} ${workDir}${fileName}`);
-        expect(fs.existsSync(path.join(outputDir, workDir, fileName))).toBeTruthy();
+        runCliWithParameters(`--output ${outputDirectory} ${workDirectory}${fileName}`);
+        expect(fs.existsSync(path.join(outputDirectory, workDirectory, fileName))).toBeTruthy();
       });
 
       test('Should output list of files', () => {
-        runCliWithParams(`--output ${outputDir} ${workDir}*.jpg ${workDir}*.jpeg`);
-        expect(fs.existsSync(path.join(outputDir, workDir, 'jpeg-low-quality.jpg'))).toBeTruthy();
-        expect(fs.existsSync(path.join(outputDir, workDir, 'jpeg-not-optimized.jpeg'))).toBeTruthy();
+        runCliWithParameters(`--output ${outputDirectory} ${workDirectory}*.jpg ${workDirectory}*.jpeg`);
+        expect(fs.existsSync(path.join(outputDirectory, workDirectory, 'jpeg-low-quality.jpg'))).toBeTruthy();
+        expect(fs.existsSync(path.join(outputDirectory, workDirectory, 'jpeg-not-optimized.jpeg'))).toBeTruthy();
       });
     });
 
@@ -437,14 +437,14 @@ describe('CLI', () => {
       test('Should output one file', () => {
         const fileBasename = 'png-not-optimized';
 
-        runCliWithParams(`--avif --output ${outputDir} ${workDir}${fileBasename}.png`);
-        expect(fs.existsSync(path.join(outputDir, workDir, `${fileBasename}.avif`))).toBeTruthy();
+        runCliWithParameters(`--avif --output ${outputDirectory} ${workDirectory}${fileBasename}.png`);
+        expect(fs.existsSync(path.join(outputDirectory, workDirectory, `${fileBasename}.avif`))).toBeTruthy();
       });
 
       test('Should output list of files', () => {
-        runCliWithParams(`--avif --output ${outputDir} ${workDir}*.jpg ${workDir}*.jpeg`);
-        expect(fs.existsSync(path.join(outputDir, workDir, 'jpeg-low-quality.avif'))).toBeTruthy();
-        expect(fs.existsSync(path.join(outputDir, workDir, 'jpeg-not-optimized.avif'))).toBeTruthy();
+        runCliWithParameters(`--avif --output ${outputDirectory} ${workDirectory}*.jpg ${workDirectory}*.jpeg`);
+        expect(fs.existsSync(path.join(outputDirectory, workDirectory, 'jpeg-low-quality.avif'))).toBeTruthy();
+        expect(fs.existsSync(path.join(outputDirectory, workDirectory, 'jpeg-not-optimized.avif'))).toBeTruthy();
       });
     });
   });
@@ -452,24 +452,24 @@ describe('CLI', () => {
   describe('Verbose mode (--verbose)', () => {
     describe('Optimization', () => {
       test('Should be verbose', () => {
-        const stdout = runCliWithParams(`--verbose ${workDir}svg-optimized.svg`);
+        const stdout = runCliWithParameters(`--verbose ${workDirectory}svg-optimized.svg`);
         expectStringContains(stdout, 'Nothing changed. Skipped');
       });
 
       test('Should not be verbose', () => {
-        const stdout = runCliWithParams(`${workDir}svg-optimized.svg`);
+        const stdout = runCliWithParameters(`${workDirectory}svg-optimized.svg`);
         expectStringNotContains(stdout, 'Nothing changed. Skipped');
       });
     });
 
     describe('Converting', () => {
       test('Should be verbose', () => {
-        const stdout = runCliWithParams(`--verbose --avif ${workDir}jpeg-one-pixel.jpg`);
+        const stdout = runCliWithParameters(`--verbose --avif ${workDirectory}jpeg-one-pixel.jpg`);
         expectStringContains(stdout, 'File size increased. Conversion to AVIF skipped');
       });
 
       test('Should not be verbose', () => {
-        const stdout = runCliWithParams(`--avif ${workDir}jpeg-one-pixel.jpg`);
+        const stdout = runCliWithParameters(`--avif ${workDirectory}jpeg-one-pixel.jpg`);
         expectStringNotContains(stdout, 'File size increased. Conversion to AVIF skipped');
       });
     });
@@ -495,12 +495,12 @@ Options:
 `;
 
     test('Should be printed', () => {
-      const stdout = runCliWithParams('--help');
+      const stdout = runCliWithParameters('--help');
       expect(stdout).toBe(helpString);
     });
 
     test('Should be printed if no CLI params provided', () => {
-      const stdout = runCliWithParams('');
+      const stdout = runCliWithParameters('');
       expect(stdout).toBe(helpString);
     });
   });
@@ -509,7 +509,7 @@ Options:
 function copyRecursive(from, to) {
   if (!fs.existsSync(to)) fs.mkdirSync(to);
 
-  fs.readdirSync(from, { withFileTypes: true }).forEach(item => {
+  for (const item of fs.readdirSync(from, { withFileTypes: true })) {
     const fromPath = path.join(from, item.name);
     const toPath = path.join(to, item.name);
 
@@ -518,22 +518,22 @@ function copyRecursive(from, to) {
     } else {
       fs.copyFileSync(fromPath, toPath);
     }
-  });
+  }
 }
 
 function calculateDirectorySize(directoryPath) {
-  let totalSize = null;
+  let totalSize = 0;
 
-  fs.readdirSync(directoryPath, { withFileTypes: true }).forEach(item => {
+  for (const item of fs.readdirSync(directoryPath, { withFileTypes: true })) {
     const itemPath = path.join(directoryPath, item.name);
 
     if (item.isDirectory()) {
       calculateDirectorySize(itemPath);
-      return;
+      continue;
     }
 
     totalSize += fs.statSync(itemPath).size;
-  });
+  }
 
   return totalSize;
 }
@@ -542,13 +542,13 @@ function calcRatio(from, to) {
   return Math.round((from - to) / from * 100);
 }
 
-function runCliWithParams(params) {
-  return execSync(`node ${cliPath} ${params}`).toString();
+function runCliWithParameters(parameters) {
+  return execSync(`node ${cliPath} ${parameters}`).toString();
 }
 
 function grepTotalRatio(string) {
   const [, ratio] = new RegExp(/You\ssaved\s.+\((\d{1,3})%\)/).exec(string);
-  return parseInt(ratio, 10);
+  return Number.parseInt(ratio, 10);
 }
 
 function expectStringContains(string, containing) {
@@ -565,13 +565,13 @@ function expectRatio(current, min, max) {
 }
 
 function expectFileRatio({ file, maxRatio, minRatio, stdout, outputExt }) {
-  expectStringContains(stdout, path.join(tempDir, file));
+  expectStringContains(stdout, path.join(temporary, file));
 
   const fileBasename = path.basename(file, path.extname(file));
   const outputFile = outputExt ? `${fileBasename}.${outputExt}` : file;
 
-  const sizeBefore = fs.statSync(path.join(imagesDir, file)).size;
-  const sizeAfter = fs.statSync(path.join(tempDir, outputFile)).size;
+  const sizeBefore = fs.statSync(path.join(images, file)).size;
+  const sizeAfter = fs.statSync(path.join(temporary, outputFile)).size;
 
   const calculatedRatio = calcRatio(sizeBefore, sizeAfter);
   const stdoutRatio = grepTotalRatio(stdout);
@@ -581,8 +581,8 @@ function expectFileRatio({ file, maxRatio, minRatio, stdout, outputExt }) {
 }
 
 function expectTotalRatio({ maxRatio, minRatio, stdout }) {
-  const sizeBefore = calculateDirectorySize(imagesDir);
-  const sizeAfter = calculateDirectorySize(tempDir);
+  const sizeBefore = calculateDirectorySize(images);
+  const sizeAfter = calculateDirectorySize(temporary);
   const calculatedRatio = calcRatio(sizeBefore, sizeAfter);
   const stdoutRatio = grepTotalRatio(stdout);
 
@@ -591,18 +591,18 @@ function expectTotalRatio({ maxRatio, minRatio, stdout }) {
 }
 
 function expectFileNotModified(fileName) {
-  const origImageBuffer = fs.readFileSync(path.join(imagesDir, fileName));
-  const tempImageBuffer = fs.readFileSync(path.join(tempDir, fileName));
+  const origImageBuffer = fs.readFileSync(path.join(images, fileName));
+  const temporaryImageBuffer = fs.readFileSync(path.join(temporary, fileName));
 
-  expect(tempImageBuffer.equals(origImageBuffer)).toBe(true);
+  expect(temporaryImageBuffer.equals(origImageBuffer)).toBe(true);
 }
 
 function expectFileExists(fileName) {
-  const isFileExists = fs.existsSync(path.join(tempDir, fileName));
+  const isFileExists = fs.existsSync(path.join(temporary, fileName));
   expect(isFileExists).toBe(true);
 }
 
 function expectFileNotExists(fileName) {
-  const isFileExists = fs.existsSync(path.join(tempDir, fileName));
+  const isFileExists = fs.existsSync(path.join(temporary, fileName));
   expect(isFileExists).not.toBe(true);
 }
