@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "cli-progress": "^3.11.0",
-    "commander": "^10.0.1",
+    "commander": "^11.0.0",
     "exec-buffer": "^3.2.0",
     "fast-glob": "^3.3.1",
     "gif2webp-bin": "^5.0.0",
