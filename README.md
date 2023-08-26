@@ -473,5 +473,3 @@ docker run -v $(pwd):/src 343dev/optimizt --webp image.png
 ## Credits
 
 Cute picture for the project was made by [Igor Garybaldi](http://pandabanda.com/).
-
-![Sponsored by DOPAMINE](images/sponsored_by_dopamine.svg)
