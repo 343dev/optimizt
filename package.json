@@ -27,7 +27,7 @@
   },
   "type": "module",
   "engines": {
-    "node": ">=14.14"
+    "node": ">=16.14"
   },
   "dependencies": {
     "cli-progress": "^3.11.0",

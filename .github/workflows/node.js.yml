@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.14, 16.x, 18.x]
+        node-version: [16.14.0, 18.x, 20.x]
 
     steps:
     - uses: actions/checkout@v2
@@ -25,11 +25,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    # npm of 14.x is not compatible with lockfileVersion 3, that's why we use `install` here instead of `ci`
-    - if: matrix.node-version == '14.14'
-      run: npm install
-    - if: matrix.node-version != '14.14'
-      run: npm ci
-
+    - run: npm ci
     - run: npm run build --if-present
     - run: npm test
