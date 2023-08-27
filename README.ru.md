@@ -480,5 +480,3 @@ docker run -v $(pwd):/src 343dev/optimizt --webp image.png
 ## Благодарности
 
 Клёвую картинку для репозитория нарисовал [Игорь Гарибальди](http://pandabanda.com/).
-
-![Sponsored by DOPAMINE](images/sponsored_by_dopamine.svg)

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import sharp from 'sharp';
 
-import setSrgbColorspace from '../lib/setSrgbColorspace.js';
+import setSrgbColorspace from '../lib/set-srgb-colorspace.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 

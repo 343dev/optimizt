@@ -1,10 +1,9 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { jest } from '@jest/globals';
 
-import showTotal from '../lib/showTotal.js';
+import showTotal from '../lib/show-total.js';
 
 test('Savings size and compression ratio are displayed', () => {
-  const fileSize = 1048576;
+  const fileSize = 1_048_576;
 
   console.log = jest.fn();
 
@@ -15,7 +14,7 @@ test('Savings size and compression ratio are displayed', () => {
 });
 
 test('Savings size and compression ratio are not displayed', () => {
-  const fileSize = 1048576;
+  const fileSize = 1_048_576;
 
   console.log = jest.fn();
 

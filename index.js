@@ -1,13 +1,13 @@
 import { pathToFileURL } from 'node:url';
 
-import checkConfigPath from './lib/checkConfigPath.js';
+import checkConfigPath from './lib/check-config-path.js';
 import convert from './lib/convert.js';
-import findConfig from './lib/findConfig.js';
+import findConfig from './lib/find-config.js';
 import { enableVerbose } from './lib/log.js';
 import optimize from './lib/optimize.js';
-import prepareConfig from './lib/prepareConfig.js';
-import prepareFilePaths from './lib/prepareFilePaths.js';
-import prepareOutputPath from './lib/prepareOutputPath.js';
+import prepareConfig from './lib/prepare-config.js';
+import prepareFilePaths from './lib/prepare-file-paths.js';
+import prepareOutputPath from './lib/prepare-output-path.js';
 
 export default async function optimizt({ paths, avif, webp, force, lossless, verbose, output, config }) {
   const configFilepath = pathToFileURL(config ? checkConfigPath(config) : findConfig());
@@ -16,8 +16,7 @@ export default async function optimizt({ paths, avif, webp, force, lossless, ver
 
   if (verbose) enableVerbose();
 
-  if (avif || webp) {
-    await convert({
+  await (avif || webp ? convert({
       paths: prepareFilePaths(paths, ['gif', 'jpeg', 'jpg', 'png']),
       lossless,
       avif,
@@ -25,13 +24,10 @@ export default async function optimizt({ paths, avif, webp, force, lossless, ver
       force,
       output: prepareOutputPath(output),
       config: preparedConfig.convert,
-    });
-  } else {
-    await optimize({
+    }) : optimize({
       paths: prepareFilePaths(paths, ['gif', 'jpeg', 'jpg', 'png', 'svg']),
       lossless,
       output: prepareOutputPath(output),
       config: preparedConfig.optimize,
-    });
-  }
+    }));
 }

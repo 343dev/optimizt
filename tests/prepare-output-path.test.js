@@ -1,10 +1,9 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { jest } from '@jest/globals';
 
-import prepareOutputPath from '../lib/prepareOutputPath.js';
+import prepareOutputPath from '../lib/prepare-output-path.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 

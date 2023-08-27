@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import prepareFilePaths from '../lib/prepareFilePaths.js';
+import prepareFilePaths from '../lib/prepare-file-paths.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -29,15 +29,15 @@ test('Files are filtered by extension', () => {
 
   expect(prepareFilePaths([DEFAULT_IMAGE_PATH], extensions)).toEqual(
     expect.arrayContaining([
-      expect.stringMatching(/[.]gif$/),
-      expect.stringMatching(/[.]png$/),
-      expect.stringMatching(/[.]svg$/),
+      expect.stringMatching(/\.gif$/),
+      expect.stringMatching(/\.png$/),
+      expect.stringMatching(/\.svg$/),
     ]),
   );
 
   expect(prepareFilePaths([DEFAULT_IMAGE_PATH], extensions)).not.toEqual(
     expect.arrayContaining([
-      expect.stringMatching(/[.]jpg$/),
+      expect.stringMatching(/\.jpg$/),
     ]),
   );
 });

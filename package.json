@@ -1,6 +1,6 @@
 {
   "name": "@343dev/optimizt",
-  "version": "5.0.2",
+  "version": "6.0.0",
   "description": "CLI image optimization tool",
   "license": "MIT",
   "author": "Andrey Warkentin (https://github.com/343dev)",
@@ -21,49 +21,46 @@
     ".optimiztrc.js"
   ],
   "scripts": {
-    "lint-src": "eslint --config .eslintrc.cjs --ignore-pattern 'tests/*' ./",
-    "lint-tests": "eslint --config tests/.eslintrc.cjs tests/",
-    "lint": "npm run lint-src && npm run lint-tests",
+    "lint": "npx eslint ./",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest tests",
     "update-git-hooks": "npx simple-git-hooks"
   },
   "type": "module",
   "engines": {
-    "node": ">=14.14"
+    "node": ">=16.14"
   },
   "dependencies": {
     "cli-progress": "^3.11.0",
-    "commander": "^9.2.0",
+    "commander": "^11.0.0",
     "exec-buffer": "^3.2.0",
-    "fast-glob": "^3.2.11",
+    "fast-glob": "^3.3.1",
     "gif2webp-bin": "^5.0.0",
     "gifsicle": "^7.0.0",
-    "guetzli": "https://github.com/funbox/guetzli-bin/tarball/main",
+    "guetzli": "^5.0.0",
     "p-limit": "^4.0.0",
-    "sharp": "^0.30.4",
+    "sharp": "^0.32.5",
     "svgo": "2.6.1"
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.17.0",
-    "@funboxteam/eslint-config": "^7.1.0",
-    "eslint": "^7.32.0",
-    "eslint-plugin-jest": "^26.2.2",
-    "jest": "^28.1.0",
-    "lint-staged": "^12.4.1",
-    "simple-git-hooks": "^2.7.0"
+    "eslint": "^8.48.0",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-unicorn": "^48.0.1",
+    "jest": "^29.6.4",
+    "lint-staged": "^14.0.1",
+    "simple-git-hooks": "^2.9.0"
   },
   "simple-git-hooks": {
     "pre-commit": "npx lint-staged"
   },
   "lint-staged": {
-    "!(tests)/**/*.js": [
-      "eslint --fix --config .eslintrc.cjs"
-    ],
-    "./*.js": [
-      "eslint --fix --config .eslintrc.cjs"
-    ],
-    "tests/**/*.js": [
-      "eslint --fix --config tests/.eslintrc.cjs"
+    "*.js": [
+      "eslint --fix"
+    ]
+  },
+  "eslintConfig": {
+    "extends": "plugin:unicorn/recommended",
+    "plugins": [
+      "import"
     ]
   }
 }
