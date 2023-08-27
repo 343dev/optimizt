@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.0.0 (27.08.2023)
+
+Drop support for Node.js 14.
+
+
 ## 5.0.1 (04.06.2023)
 
 Fixed an [issue](https://github.com/funbox/optimizt/issues/63) with an incorrect path to the configuration file on Windows systems.

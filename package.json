@@ -1,6 +1,6 @@
 {
   "name": "@343dev/optimizt",
-  "version": "5.0.2",
+  "version": "6.0.0",
   "description": "CLI image optimization tool",
   "license": "MIT",
   "author": "Andrey Warkentin (https://github.com/343dev)",

@@ -1,5 +1,12 @@
 # Migration
 
+## 5.0.2 → 6.0.0
+
+Drop support for Node.js 14.
+
+Please make sure you have the right version (>=16.14.0) of Node.js installed.
+
+
 ## 4.1.1 → 5.0.0
 
 First, `removeOffCanvasPaths` SVGO plugin has been removed, so make sure that all your SVG files are optimized correctly by Optimizt v5. 
