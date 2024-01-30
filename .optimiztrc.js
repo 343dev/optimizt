@@ -69,11 +69,7 @@ export default {
         indent: 2,
       },
       plugins: [
-        /*
-          We want to remove useless parts of SVG, but to leave `stroke="none"`.
-          For this purpose we use here a custom version of `removeUnknownsAndDefaults`.
-         */
-        'removeUnknownsAndDefaultsPATCHED',
+        'removeUnknownsAndDefaults',
         'cleanupAttrs',
         'mergeStyles',
         'inlineStyles',
