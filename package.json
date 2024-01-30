@@ -2,6 +2,7 @@
   "name": "@343dev/optimizt",
   "version": "6.0.0",
   "description": "CLI image optimization tool",
+  "keywords": ["svg", "png", "jpeg", "gif", "webp", "avif", "image-compression"],
   "license": "MIT",
   "author": "Andrey Warkentin (https://github.com/343dev)",
   "repository": {
