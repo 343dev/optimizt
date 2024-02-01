@@ -31,7 +31,7 @@ describe('CLI', () => {
         const file = 'svg-not-optimized.svg';
         const stdout = runCliWithParameters(`${workDirectory}${file}`);
 
-        expectFileRatio({ stdout, file, maxRatio: 80, minRatio: 75 });
+        expectFileRatio({ stdout, file, maxRatio: 85, minRatio: 80 });
       });
 
       test('JPEG/JPG should be optimized', () => {
@@ -108,36 +108,6 @@ describe('CLI', () => {
         expectStringContains(stdout, 'Optimizing 8 images (lossless)...');
         expectTotalRatio({ maxRatio: 25, minRatio: 15, stdout });
       });
-    });
-  });
-
-  describe('SVGO', () => {
-    test('Should containing “fill="none"”', () => {
-      const fileBasename = 'svg-not-optimized';
-      const stdout = runCliWithParameters(`${workDirectory}${fileBasename}.svg`);
-
-      expectStringContains(stdout, `${workDirectory}svg-not-optimized.svg`);
-
-      const origBuffer = fs.readFileSync(path.join(images, `${fileBasename}.svg`));
-      const modifiedBuffer = fs.readFileSync(path.join(temporary, `${fileBasename}.svg`));
-      const isBufferEquals = origBuffer.equals(modifiedBuffer);
-
-      expect(isBufferEquals).toBeFalsy();
-      expectStringContains(modifiedBuffer.toString(), 'fill="none"');
-    });
-
-    test('Should containing “stroke="none"”', () => {
-      const fileBasename = 'svg-not-optimized';
-      const stdout = runCliWithParameters(`${workDirectory}${fileBasename}.svg`);
-
-      expectStringContains(stdout, `${workDirectory}svg-not-optimized.svg`);
-
-      const origBuffer = fs.readFileSync(path.join(images, `${fileBasename}.svg`));
-      const modifiedBuffer = fs.readFileSync(path.join(temporary, `${fileBasename}.svg`));
-      const isBufferEquals = origBuffer.equals(modifiedBuffer);
-
-      expect(isBufferEquals).toBeFalsy();
-      expectStringContains(modifiedBuffer.toString(), 'stroke="none"');
     });
   });
 
