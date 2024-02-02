@@ -125,7 +125,6 @@ export default {
       },
     },
 
-    // TODO: Replace gif2webp with sharp
     // https://developers.google.com/speed/webp/docs/gif2webp
     webpGif: {
       lossy: {
