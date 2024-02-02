@@ -1,5 +1,14 @@
 # Changelog
 
+## 7.0.0 (02.02.2024)
+
+SVGO config updated.
+
+Minimum Node.js version is set to 18.17.
+
+Check out [migration guide](./MIGRATION.md).
+
+
 ## 6.0.0 (27.08.2023)
 
 Drop support for Node.js 14.
@@ -21,12 +30,12 @@ Check out [migration guide](./MIGRATION.md).
 
 ## 4.1.1 (27.02.2023)
 
-Fixed installation and included the configuration file to the package. 
+Fixed installation and included the configuration file to the package.
 
 
 ## 4.1.0 (27.01.2023)
 
-Added `--config` flag, which allows specifying path to file with custom settings. 
+Added `--config` flag, which allows specifying path to file with custom settings.
 
 See more in README.
 
