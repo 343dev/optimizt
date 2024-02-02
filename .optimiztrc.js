@@ -69,45 +69,16 @@ export default {
         indent: 2,
       },
       plugins: [
-        /*
-          We want to remove useless parts of SVG, but to leave `stroke="none"`.
-          For this purpose we use here a custom version of `removeUnknownsAndDefaults`.
-         */
-        'removeUnknownsAndDefaultsPATCHED',
-        'cleanupAttrs',
-        'mergeStyles',
-        'inlineStyles',
-        'removeDoctype',
-        'removeXMLProcInst',
-        'removeComments',
-        'removeMetadata',
-        'removeTitle',
-        'removeDesc',
-        'removeUselessDefs',
-        'removeEditorsNSData',
-        'removeEmptyAttrs',
-        'removeHiddenElems',
-        'removeEmptyText',
-        'removeEmptyContainers',
-        'cleanupEnableBackground',
-        'minifyStyles',
-        'convertStyleToAttrs',
-        'convertColors',
-        'convertPathData',
-        'convertTransform',
-        'removeNonInheritableGroupAttrs',
-        'removeUnusedNS',
-        'cleanupIDs',
-        'cleanupNumericValues',
+        {
+          name: 'preset-default',
+          params: {
+            overrides: {
+              removeViewBox: false,
+            },
+          },
+        },
         'cleanupListOfValues',
-        'moveElemsAttrsToGroup',
-        'moveGroupAttrsToElems',
-        'collapseGroups',
-        'mergePaths',
-        'convertShapeToPath',
-        'convertEllipseToCircle',
-        'sortAttrs',
-        'sortDefsChildren',
+        'convertStyleToAttrs',
         'reusePaths',
       ],
     },
@@ -154,7 +125,6 @@ export default {
       },
     },
 
-    // TODO: Replace gif2webp with sharp
     // https://developers.google.com/speed/webp/docs/gif2webp
     webpGif: {
       lossy: {
