@@ -1,4 +1,4 @@
-FROM node:18.15.0-bullseye-slim
+FROM node:18.17.0-bullseye-slim
 LABEL maintainer="Andrey Warkentin (https://github.com/343dev)"
 
 WORKDIR /app
