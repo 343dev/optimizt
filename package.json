@@ -1,6 +1,6 @@
 {
   "name": "@343dev/optimizt",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "CLI image optimization tool",
   "keywords": [
     "svg",
@@ -68,23 +68,23 @@
     ]
   },
   "eslintConfig": {
-		"env": {
-			"node": true,
-			"jest": true
-		},
+    "env": {
+      "node": true,
+      "jest": true
+    },
     "extends": [
-			"xo",
-			"plugin:unicorn/recommended"
-		],
+      "xo",
+      "plugin:unicorn/recommended"
+    ],
     "plugins": [
       "import"
     ],
-		"rules": {
-			"no-warning-comments": "off",
-			"object-curly-spacing": [
-				"error",
-				"always"
-			]
-		}
+    "rules": {
+      "no-warning-comments": "off",
+      "object-curly-spacing": [
+        "error",
+        "always"
+      ]
+    }
   }
 }
