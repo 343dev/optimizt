@@ -68,9 +68,23 @@
     ]
   },
   "eslintConfig": {
-    "extends": "plugin:unicorn/recommended",
+		"env": {
+			"node": true,
+			"jest": true
+		},
+    "extends": [
+			"xo",
+			"plugin:unicorn/recommended"
+		],
     "plugins": [
       "import"
-    ]
+    ],
+		"rules": {
+			"no-warning-comments": "off",
+			"object-curly-spacing": [
+				"error",
+				"always"
+			]
+		}
   }
 }
