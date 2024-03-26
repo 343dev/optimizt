@@ -12,14 +12,14 @@ const bwImageBuffer = fs.readFileSync(path.resolve(dirname, 'images', 'jpeg-one-
 const srgbImageBuffer = fs.readFileSync(path.resolve(dirname, 'images', 'jpeg-low-quality.jpg'));
 
 test('Output colorspace always sRGB', async () => {
-  await expect(getColorspace(bwImageBuffer)).resolves.toBe('b-w');
-  await expect(getColorspace(await setSrgbColorspace(bwImageBuffer))).resolves.toBe('srgb');
-  await expect(getColorspace(await setSrgbColorspace(srgbImageBuffer))).resolves.toBe('srgb');
+	await expect(getColorspace(bwImageBuffer)).resolves.toBe('b-w');
+	await expect(getColorspace(await setSrgbColorspace(bwImageBuffer))).resolves.toBe('srgb');
+	await expect(getColorspace(await setSrgbColorspace(srgbImageBuffer))).resolves.toBe('srgb');
 });
 
 async function getColorspace(buffer) {
-  const image = await sharp(buffer);
-  const metadata = await image.metadata();
+	const image = await sharp(buffer);
+	const metadata = await image.metadata();
 
-  return metadata.space;
+	return metadata.space;
 }
