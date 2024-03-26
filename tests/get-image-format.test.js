@@ -7,7 +7,7 @@ import getImageFormat from '../lib/get-image-format.js';
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function readFile(filePath) {
-  return fs.readFileSync(path.resolve(dirname, filePath));
+	return fs.readFileSync(path.resolve(dirname, filePath));
 }
 
 const gifBuffer = readFile('images/gif-not-optimized.gif');
@@ -16,17 +16,17 @@ const pngBuffer = readFile('images/png-not-optimized.png');
 const svgBuffer = readFile('images/svg-optimized.svg');
 
 test('GIF should be detected as “gif”', async () => {
-  await expect(getImageFormat(gifBuffer)).resolves.toBe('gif');
+	await expect(getImageFormat(gifBuffer)).resolves.toBe('gif');
 });
 
 test('JPEG should be detected as “jpeg”', async () => {
-  await expect(getImageFormat(jpegBuffer)).resolves.toBe('jpeg');
+	await expect(getImageFormat(jpegBuffer)).resolves.toBe('jpeg');
 });
 
 test('PNG should be detected as “png”', async () => {
-  await expect(getImageFormat(pngBuffer)).resolves.toBe('png');
+	await expect(getImageFormat(pngBuffer)).resolves.toBe('png');
 });
 
 test('SVG should be detected as “svg”', async () => {
-  await expect(getImageFormat(svgBuffer)).resolves.toBe('svg');
+	await expect(getImageFormat(svgBuffer)).resolves.toBe('svg');
 });
