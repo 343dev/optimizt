@@ -488,16 +488,17 @@ Usage: cli [options] <dir> <file ...>
 CLI image optimization tool
 
 Options:
-  --avif               create AVIF and exit
-  --webp               create WebP and exit
-  -f, --force          force create AVIF and WebP
-  -l, --lossless       perform lossless optimizations
-  -v, --verbose        be verbose
-  -c, --config <path>  use this configuration, overriding default config
-                       options if present
-  -o, --output <path>  write output to directory
-  -V, --version        output the version number
-  -h, --help           display help for command
+  --avif                  create AVIF and exit
+  --webp                  create WebP and exit
+  -f, --force             force create AVIF and WebP
+  -l, --lossless          perform lossless optimizations
+  -v, --verbose           be verbose
+  -c, --config <path>     use this configuration, overriding default config
+                          options if present
+  -o, --output <path>     write output to directory
+  -R, --resize <percent>  resize images to a percentage of their original size
+  -V, --version           output the version number
+  -h, --help              display help for command
 `;
 
 		test('Should be printed', () => {

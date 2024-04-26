@@ -8,7 +8,7 @@ import optimize from './lib/optimize.js';
 import prepareFilePaths from './lib/prepare-file-paths.js';
 import prepareOutputPath from './lib/prepare-output-path.js';
 
-export default async function optimizt({ paths, avif, webp, force, lossless, verbose, output, config }) {
+export default async function optimizt({ paths, avif, webp, force, lossless, verbose, output, config, resize }) {
 	const configFilepath = pathToFileURL(config ? checkConfigPath(config) : findConfig());
 	const configData = await import(configFilepath);
 
@@ -24,10 +24,12 @@ export default async function optimizt({ paths, avif, webp, force, lossless, ver
 		force,
 		output: prepareOutputPath(output),
 		config: configData.default.convert,
+		resizePercentage: resize ? Number(resize) : undefined,
 	}) : optimize({
 		paths: prepareFilePaths(paths, ['gif', 'jpeg', 'jpg', 'png', 'svg']),
 		lossless,
 		output: prepareOutputPath(output),
 		config: configData.default.optimize,
+		resizePercentage: resize ? Number(resize) : undefined,
 	}));
 }

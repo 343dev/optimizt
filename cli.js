@@ -18,7 +18,8 @@ program
 	.option('-l, --lossless', 'perform lossless optimizations')
 	.option('-v, --verbose', 'be verbose')
 	.option('-c, --config <path>', 'use this configuration, overriding default config options if present')
-	.option('-o, --output <path>', 'write output to directory');
+	.option('-o, --output <path>', 'write output to directory')
+	.option('-R, --resize <percent>', 'resize images to a percentage of their original size');
 
 program
 	.usage('[options] <dir> <file ...>')
