@@ -69,22 +69,30 @@
   },
   "eslintConfig": {
     "env": {
+			"es2024": true,
       "node": true,
       "jest": true
     },
+		"parserOptions": {
+			"ecmaVersion": "latest",
+			"sourceType": "module"
+		},
     "extends": [
       "xo",
-      "plugin:unicorn/recommended"
+      "plugin:unicorn/recommended",
+			"plugin:import/recommended"
     ],
     "plugins": [
       "import"
     ],
     "rules": {
-      "no-warning-comments": "off",
-      "object-curly-spacing": [
-        "error",
-        "always"
-      ]
-    }
+			"unicorn/no-array-reduce": "off",
+			"capitalized-comments": "off",
+			"no-warning-comments": "off",
+			"object-curly-spacing": [
+				"error",
+				"always"
+			]
+		}
   }
 }
