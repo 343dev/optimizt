@@ -9,7 +9,12 @@
     "gif",
     "webp",
     "avif",
-    "image-compression"
+    "image-compression",
+		"sharp",
+		"svgo",
+		"gifsicle",
+		"guetzli",
+		"gif2webp"
   ],
   "license": "MIT",
   "author": "Andrey Warkentin (https://github.com/343dev)",
