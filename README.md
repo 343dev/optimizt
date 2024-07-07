@@ -93,15 +93,15 @@ For optimizing GIFs, [gifsicle](https://github.com/kohler/gifsicle) is used, and
 > a high level of compression and still have a good visual quality. But you should keep in mind that if you optimize
 > the file again, the size may decrease at the expense of degrading the visual quality of the image.
 
-The default settings are located in [.optimiztrc.js](./.optimiztrc.js), the file contains a list of supported parameters
+The default settings are located in [.optimiztrc.cjs](./.optimiztrc.cjs), the file contains a list of supported parameters
 and their brief description.
 
 To disable any of the parameters, you should use `false` for the value.
 
-When running with the `--config path/to/.optimiztrc.js` flag, the settings from the specified configuration file will
+When running with the `--config path/to/.optimiztrc.cjs` flag, the settings from the specified configuration file will
 be used for image processing.
 
-When running normally, without the `--config` flag, a recursive search for the `.optimiztrc.js` file will be performed
+When running normally, without the `--config` flag, a recursive search for the `.optimiztrc.cjs` file will be performed
 starting from the current directory and up to the root of the file system. If the file is not found, the default
 settings will be applied.
 

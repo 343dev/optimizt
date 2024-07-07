@@ -1,6 +1,6 @@
 *
 !lib/
-!.optimiztrc.js
+!.optimiztrc.cjs
 !cli.js
 !index.js
 !LICENSE

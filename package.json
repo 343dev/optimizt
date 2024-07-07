@@ -32,7 +32,7 @@
     "index.js",
     "lib/",
     "svgo/",
-    ".optimiztrc.js"
+    ".optimiztrc.cjs"
   ],
   "scripts": {
     "lint": "npx eslint ./",

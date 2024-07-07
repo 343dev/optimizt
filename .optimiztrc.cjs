@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   optimize: {
     jpeg: {
       // https://sharp.pixelplumbing.com/api-output#jpeg
