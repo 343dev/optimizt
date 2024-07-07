@@ -36,7 +36,7 @@ optimizt path/to/picture.jpg
 
 - `--avif` — create AVIF versions for the passed paths instead of compressing them.
 - `--webp` — create WebP versions for the passed paths instead of compressing them.
-- `-f, --force` — force create AVIF and WebP even if output file size increased or file already exists.
+- `-f, --force` — create AVIF and WebP even if file already exists.
 - `-l, --lossless` — optimize losslessly instead of lossily.
 - `-v, --verbose` — show additional info, e.g. skipped files.
 - `-c, --config` — use this configuration, overriding default config options if present.
@@ -370,7 +370,7 @@ on:
     paths:
       - "**.jpe?g"
       - "**.png"
-  
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 

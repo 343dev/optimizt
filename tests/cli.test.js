@@ -157,16 +157,6 @@ describe('CLI', () => {
 				expectFileNotModified(file);
 			});
 
-			test('Files should not be converted if ratio <= 0', () => {
-				const fileBasename = 'jpeg-one-pixel';
-				const stdout = runCliWithParameters(`--avif ${workDirectory}${fileBasename}.jpg`);
-
-				expectStringContains(stdout, 'Converting 1 image (lossy)...');
-				expectStringContains(stdout, 'Done!');
-				expectFileNotModified(`${fileBasename}.jpg`);
-				expectFileNotExists(`${fileBasename}.avif`);
-			});
-
 			test('Files in provided directory should be converted', () => {
 				const fileBasename = 'png-not-optimized';
 				const stdout = runCliWithParameters(`--avif ${workDirectory}`);
@@ -201,16 +191,6 @@ describe('CLI', () => {
 					stdout, file, maxRatio: 75, minRatio: 70, outputExt: 'avif',
 				});
 				expectFileNotModified(file);
-			});
-
-			test('Files should not be converted if ratio <= 0', () => {
-				const fileBasename = 'jpeg-one-pixel';
-				const stdout = runCliWithParameters(`--avif --lossless ${workDirectory}${fileBasename}.jpg`);
-
-				expectStringContains(stdout, 'Converting 1 image (lossless)...');
-				expectStringContains(stdout, 'Done!');
-				expectFileNotModified(`${fileBasename}.jpg`);
-				expectFileNotExists(`${fileBasename}.avif`);
 			});
 
 			test('Files in provided directory should be converted', () => {
@@ -258,16 +238,6 @@ describe('CLI', () => {
 				expectFileNotModified(file);
 			});
 
-			test('Files should not be converted if ratio <= 0', () => {
-				const fileBasename = 'jpeg-low-quality';
-				const stdout = runCliWithParameters(`--webp ${workDirectory}${fileBasename}.jpg`);
-
-				expectStringContains(stdout, 'Converting 1 image (lossy)...');
-				expectStringContains(stdout, 'Done!');
-				expectFileNotModified(`${fileBasename}.jpg`);
-				expectFileNotExists(`${fileBasename}.webp`);
-			});
-
 			test('Files in provided directory should be converted', () => {
 				const fileBasename = 'png-not-optimized';
 				const stdout = runCliWithParameters(`--webp ${workDirectory}`);
@@ -311,16 +281,6 @@ describe('CLI', () => {
 				expectFileNotModified(file);
 			});
 
-			test('Files should not be converted if ratio <= 0', () => {
-				const fileBasename = 'jpeg-low-quality';
-				const stdout = runCliWithParameters(`--webp --lossless ${workDirectory}${fileBasename}.jpg`);
-
-				expectStringContains(stdout, 'Converting 1 image (lossless)...');
-				expectStringContains(stdout, 'Done!');
-				expectFileNotModified(`${fileBasename}.jpg`);
-				expectFileNotExists(`${fileBasename}.webp`);
-			});
-
 			test('Files in provided directory should be converted', () => {
 				const fileBasename = 'png-not-optimized';
 				const stdout = runCliWithParameters(`--webp --lossless ${workDirectory}`);
@@ -348,16 +308,6 @@ describe('CLI', () => {
 				expectFileExists(`${fileBasename}.avif`);
 				expectFileExists(`${fileBasename}.webp`);
 			});
-
-			test('AVIF and WebP should not be created if ratio <= 0', () => {
-				const stdout = runCliWithParameters(`--avif --webp ${workDirectory}jpeg-low-quality.jpg ${workDirectory}jpeg-one-pixel.jpg`);
-
-				expectStringContains(stdout, 'Converting 2 images (lossy)...');
-				expectFileNotModified('jpeg-low-quality.jpg');
-				expectFileNotExists('jpeg-low-quality.webp');
-				expectFileNotModified('jpeg-one-pixel.jpg');
-				expectFileNotExists('jpeg-one-pixel.avif');
-			});
 		});
 
 		describe('Lossless (--lossless)', () => {
@@ -372,17 +322,6 @@ describe('CLI', () => {
 				expectFileNotModified(`${fileBasename}.png`);
 				expectFileExists(`${fileBasename}.avif`);
 				expectFileExists(`${fileBasename}.webp`);
-			});
-
-			test('AVIF and WebP should not be created if ratio <= 0', () => {
-				const fileBasename = 'jpeg-low-quality';
-				const stdout = runCliWithParameters(`--avif --webp --lossless ${workDirectory}${fileBasename}.jpg`);
-
-				expectStringContains(stdout, 'Converting 1 image (lossless)...');
-				expectStringContains(stdout, 'Done!');
-				expectFileNotModified(`${fileBasename}.jpg`);
-				expectFileNotExists(`${fileBasename}.avif`);
-				expectFileNotExists(`${fileBasename}.webp`);
 			});
 		});
 	});
@@ -456,28 +395,14 @@ describe('CLI', () => {
 	});
 
 	describe('Verbose mode (--verbose)', () => {
-		describe('Optimization', () => {
-			test('Should be verbose', () => {
-				const stdout = runCliWithParameters(`--verbose ${workDirectory}svg-optimized.svg`);
-				expectStringContains(stdout, 'Nothing changed. Skipped');
-			});
-
-			test('Should not be verbose', () => {
-				const stdout = runCliWithParameters(`${workDirectory}svg-optimized.svg`);
-				expectStringNotContains(stdout, 'Nothing changed. Skipped');
-			});
+		test('Should be verbose', () => {
+			const stdout = runCliWithParameters(`--verbose ${workDirectory}svg-optimized.svg`);
+			expectStringContains(stdout, 'Nothing changed. Skipped');
 		});
 
-		describe('Converting', () => {
-			test('Should be verbose', () => {
-				const stdout = runCliWithParameters(`--verbose --avif ${workDirectory}jpeg-one-pixel.jpg`);
-				expectStringContains(stdout, 'File size increased. Conversion to AVIF skipped');
-			});
-
-			test('Should not be verbose', () => {
-				const stdout = runCliWithParameters(`--avif ${workDirectory}jpeg-one-pixel.jpg`);
-				expectStringNotContains(stdout, 'File size increased. Conversion to AVIF skipped');
-			});
+		test('Should not be verbose', () => {
+			const stdout = runCliWithParameters(`${workDirectory}svg-optimized.svg`);
+			expectStringNotContains(stdout, 'Nothing changed. Skipped');
 		});
 	});
 
@@ -608,9 +533,4 @@ function expectFileNotModified(fileName) {
 function expectFileExists(fileName) {
 	const isFileExists = fs.existsSync(path.join(temporary, fileName));
 	expect(isFileExists).toBe(true);
-}
-
-function expectFileNotExists(fileName) {
-	const isFileExists = fs.existsSync(path.join(temporary, fileName));
-	expect(isFileExists).not.toBe(true);
 }
