@@ -1,8 +1,7 @@
 *
-!lib
-!svgo
+!lib/
 !.optimiztrc.js
 !cli.js
 !index.js
-!package*.json
 !LICENSE
+!package*.json

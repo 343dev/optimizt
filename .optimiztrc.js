@@ -92,12 +92,14 @@ export default {
         lossless: false, // use lossless compression
         effort: 4, // CPU effort, between 0 (fastest) and 9 (slowest)
         chromaSubsampling: '4:4:4', // set to '4:2:0' to use chroma subsampling
+				bitdepth: 8, // set bitdepth to 8, 10 or 12 bit
       },
       lossless: {
         quality: 50,
         lossless: true,
         effort: 4,
         chromaSubsampling: '4:4:4',
+				bitdepth: 8, // set bitdepth to 8, 10 or 12 bit
       },
     },
 
@@ -109,6 +111,7 @@ export default {
         lossless: false, // use lossless compression mode
         nearLossless: false, // use near_lossless compression mode
         smartSubsample: false, // use high quality chroma subsampling
+				preset: 'default', // named preset for preprocessing/filtering, one of: default, photo, picture, drawing, icon, text
         effort: 4, // CPU effort, between 0 (fastest) and 6 (slowest)
         minSize: false, // prevent use of animation key frames to minimise file size (slow)
         mixed: false, // allow mixture of lossy and lossless animation frames (slow)
