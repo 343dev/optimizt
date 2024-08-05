@@ -1,6 +1,6 @@
 {
   "name": "@343dev/optimizt",
-  "version": "7.0.2",
+  "version": "8.0.0",
   "description": "CLI image optimization tool",
   "keywords": [
     "svg",
