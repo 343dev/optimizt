@@ -1,5 +1,19 @@
 # Changelog
 
+## 8.0.0 (2024-08-05)
+
+❤️ Thank you for using Optimizt. If you have any suggestions or feedback, please don't hesitate to [open an issue](https://github.com/343dev/optimizt/issues).
+
+Here are the changes in this version:
+
+- Added EXIF Orientation tag support for JPEG.
+- Removed convert ratio check for AVIF and WebP.
+- Improved JPEG lossless optimization process.
+- Changed configuration file format to CJS.
+
+[Migration guide](./MIGRATION.md).
+
+
 ## 7.0.0 (02.02.2024)
 
 SVGO config updated.

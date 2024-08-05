@@ -1,6 +1,6 @@
 {
   "name": "@343dev/optimizt",
-  "version": "7.0.2",
+  "version": "8.0.0",
   "description": "CLI image optimization tool",
   "keywords": [
     "svg",
@@ -9,7 +9,12 @@
     "gif",
     "webp",
     "avif",
-    "image-compression"
+    "image-compression",
+    "sharp",
+    "svgo",
+    "gifsicle",
+    "guetzli",
+    "gif2webp"
   ],
   "license": "MIT",
   "author": "Andrey Warkentin (https://github.com/343dev)",
@@ -27,7 +32,7 @@
     "index.js",
     "lib/",
     "svgo/",
-    ".optimiztrc.js"
+    ".optimiztrc.cjs"
   ],
   "scripts": {
     "lint": "npx eslint ./",
@@ -46,7 +51,7 @@
     "gif2webp-bin": "^5.0.0",
     "gifsicle": "^7.0.0",
     "guetzli": "^5.0.0",
-    "p-limit": "^6.0.0",
+    "p-limit": "^6.1.0",
     "sharp": "^0.33.4",
     "svgo": "^3.3.2"
   },
@@ -54,9 +59,9 @@
     "eslint": "^8.57.0",
     "eslint-config-xo": "^0.45.0",
     "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-unicorn": "^54.0.0",
+    "eslint-plugin-unicorn": "^55.0.0",
     "jest": "^29.7.0",
-    "lint-staged": "^15.2.7",
+    "lint-staged": "^15.2.8",
     "simple-git-hooks": "^2.11.1"
   },
   "simple-git-hooks": {
