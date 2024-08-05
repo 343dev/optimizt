@@ -1,5 +1,16 @@
 # Migration
 
+## 7.0.2 → 8.0.0
+
+Optimizt now checks for the EXIF Orientation tag before processing images and rotates the resulting image accordingly.
+
+The compression ratio check has been removed when converting images to AVIF and WebP formats. The `--force` flag is now only used to overwrite existing files.
+
+The lossless optimization process for JPEG images has been improved. Optimization is done by Guetzli, but necessary transformations are applied first using Sharp. This includes converting the color space to sRGB and rotating the image based on the EXIF orientation tag. And the image quality used to degrade after [passing through Sharp](https://github.com/lovell/sharp/issues/2453) because the default quality setting for JPEG was 80. Starting with this version, the quality is set to 100, which should improve the image quality and slightly increase its size compared to previous versions.
+
+The [.optimiztrc](.optimiztrc.cjs) file format has been changed from ESM to CJS. This should make it easier to link an external configuration file using the `--config` flag.
+
+
 ## 6.0.0 → 7.0.0
 
 Previously, when working with SVGO, a custom version of `removeUnknownsAndDefaults` plugin was used, which did not
