@@ -48,6 +48,7 @@
     "commander": "^12.1.0",
     "exec-buffer": "^3.2.0",
     "fast-glob": "^3.3.2",
+    "fdir": "^6.3.0",
     "gif2webp-bin": "^5.0.0",
     "gifsicle": "^7.0.0",
     "guetzli": "^5.0.0",
