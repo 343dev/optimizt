@@ -8,26 +8,26 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_IMAGE_PATH = resolvePath(['images']);
 const DEFAULT_EXTENSIONS = ['gif', 'jpeg', 'jpg', 'png', 'svg'];
 
-test('Non-existent file paths are ignored', () => {
+test('Non-existent file paths are ignored', async () => {
 	const paths = [
 		resolvePath(['not+exists']),
 		resolvePath(['not+exists.svg']),
 	];
-	expect(prepareFilePaths(paths, DEFAULT_EXTENSIONS)).toStrictEqual([]);
+	expect(await prepareFilePaths(paths, DEFAULT_EXTENSIONS)).toStrictEqual([]);
 });
 
-test('Files from subdirectories are processed', () => {
-	expect(prepareFilePaths([DEFAULT_IMAGE_PATH], DEFAULT_EXTENSIONS)).toEqual(
+test('Files from subdirectories are processed', async () => {
+	expect(await prepareFilePaths([DEFAULT_IMAGE_PATH], DEFAULT_EXTENSIONS)).toEqual(
 		expect.arrayContaining([
 			expect.stringMatching(/file-in-subdirectory.jpg$/),
 		]),
 	);
 });
 
-test('Files are filtered by extension', () => {
+test('Files are filtered by extension', async () => {
 	const extensions = ['gif', 'jpeg', 'png', 'svg'];
 
-	expect(prepareFilePaths([DEFAULT_IMAGE_PATH], extensions)).toEqual(
+	expect(await prepareFilePaths([DEFAULT_IMAGE_PATH], extensions)).toEqual(
 		expect.arrayContaining([
 			expect.stringMatching(/\.gif$/),
 			expect.stringMatching(/\.png$/),
@@ -35,15 +35,15 @@ test('Files are filtered by extension', () => {
 		]),
 	);
 
-	expect(prepareFilePaths([DEFAULT_IMAGE_PATH], extensions)).not.toEqual(
+	expect(await prepareFilePaths([DEFAULT_IMAGE_PATH], extensions)).not.toEqual(
 		expect.arrayContaining([
 			expect.stringMatching(/\.jpg$/),
 		]),
 	);
 });
 
-test('Only relative file paths are generated', () => {
-	expect(prepareFilePaths([DEFAULT_IMAGE_PATH], DEFAULT_EXTENSIONS)).not.toEqual(
+test('Only relative file paths are generated', async () => {
+	expect(await prepareFilePaths([DEFAULT_IMAGE_PATH], DEFAULT_EXTENSIONS)).not.toEqual(
 		expect.arrayContaining([
 			expect.stringMatching(new RegExp(`^${dirname}`)),
 		]),

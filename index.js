@@ -12,12 +12,17 @@ export default async function optimizt({ paths, avif, webp, force, lossless, ver
 	const configFilepath = pathToFileURL(config ? checkConfigPath(config) : findConfig());
 	const configData = await import(configFilepath);
 
+	const supportedFileTypes = {
+		convert: ['gif', 'jpeg', 'jpg', 'png'],
+		optimize: ['gif', 'jpeg', 'jpg', 'png', 'svg'],
+	};
+
 	if (verbose) {
 		enableVerbose();
 	}
 
 	await (avif || webp ? convert({
-		paths: prepareFilePaths(paths, ['gif', 'jpeg', 'jpg', 'png']),
+		paths: await prepareFilePaths(paths, supportedFileTypes.convert),
 		lossless,
 		avif,
 		webp,
@@ -25,7 +30,7 @@ export default async function optimizt({ paths, avif, webp, force, lossless, ver
 		output: prepareOutputPath(output),
 		config: configData.default.convert,
 	}) : optimize({
-		paths: prepareFilePaths(paths, ['gif', 'jpeg', 'jpg', 'png', 'svg']),
+		paths: await prepareFilePaths(paths, supportedFileTypes.optimize),
 		lossless,
 		output: prepareOutputPath(output),
 		config: configData.default.optimize,
