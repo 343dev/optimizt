@@ -8,31 +8,63 @@ import optimize from './lib/optimize.js';
 import prepareFilePaths from './lib/prepare-file-paths.js';
 import prepareOutputPath from './lib/prepare-output-path.js';
 
-export default async function optimizt({ paths, avif, webp, force, lossless, verbose, output, config }) {
-	const configFilepath = pathToFileURL(config ? checkConfigPath(config) : findConfig());
-	const configData = await import(configFilepath);
+const MODE_NAME = {
+	convert: 'convert',
+	optimize: 'optimize',
+};
 
-	const supportedFileTypes = {
-		convert: ['gif', 'jpeg', 'jpg', 'png'],
-		optimize: ['gif', 'jpeg', 'jpg', 'png', 'svg'],
-	};
+const SUPPORTED_FILE_TYPES = {
+	convert: ['gif', 'jpeg', 'jpg', 'png'],
+	optimize: ['gif', 'jpeg', 'jpg', 'png', 'svg'],
+};
 
-	if (verbose) {
+export default async function optimizt({
+	paths: inputPaths,
+	output: outputDirectoryPath,
+	config: configFilePath,
+
+	avif: shouldConvertToAvif,
+	webp: shouldConvertToWebp,
+
+	force: isForced,
+	lossless: isLossless,
+	verbose: isVerbose,
+}) {
+	const shouldConvert = shouldConvertToAvif || shouldConvertToWebp;
+
+	const currentMode = shouldConvert
+		? MODE_NAME.convert
+		: MODE_NAME.optimize;
+
+	const preparedConfigFilePath = pathToFileURL(
+		configFilePath
+			? checkConfigPath(configFilePath)
+			: findConfig(),
+	);
+	const configData = await import(preparedConfigFilePath);
+	const config = configData.default[currentMode];
+
+	const preparedInputPaths = await prepareFilePaths(inputPaths, SUPPORTED_FILE_TYPES[currentMode]);
+	const preparedOutputDirectoryPath = prepareOutputPath(outputDirectoryPath);
+
+	if (isVerbose) {
 		enableVerbose();
 	}
 
-	await (avif || webp ? convert({
-		paths: await prepareFilePaths(paths, supportedFileTypes.convert),
-		lossless,
-		avif,
-		webp,
-		force,
-		output: prepareOutputPath(output),
-		config: configData.default.convert,
-	}) : optimize({
-		paths: await prepareFilePaths(paths, supportedFileTypes.optimize),
-		lossless,
-		output: prepareOutputPath(output),
-		config: configData.default.optimize,
-	}));
+	const process = shouldConvert
+		? convert
+		: optimize;
+
+	await process({
+		paths: preparedInputPaths,
+		output: preparedOutputDirectoryPath,
+		lossless: isLossless,
+		config,
+
+		...shouldConvert && {
+			avif: shouldConvertToAvif,
+			webp: shouldConvertToWebp,
+			force: isForced,
+		},
+	});
 }
