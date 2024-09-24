@@ -56,15 +56,15 @@ export default async function optimizt({
 		: optimize;
 
 	await process({
-		paths: preparedInputFilePaths,
-		output: preparedOutputDirectoryPath,
-		lossless: isLossless,
+		inputFilePaths: preparedInputFilePaths,
+		outputDirectoryPath: preparedOutputDirectoryPath,
+		isLossless,
 		config,
 
 		...shouldConvert && {
-			avif: shouldConvertToAvif,
-			webp: shouldConvertToWebp,
-			force: isForced,
+			shouldConvertToAvif,
+			shouldConvertToWebp,
+			isForced,
 		},
 	});
 }
