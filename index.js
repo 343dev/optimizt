@@ -6,7 +6,7 @@ import findConfig from './lib/find-config.js';
 import { enableVerbose } from './lib/log.js';
 import optimize from './lib/optimize.js';
 import prepareInputFilePaths from './lib/prepare-input-file-paths.js';
-import prepareOutputPath from './lib/prepare-output-path.js';
+import prepareOutputDirectoryPath from './lib/prepare-output-directory-path.js';
 
 const MODE_NAME = {
 	convert: 'convert',
@@ -45,7 +45,7 @@ export default async function optimizt({
 	const config = configData.default[currentMode];
 
 	const preparedInputFilePaths = await prepareInputFilePaths(inputPaths, SUPPORTED_FILE_TYPES[currentMode]);
-	const preparedOutputDirectoryPath = prepareOutputPath(outputDirectoryPath);
+	const preparedOutputDirectoryPath = prepareOutputDirectoryPath(outputDirectoryPath);
 
 	if (isVerbose) {
 		enableVerbose();

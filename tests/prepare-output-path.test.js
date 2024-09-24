@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 import { jest } from '@jest/globals';
 
-import prepareOutputPath from '../lib/prepare-output-path.js';
+import prepareOutputDirectoryPath from '../lib/prepare-output-directory-path.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -14,7 +14,7 @@ test('Exit if the path does not exist', () => {
 
 	console.log = jest.fn();
 
-	expect(() => prepareOutputPath('not+exists')).toThrow();
+	expect(() => prepareOutputDirectoryPath('not+exists')).toThrow();
 	expect(processExitMock).toHaveBeenCalledWith(1);
 	expect(console.log.mock.calls[0][1]).toBe('Output path does not exist');
 
@@ -29,7 +29,7 @@ test('Exit if specified path to file instead of directory', () => {
 
 	console.log = jest.fn();
 
-	expect(() => prepareOutputPath(path.resolve(dirname, 'images', 'svg-not-optimized.svg'))).toThrow();
+	expect(() => prepareOutputDirectoryPath(path.resolve(dirname, 'images', 'svg-not-optimized.svg'))).toThrow();
 	expect(processExitMock).toHaveBeenCalledWith(1);
 	expect(console.log.mock.calls[0][1]).toBe('Output path must be a directory');
 
@@ -38,5 +38,5 @@ test('Exit if specified path to file instead of directory', () => {
 });
 
 test('Full path is generated', () => {
-	expect(prepareOutputPath('tests/images')).toBe(path.resolve(dirname, 'images'));
+	expect(prepareOutputDirectoryPath('tests/images')).toBe(path.resolve(dirname, 'images'));
 });
