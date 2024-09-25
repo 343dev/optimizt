@@ -4,7 +4,7 @@ import checkConfigPath from './lib/check-config-path.js';
 import { SUPPORTED_FILE_TYPES } from './lib/constants.js';
 import convert from './lib/convert.js';
 import findConfig from './lib/find-config.js';
-import { enableVerbose } from './lib/log.js';
+import log, { enableVerbose } from './lib/log.js';
 import optimize from './lib/optimize.js';
 import prepareInputFilePaths from './lib/prepare-input-file-paths.js';
 import prepareOutputDirectoryPath from './lib/prepare-output-directory-path.js';
@@ -45,6 +45,10 @@ export default async function optimizt({
 
 	if (isVerbose) {
 		enableVerbose();
+	}
+
+	if (isLossless) {
+		log('Lossless optimization may take a long time');
 	}
 
 	const process = shouldConvert
