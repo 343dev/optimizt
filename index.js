@@ -1,6 +1,7 @@
 import { pathToFileURL } from 'node:url';
 
 import checkConfigPath from './lib/check-config-path.js';
+import { SUPPORTED_FILE_TYPES } from './lib/constants.js';
 import convert from './lib/convert.js';
 import findConfig from './lib/find-config.js';
 import { enableVerbose } from './lib/log.js';
@@ -9,13 +10,8 @@ import prepareInputFilePaths from './lib/prepare-input-file-paths.js';
 import prepareOutputDirectoryPath from './lib/prepare-output-directory-path.js';
 
 const MODE_NAME = {
-	convert: 'convert',
-	optimize: 'optimize',
-};
-
-const SUPPORTED_FILE_TYPES = {
-	convert: ['gif', 'jpeg', 'jpg', 'png'],
-	optimize: ['gif', 'jpeg', 'jpg', 'png', 'svg'],
+	CONVERT: 'convert',
+	OPTIMIZE: 'optimize',
 };
 
 export default async function optimizt({
@@ -33,8 +29,8 @@ export default async function optimizt({
 	const shouldConvert = shouldConvertToAvif || shouldConvertToWebp;
 
 	const currentMode = shouldConvert
-		? MODE_NAME.convert
-		: MODE_NAME.optimize;
+		? MODE_NAME.CONVERT
+		: MODE_NAME.OPTIMIZE;
 
 	const preparedConfigFilePath = pathToFileURL(
 		configFilePath
@@ -42,9 +38,9 @@ export default async function optimizt({
 			: findConfig(),
 	);
 	const configData = await import(preparedConfigFilePath);
-	const config = configData.default[currentMode];
+	const config = configData.default[currentMode.toLowerCase()];
 
-	const preparedInputFilePaths = await prepareInputFilePaths(inputPaths, SUPPORTED_FILE_TYPES[currentMode]);
+	const preparedInputFilePaths = await prepareInputFilePaths(inputPaths, SUPPORTED_FILE_TYPES[currentMode.toUpperCase()]);
 	const preparedOutputDirectoryPath = prepareOutputDirectoryPath(outputDirectoryPath);
 
 	if (isVerbose) {
