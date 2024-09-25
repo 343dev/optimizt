@@ -147,14 +147,13 @@ describe('CLI', () => {
 				expectFileNotModified(file);
 			});
 
-			test('GIF should be converted', () => {
+			test('GIF should not be converted', () => {
 				const file = 'gif-not-optimized.gif';
 				const stdout = runCliWithParameters(`--avif ${workDirectory}${file}`);
 
-				expectFileRatio({
-					stdout, file, maxRatio: 95, minRatio: 90, outputExt: 'avif',
-				});
+				expectStringContains(stdout, 'Animated AVIF is not supported');
 				expectFileNotModified(file);
+				expectFileNotExists('gif-not-optimized.avif');
 			});
 
 			test('Files in provided directory should be converted', () => {
@@ -183,25 +182,27 @@ describe('CLI', () => {
 				expectFileNotModified(file);
 			});
 
-			test('GIF should be converted', () => {
+			test('GIF should not be converted', () => {
 				const file = 'gif-not-optimized.gif';
 				const stdout = runCliWithParameters(`--avif --lossless ${workDirectory}${file}`);
 
-				expectFileRatio({
-					stdout, file, maxRatio: 75, minRatio: 70, outputExt: 'avif',
-				});
+				expectStringContains(stdout, 'Animated AVIF is not supported');
 				expectFileNotModified(file);
+				expectFileNotExists('gif-not-optimized.avif');
 			});
 
-			test('Files in provided directory should be converted', () => {
+			test('Files in provided directory should be converted (except GIF)', () => {
 				const fileBasename = 'png-not-optimized';
 				const stdout = runCliWithParameters(`--avif --lossless ${workDirectory}`);
 				const stdoutRatio = grepTotalRatio(stdout);
 
 				expectStringContains(stdout, 'Converting 6 images (lossless)...');
-				expectRatio(stdoutRatio, 45, 50);
+				expectRatio(stdoutRatio, 27, 31);
 				expectFileNotModified(`${fileBasename}.png`);
 				expectFileExists(`${fileBasename}.avif`);
+
+				expectStringContains(stdout, 'Animated AVIF is not supported');
+				expectFileNotExists('gif-not-optimized.avif');
 			});
 		});
 	});
@@ -533,4 +534,9 @@ function expectFileNotModified(fileName) {
 function expectFileExists(fileName) {
 	const isFileExists = fs.existsSync(path.join(temporary, fileName));
 	expect(isFileExists).toBe(true);
+}
+
+function expectFileNotExists(fileName) {
+	const isFileExists = fs.existsSync(path.join(temporary, fileName));
+	expect(isFileExists).toBe(false);
 }
