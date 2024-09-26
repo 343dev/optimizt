@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 
 import colorize from '../lib/colorize.js';
-import log, { enableVerbose } from '../lib/log.js';
+import { log } from '../lib/log.js';
 
 const colors = {
 	info: 'blue',
@@ -29,36 +29,6 @@ test('Description logged', () => {
 		description: 'Simple description',
 		symbol: symbols.info[symbolIndex],
 		title: 'Hello!',
-	});
-});
-
-describe('Verbose mode', () => {
-	test('Not logged if type = info & verboseOnly = true & isVerbose = false', () => {
-		expectLog({
-			symbol: symbols.info[symbolIndex],
-			title: 'info',
-			type: 'info',
-			verboseOnly: true,
-		});
-	});
-
-	test('Logged if type = info & verboseOnly = true & isVerbose = true', () => {
-		expectLog({
-			symbol: symbols.info[symbolIndex],
-			title: 'info',
-			type: 'info',
-			verboseModeEnabled: true,
-			verboseOnly: true,
-		});
-	});
-
-	test('Logged if type = error & verboseOnly = true & isVerbose = false', () => {
-		expectLog({
-			symbol: symbols.error[symbolIndex],
-			title: 'error',
-			type: 'error',
-			verboseOnly: true,
-		});
 	});
 });
 
@@ -101,28 +71,18 @@ function expectLog({
 	symbol,
 	title,
 	type,
-	verboseModeEnabled,
-	verboseOnly,
 }) {
 	const symbolColored = colorize(symbol)[colors[(type || 'info')]];
 	const descriptionColored = description
 		? colorize(description).dim
 		: undefined;
 
-	if (verboseModeEnabled) {
-		enableVerbose();
-	}
-
 	console.log = jest.fn();
-	log(title, { type, description, verboseOnly });
+	log(title, { type, description });
 
-	if (type === 'info' && !verboseModeEnabled && verboseOnly) {
-		expect(console.log.mock.calls[0]).toBeUndefined();
-	} else {
-		expect(console.log.mock.calls[0][0]).toBe(symbolColored);
-		expect(console.log.mock.calls[0][1]).toBe(title);
-		expect(console.log.mock.calls[0][4]).toBe(descriptionColored);
-	}
+	expect(console.log.mock.calls[0][0]).toBe(symbolColored);
+	expect(console.log.mock.calls[0][1]).toBe(title);
+	expect(console.log.mock.calls[0][4]).toBe(descriptionColored);
 
 	console.log.mockRestore();
 }
