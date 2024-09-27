@@ -330,7 +330,7 @@ describe('CLI', () => {
 	describe('Force rewrite AVIF or WebP (--force)', () => {
 		test('Should not be overwritten', () => {
 			const fileBasename = 'png-not-optimized';
-			const parameters = `--avif --webp ${workDirectory}${fileBasename}.png`;
+			const parameters = `--verbose --avif --webp ${workDirectory}${fileBasename}.png`;
 
 			runCliWithParameters(parameters);
 			const stdout = runCliWithParameters(parameters);
