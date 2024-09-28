@@ -1,4 +1,4 @@
-import getPlural from '../lib/get-plural.js';
+import { getPlural } from '../lib/get-plural.js';
 
 test('Should return “image” if num equals 1', () => {
 	expect(getPlural(1, 'image', 'images')).toBe('image');
