@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 
 import { colorize } from '../lib/colorize.js';
-import { log } from '../lib/log.js';
+import { LOG_TYPES, log } from '../lib/log.js';
 
 const colors = {
 	info: 'blue',
@@ -37,7 +37,7 @@ describe('Titles and symbols', () => {
 		expectLog({
 			symbol: symbols.info[symbolIndex],
 			title: 'info',
-			type: 'info',
+			type: LOG_TYPES.INFO,
 		});
 	});
 
@@ -45,7 +45,7 @@ describe('Titles and symbols', () => {
 		expectLog({
 			symbol: symbols.success[symbolIndex],
 			title: 'success',
-			type: 'success',
+			type: LOG_TYPES.SUCCESS,
 		});
 	});
 
@@ -53,7 +53,7 @@ describe('Titles and symbols', () => {
 		expectLog({
 			symbol: symbols.warning[symbolIndex],
 			title: 'warning',
-			type: 'warning',
+			type: LOG_TYPES.WARNING,
 		});
 	});
 
@@ -61,7 +61,7 @@ describe('Titles and symbols', () => {
 		expectLog({
 			symbol: symbols.error[symbolIndex],
 			title: 'error',
-			type: 'error',
+			type: LOG_TYPES.ERROR,
 		});
 	});
 });
@@ -72,7 +72,7 @@ function expectLog({
 	title,
 	type,
 }) {
-	const symbolColored = colorize(symbol)[colors[(type || 'info')]];
+	const symbolColored = colorize(symbol)[colors[(type || LOG_TYPES.INFO)]];
 	const descriptionColored = description
 		? colorize(description).dim
 		: undefined;
