@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 
-import colorize from '../lib/colorize.js';
+import { colorize } from '../lib/colorize.js';
 import { log } from '../lib/log.js';
 
 const colors = {
