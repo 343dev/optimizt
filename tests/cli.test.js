@@ -4,6 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { calculateRatio } from '../lib/calculate-ratio.js';
+
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const cliPath = path.resolve('cli.js');
@@ -472,10 +474,6 @@ function calculateDirectorySize(directoryPath) {
 	return totalSize;
 }
 
-function calcRatio(from, to) {
-	return Math.round((from - to) / from * 100);
-}
-
 function runCliWithParameters(parameters) {
 	return execSync(`node ${cliPath} ${parameters}`).toString();
 }
@@ -507,7 +505,7 @@ function expectFileRatio({ file, maxRatio, minRatio, stdout, outputExt }) {
 	const sizeBefore = fs.statSync(path.join(images, file)).size;
 	const sizeAfter = fs.statSync(path.join(temporary, outputFile)).size;
 
-	const calculatedRatio = calcRatio(sizeBefore, sizeAfter);
+	const calculatedRatio = calculateRatio(sizeBefore, sizeAfter);
 	const stdoutRatio = grepTotalRatio(stdout);
 
 	expect(stdoutRatio).toBe(calculatedRatio);
@@ -517,7 +515,7 @@ function expectFileRatio({ file, maxRatio, minRatio, stdout, outputExt }) {
 function expectTotalRatio({ maxRatio, minRatio, stdout }) {
 	const sizeBefore = calculateDirectorySize(images);
 	const sizeAfter = calculateDirectorySize(temporary);
-	const calculatedRatio = calcRatio(sizeBefore, sizeAfter);
+	const calculatedRatio = calculateRatio(sizeBefore, sizeAfter);
 	const stdoutRatio = grepTotalRatio(stdout);
 
 	expect(stdoutRatio).toBe(calculatedRatio);
