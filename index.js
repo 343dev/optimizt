@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 
 import { SUPPORTED_FILE_TYPES } from './lib/constants.js';
 import convert from './lib/convert.js';
-import findConfig from './lib/find-config.js';
+import { findConfig } from './lib/find-config.js';
 import { enableVerbose, log, logErrorAndExit } from './lib/log.js';
 import optimize from './lib/optimize.js';
 import prepareInputFilePaths from './lib/prepare-input-file-paths.js';
@@ -36,7 +36,7 @@ export default async function optimizt({
 	const preparedConfigFilePath = pathToFileURL(
 		configFilePath
 			? resolveProvidedConfigPath(configFilePath)
-			: findConfig(),
+			: await findConfig(),
 	);
 	const configData = await import(preparedConfigFilePath);
 	const config = configData.default[currentMode.toLowerCase()];
