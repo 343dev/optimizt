@@ -7,7 +7,7 @@ import convert from './lib/convert.js';
 import { findConfig } from './lib/find-config.js';
 import { enableVerbose, log, logErrorAndExit } from './lib/log.js';
 import optimize from './lib/optimize.js';
-import prepareInputFilePaths from './lib/prepare-input-file-paths.js';
+import { prepareInputFilePaths } from './lib/prepare-input-file-paths.js';
 import prepareOutputDirectoryPath from './lib/prepare-output-directory-path.js';
 
 const MODE_NAME = {

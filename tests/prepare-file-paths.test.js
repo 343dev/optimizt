@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import prepareInputFilePaths from '../lib/prepare-input-file-paths.js';
+import { prepareInputFilePaths } from '../lib/prepare-input-file-paths.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
