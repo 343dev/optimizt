@@ -3,18 +3,18 @@ import { fileURLToPath } from 'node:url';
 
 import { jest } from '@jest/globals';
 
-import prepareOutputDirectoryPath from '../lib/prepare-output-directory-path.js';
+import { prepareOutputDirectoryPath } from '../lib/prepare-output-directory-path.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
-test('Exit if the path does not exist', () => {
+test('Exit if the path does not exist', async () => {
 	const processExitMock = jest.spyOn(process, 'exit').mockImplementation(exitCode => {
 		throw new Error(`Process exit with status code: ${exitCode}`);
 	});
 
 	console.log = jest.fn();
 
-	expect(() => prepareOutputDirectoryPath('not+exists')).toThrow();
+	await expect(() => prepareOutputDirectoryPath('not+exists')).rejects.toThrow();
 	expect(processExitMock).toHaveBeenCalledWith(1);
 	expect(console.log.mock.calls[0][1]).toBe('Output path does not exist');
 
@@ -22,14 +22,14 @@ test('Exit if the path does not exist', () => {
 	processExitMock.mockRestore();
 });
 
-test('Exit if specified path to file instead of directory', () => {
+test('Exit if specified path to file instead of directory', async () => {
 	const processExitMock = jest.spyOn(process, 'exit').mockImplementation(exitCode => {
 		throw new Error(`Process exit with status code: ${exitCode}`);
 	});
 
 	console.log = jest.fn();
 
-	expect(() => prepareOutputDirectoryPath(path.resolve(dirname, 'images', 'svg-not-optimized.svg'))).toThrow();
+	await expect(() => prepareOutputDirectoryPath(path.resolve(dirname, 'images', 'svg-not-optimized.svg'))).rejects.toThrow();
 	expect(processExitMock).toHaveBeenCalledWith(1);
 	expect(console.log.mock.calls[0][1]).toBe('Output path must be a directory');
 
@@ -37,6 +37,6 @@ test('Exit if specified path to file instead of directory', () => {
 	processExitMock.mockRestore();
 });
 
-test('Full path is generated', () => {
-	expect(prepareOutputDirectoryPath('tests/images')).toBe(path.resolve(dirname, 'images'));
+test('Full path is generated', async () => {
+	expect(await prepareOutputDirectoryPath('tests/images')).toBe(path.resolve(dirname, 'images'));
 });
