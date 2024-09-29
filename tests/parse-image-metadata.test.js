@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import parseImageMetadata from '../lib/parse-image-metadata.js';
+import { parseImageMetadata } from '../lib/parse-image-metadata.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
