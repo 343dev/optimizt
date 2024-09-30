@@ -5,10 +5,11 @@ import { pathToFileURL } from 'node:url';
 import { SUPPORTED_FILE_TYPES } from './lib/constants.js';
 import convert from './lib/convert.js';
 import { findConfig } from './lib/find-config.js';
-import { enableVerbose, log, logErrorAndExit } from './lib/log.js';
+import { log, logErrorAndExit } from './lib/log.js';
 import optimize from './lib/optimize.js';
 import { prepareInputFilePaths } from './lib/prepare-input-file-paths.js';
 import { prepareOutputDirectoryPath } from './lib/prepare-output-directory-path.js';
+import { programOptions } from './lib/program-options.js';
 
 const MODE_NAME = {
 	CONVERT: 'convert',
@@ -16,17 +17,16 @@ const MODE_NAME = {
 };
 
 export default async function optimizt({
-	paths: inputPaths,
-	output: outputDirectoryPath,
-	config: configFilePath,
-
-	avif: shouldConvertToAvif,
-	webp: shouldConvertToWebp,
-
-	force: isForced,
-	lossless: isLossless,
-	verbose: isVerbose,
+	inputPaths,
+	outputDirectoryPath,
+	configFilePath,
 }) {
+	const {
+		isLossless,
+		shouldConvertToAvif,
+		shouldConvertToWebp,
+	} = programOptions;
+
 	const shouldConvert = shouldConvertToAvif || shouldConvertToWebp;
 
 	const currentMode = shouldConvert
@@ -44,10 +44,6 @@ export default async function optimizt({
 	const preparedInputFilePaths = await prepareInputFilePaths(inputPaths, SUPPORTED_FILE_TYPES[currentMode.toUpperCase()]);
 	const preparedOutputDirectoryPath = await prepareOutputDirectoryPath(outputDirectoryPath);
 
-	if (isVerbose) {
-		enableVerbose();
-	}
-
 	if (isLossless) {
 		log('Lossless optimization may take a long time');
 	}
@@ -59,14 +55,7 @@ export default async function optimizt({
 	await processFunction({
 		inputFilePaths: preparedInputFilePaths,
 		outputDirectoryPath: preparedOutputDirectoryPath,
-		isLossless,
 		config,
-
-		...shouldConvert && {
-			shouldConvertToAvif,
-			shouldConvertToWebp,
-			isForced,
-		},
 	});
 }
 
