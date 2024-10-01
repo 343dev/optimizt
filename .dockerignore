@@ -2,6 +2,7 @@
 !lib/
 !.optimiztrc.cjs
 !cli.js
+!convert.js
 !index.js
 !LICENSE
 !package*.json

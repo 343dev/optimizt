@@ -29,6 +29,7 @@
   "files": [
     "MIGRATION.md",
     "cli.js",
+    "convert.js",
     "index.js",
     "lib/",
     "svgo/",
