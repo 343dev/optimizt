@@ -1,11 +1,11 @@
 import { pathToFileURL } from 'node:url';
 
 import { convert } from './convert.js';
+import { optimize } from './optimize.js';
 
 import { SUPPORTED_FILE_TYPES } from './lib/constants.js';
 import { findConfigFilePath } from './lib/find-config-file-path.js';
 import { log } from './lib/log.js';
-import { optimize } from './lib/optimize.js';
 import { prepareFilePaths } from './lib/prepare-file-paths.js';
 import { prepareOutputDirectoryPath } from './lib/prepare-output-directory-path.js';
 import { programOptions } from './lib/program-options.js';

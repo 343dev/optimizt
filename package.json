@@ -32,7 +32,7 @@
     "convert.js",
     "index.js",
     "lib/",
-    "svgo/",
+    "optimize.js",
     ".optimiztrc.cjs"
   ],
   "scripts": {

@@ -9,21 +9,21 @@ import pLimit from 'p-limit';
 import sharp from 'sharp';
 import { optimize as svgoOptimize } from 'svgo';
 
-import { calculateRatio } from './calculate-ratio.js';
-import { createProgressBarContainer } from './create-progress-bar-container.js';
-import { formatBytes } from './format-bytes.js';
-import { getPlural } from './get-plural.js';
-import { getRelativePath } from './get-relative-path.js';
+import { calculateRatio } from './lib/calculate-ratio.js';
+import { createProgressBarContainer } from './lib/create-progress-bar-container.js';
+import { formatBytes } from './lib/format-bytes.js';
+import { getPlural } from './lib/get-plural.js';
+import { getRelativePath } from './lib/get-relative-path.js';
 import {
 	LOG_TYPES,
 	log,
 	logProgress,
 	logProgressVerbose,
-} from './log.js';
-import { optionsToArguments } from './options-to-arguments.js';
-import { parseImageMetadata } from './parse-image-metadata.js';
-import { programOptions } from './program-options.js';
-import { showTotal } from './show-total.js';
+} from './lib/log.js';
+import { optionsToArguments } from './lib/options-to-arguments.js';
+import { parseImageMetadata } from './lib/parse-image-metadata.js';
+import { programOptions } from './lib/program-options.js';
+import { showTotal } from './lib/show-total.js';
 
 export async function optimize({ filePaths, config }) {
 	const { isLossless } = programOptions;
