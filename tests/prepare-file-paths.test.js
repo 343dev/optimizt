@@ -1,7 +1,8 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { prepareInputFilePaths } from '../lib/prepare-input-file-paths.js';
+import { getRelativePath } from '../lib/get-relative-path.js';
+import { prepareFilePaths } from '../lib/prepare-file-paths.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -9,15 +10,20 @@ const DEFAULT_IMAGE_PATH = resolvePath(['images']);
 const DEFAULT_EXTENSIONS = ['gif', 'jpeg', 'jpg', 'png', 'svg'];
 
 test('Non-existent file paths are ignored', async () => {
-	const paths = [
-		resolvePath(['not+exists']),
-		resolvePath(['not+exists.svg']),
-	];
-	expect(await prepareInputFilePaths(paths, DEFAULT_EXTENSIONS)).toStrictEqual([]);
+	const inputPaths = await generateInputPaths({
+		inputPaths: [
+			resolvePath(['not+exists']),
+			resolvePath(['not+exists.svg']),
+		],
+	});
+
+	expect(inputPaths).toStrictEqual([]);
 });
 
 test('Files from subdirectories are processed', async () => {
-	expect(await prepareInputFilePaths([DEFAULT_IMAGE_PATH], DEFAULT_EXTENSIONS)).toEqual(
+	const inputPaths = await generateInputPaths();
+
+	expect(inputPaths).toEqual(
 		expect.arrayContaining([
 			expect.stringMatching(/file-in-subdirectory.jpg$/),
 		]),
@@ -25,9 +31,9 @@ test('Files from subdirectories are processed', async () => {
 });
 
 test('Files are filtered by extension', async () => {
-	const extensions = ['gif', 'jpeg', 'png', 'svg'];
+	const inputPaths = await generateInputPaths({ extensions: ['gif', 'jpeg', 'png', 'svg'] });
 
-	expect(await prepareInputFilePaths([DEFAULT_IMAGE_PATH], extensions)).toEqual(
+	expect(inputPaths).toEqual(
 		expect.arrayContaining([
 			expect.stringMatching(/\.gif$/),
 			expect.stringMatching(/\.png$/),
@@ -35,7 +41,7 @@ test('Files are filtered by extension', async () => {
 		]),
 	);
 
-	expect(await prepareInputFilePaths([DEFAULT_IMAGE_PATH], extensions)).not.toEqual(
+	expect(inputPaths).not.toEqual(
 		expect.arrayContaining([
 			expect.stringMatching(/\.jpg$/),
 		]),
@@ -43,7 +49,9 @@ test('Files are filtered by extension', async () => {
 });
 
 test('Only relative file paths are generated', async () => {
-	expect(await prepareInputFilePaths([DEFAULT_IMAGE_PATH], DEFAULT_EXTENSIONS)).not.toEqual(
+	const inputPaths = await generateInputPaths();
+
+	expect(inputPaths).not.toEqual(
 		expect.arrayContaining([
 			expect.stringMatching(new RegExp(`^${dirname}`)),
 		]),
@@ -52,4 +60,9 @@ test('Only relative file paths are generated', async () => {
 
 function resolvePath(segments) {
 	return path.resolve(dirname, ...segments);
+}
+
+async function generateInputPaths({ inputPaths = [DEFAULT_IMAGE_PATH], extensions = DEFAULT_EXTENSIONS } = {}) {
+	const result = await prepareFilePaths({ inputPaths, extensions });
+	return result.map(item => getRelativePath(item.input));
 }

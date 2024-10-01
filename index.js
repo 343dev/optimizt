@@ -7,7 +7,7 @@ import convert from './lib/convert.js';
 import { findConfig } from './lib/find-config.js';
 import { log, logErrorAndExit } from './lib/log.js';
 import optimize from './lib/optimize.js';
-import { prepareInputFilePaths } from './lib/prepare-input-file-paths.js';
+import { prepareFilePaths } from './lib/prepare-file-paths.js';
 import { prepareOutputDirectoryPath } from './lib/prepare-output-directory-path.js';
 import { programOptions } from './lib/program-options.js';
 
@@ -41,8 +41,11 @@ export default async function optimizt({
 	const configData = await import(preparedConfigFilePath);
 	const config = configData.default[currentMode.toLowerCase()];
 
-	const preparedInputFilePaths = await prepareInputFilePaths(inputPaths, SUPPORTED_FILE_TYPES[currentMode.toUpperCase()]);
-	const preparedOutputDirectoryPath = await prepareOutputDirectoryPath(outputDirectoryPath);
+	const filePaths = await prepareFilePaths({
+		inputPaths,
+		outputDirectoryPath: await prepareOutputDirectoryPath(outputDirectoryPath),
+		extensions: SUPPORTED_FILE_TYPES[currentMode.toUpperCase()],
+	});
 
 	if (isLossless) {
 		log('Lossless optimization may take a long time');
@@ -53,8 +56,7 @@ export default async function optimizt({
 		: optimize;
 
 	await processFunction({
-		inputFilePaths: preparedInputFilePaths,
-		outputDirectoryPath: preparedOutputDirectoryPath,
+		filePaths,
 		config,
 	});
 }

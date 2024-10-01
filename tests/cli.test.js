@@ -371,13 +371,13 @@ describe('CLI', () => {
 				const fileName = 'png-not-optimized.png';
 
 				runCliWithParameters(`--output ${outputDirectory} ${workDirectory}${fileName}`);
-				expect(fs.existsSync(path.join(outputDirectory, workDirectory, fileName))).toBeTruthy();
+				expect(fs.existsSync(path.join(outputDirectory, fileName))).toBeTruthy();
 			});
 
 			test('Should output list of files', () => {
 				runCliWithParameters(`--output ${outputDirectory} ${workDirectory}*.jpg ${workDirectory}*.jpeg`);
-				expect(fs.existsSync(path.join(outputDirectory, workDirectory, 'jpeg-low-quality.jpg'))).toBeTruthy();
-				expect(fs.existsSync(path.join(outputDirectory, workDirectory, 'jpeg-not-optimized.jpeg'))).toBeTruthy();
+				expect(fs.existsSync(path.join(outputDirectory, 'jpeg-low-quality.jpg'))).toBeTruthy();
+				expect(fs.existsSync(path.join(outputDirectory, 'jpeg-not-optimized.jpeg'))).toBeTruthy();
 			});
 		});
 
@@ -386,13 +386,13 @@ describe('CLI', () => {
 				const fileBasename = 'png-not-optimized';
 
 				runCliWithParameters(`--avif --output ${outputDirectory} ${workDirectory}${fileBasename}.png`);
-				expect(fs.existsSync(path.join(outputDirectory, workDirectory, `${fileBasename}.avif`))).toBeTruthy();
+				expect(fs.existsSync(path.join(outputDirectory, `${fileBasename}.avif`))).toBeTruthy();
 			});
 
 			test('Should output list of files', () => {
 				runCliWithParameters(`--avif --output ${outputDirectory} ${workDirectory}*.jpg ${workDirectory}*.jpeg`);
-				expect(fs.existsSync(path.join(outputDirectory, workDirectory, 'jpeg-low-quality.avif'))).toBeTruthy();
-				expect(fs.existsSync(path.join(outputDirectory, workDirectory, 'jpeg-not-optimized.avif'))).toBeTruthy();
+				expect(fs.existsSync(path.join(outputDirectory, 'jpeg-low-quality.avif'))).toBeTruthy();
+				expect(fs.existsSync(path.join(outputDirectory, 'jpeg-not-optimized.avif'))).toBeTruthy();
 			});
 		});
 	});
