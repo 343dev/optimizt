@@ -4,7 +4,7 @@ import { SUPPORTED_FILE_TYPES } from './lib/constants.js';
 import { convert } from './lib/convert.js';
 import { findConfigFilePath } from './lib/find-config-file-path.js';
 import { log } from './lib/log.js';
-import optimize from './lib/optimize.js';
+import { optimize } from './lib/optimize.js';
 import { prepareFilePaths } from './lib/prepare-file-paths.js';
 import { prepareOutputDirectoryPath } from './lib/prepare-output-directory-path.js';
 import { programOptions } from './lib/program-options.js';
