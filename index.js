@@ -1,11 +1,9 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { SUPPORTED_FILE_TYPES } from './lib/constants.js';
 import convert from './lib/convert.js';
-import { findConfig } from './lib/find-config.js';
-import { log, logErrorAndExit } from './lib/log.js';
+import { findConfigFilePath } from './lib/find-config-file-path.js';
+import { log } from './lib/log.js';
 import optimize from './lib/optimize.js';
 import { prepareFilePaths } from './lib/prepare-file-paths.js';
 import { prepareOutputDirectoryPath } from './lib/prepare-output-directory-path.js';
@@ -33,12 +31,8 @@ export default async function optimizt({
 		? MODE_NAME.CONVERT
 		: MODE_NAME.OPTIMIZE;
 
-	const preparedConfigFilePath = pathToFileURL(
-		configFilePath
-			? resolveProvidedConfigPath(configFilePath)
-			: await findConfig(),
-	);
-	const configData = await import(preparedConfigFilePath);
+	const foundConfigFilePath = pathToFileURL(await findConfigFilePath(configFilePath));
+	const configData = await import(foundConfigFilePath);
 	const config = configData.default[currentMode.toLowerCase()];
 
 	const filePaths = await prepareFilePaths({
@@ -59,18 +53,4 @@ export default async function optimizt({
 		filePaths,
 		config,
 	});
-}
-
-function resolveProvidedConfigPath(filepath = '') {
-	const resolvedPath = path.resolve(filepath);
-
-	if (!fs.existsSync(resolvedPath)) {
-		logErrorAndExit('Provided config path does not exist');
-	}
-
-	if (!fs.statSync(resolvedPath).isFile()) {
-		logErrorAndExit('Provided config path must point to a file');
-	}
-
-	return resolvedPath;
 }
