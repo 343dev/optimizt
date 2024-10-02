@@ -48,7 +48,7 @@
     "cli-progress": "^3.11.0",
     "commander": "^12.1.0",
     "exec-buffer": "^3.2.0",
-    "fdir": "^6.3.0",
+    "fdir": "^6.4.0",
     "gif2webp-bin": "^5.0.0",
     "gifsicle": "^7.0.0",
     "guetzli": "^5.0.0",
