@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { program } from 'commander';
 
 import optimizt from './index.js';
+import { setProgramOptions } from './lib/program-options.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(await fs.readFile(path.join(dirname, 'package.json')));
@@ -29,9 +30,20 @@ program
 if (program.args.length === 0) {
 	program.help();
 } else {
+	const { avif, webp, force, lossless, verbose, config, output } = program.opts();
+
+	setProgramOptions({
+		shouldConvertToAvif: Boolean(avif),
+		shouldConvertToWebp: Boolean(webp),
+		isForced: Boolean(force),
+		isLossless: Boolean(lossless),
+		isVerbose: Boolean(verbose),
+	});
+
 	optimizt({
-		paths: program.args,
-		...program.opts(),
+		inputPaths: program.args,
+		outputDirectoryPath: output,
+		configFilePath: config,
 	});
 }
 

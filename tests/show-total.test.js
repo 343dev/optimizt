@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
 
-import showTotal from '../lib/show-total.js';
+import { showTotal } from '../lib/show-total.js';
 
 test('Savings size and compression ratio are displayed', () => {
 	const fileSize = 1_048_576;
@@ -8,7 +8,7 @@ test('Savings size and compression ratio are displayed', () => {
 	console.log = jest.fn();
 
 	showTotal(fileSize, fileSize / 2);
-	expect(console.log.mock.calls[0][1]).toBe('Yay! You saved 512 KB (50%)');
+	expect(console.log.mock.calls[1][1]).toBe('Yay! You saved 512 KB (50%)');
 
 	console.log.mockRestore();
 });
@@ -19,7 +19,7 @@ test('Savings size and compression ratio are not displayed', () => {
 	console.log = jest.fn();
 
 	showTotal(fileSize, fileSize * 2);
-	expect(console.log.mock.calls[0][1]).toBe('Done!');
+	expect(console.log.mock.calls[1][1]).toBe('Done!');
 
 	console.log.mockRestore();
 });

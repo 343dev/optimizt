@@ -1,33 +1,57 @@
 import { pathToFileURL } from 'node:url';
 
-import checkConfigPath from './lib/check-config-path.js';
-import convert from './lib/convert.js';
-import findConfig from './lib/find-config.js';
-import { enableVerbose } from './lib/log.js';
-import optimize from './lib/optimize.js';
-import prepareFilePaths from './lib/prepare-file-paths.js';
-import prepareOutputPath from './lib/prepare-output-path.js';
+import { convert } from './convert.js';
+import { optimize } from './optimize.js';
 
-export default async function optimizt({ paths, avif, webp, force, lossless, verbose, output, config }) {
-	const configFilepath = pathToFileURL(config ? checkConfigPath(config) : findConfig());
-	const configData = await import(configFilepath);
+import { SUPPORTED_FILE_TYPES } from './lib/constants.js';
+import { findConfigFilePath } from './lib/find-config-file-path.js';
+import { log } from './lib/log.js';
+import { prepareFilePaths } from './lib/prepare-file-paths.js';
+import { prepareOutputDirectoryPath } from './lib/prepare-output-directory-path.js';
+import { programOptions } from './lib/program-options.js';
 
-	if (verbose) {
-		enableVerbose();
+const MODE_NAME = {
+	CONVERT: 'convert',
+	OPTIMIZE: 'optimize',
+};
+
+export default async function optimizt({
+	inputPaths,
+	outputDirectoryPath,
+	configFilePath,
+}) {
+	const {
+		isLossless,
+		shouldConvertToAvif,
+		shouldConvertToWebp,
+	} = programOptions;
+
+	const shouldConvert = shouldConvertToAvif || shouldConvertToWebp;
+
+	const currentMode = shouldConvert
+		? MODE_NAME.CONVERT
+		: MODE_NAME.OPTIMIZE;
+
+	const foundConfigFilePath = pathToFileURL(await findConfigFilePath(configFilePath));
+	const configData = await import(foundConfigFilePath);
+	const config = configData.default[currentMode.toLowerCase()];
+
+	const filePaths = await prepareFilePaths({
+		inputPaths,
+		outputDirectoryPath: await prepareOutputDirectoryPath(outputDirectoryPath),
+		extensions: SUPPORTED_FILE_TYPES[currentMode.toUpperCase()],
+	});
+
+	if (isLossless) {
+		log('Lossless optimization may take a long time');
 	}
 
-	await (avif || webp ? convert({
-		paths: prepareFilePaths(paths, ['gif', 'jpeg', 'jpg', 'png']),
-		lossless,
-		avif,
-		webp,
-		force,
-		output: prepareOutputPath(output),
-		config: configData.default.convert,
-	}) : optimize({
-		paths: prepareFilePaths(paths, ['gif', 'jpeg', 'jpg', 'png', 'svg']),
-		lossless,
-		output: prepareOutputPath(output),
-		config: configData.default.optimize,
-	}));
+	const processFunction = shouldConvert
+		? convert
+		: optimize;
+
+	await processFunction({
+		filePaths,
+		config,
+	});
 }

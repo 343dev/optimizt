@@ -4,6 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { calculateRatio } from '../lib/calculate-ratio.js';
+
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const cliPath = path.resolve('cli.js');
@@ -147,14 +149,13 @@ describe('CLI', () => {
 				expectFileNotModified(file);
 			});
 
-			test('GIF should be converted', () => {
+			test('GIF should not be converted', () => {
 				const file = 'gif-not-optimized.gif';
 				const stdout = runCliWithParameters(`--avif ${workDirectory}${file}`);
 
-				expectFileRatio({
-					stdout, file, maxRatio: 95, minRatio: 90, outputExt: 'avif',
-				});
+				expectStringContains(stdout, 'Animated AVIF is not supported');
 				expectFileNotModified(file);
+				expectFileNotExists('gif-not-optimized.avif');
 			});
 
 			test('Files in provided directory should be converted', () => {
@@ -183,25 +184,27 @@ describe('CLI', () => {
 				expectFileNotModified(file);
 			});
 
-			test('GIF should be converted', () => {
+			test('GIF should not be converted', () => {
 				const file = 'gif-not-optimized.gif';
 				const stdout = runCliWithParameters(`--avif --lossless ${workDirectory}${file}`);
 
-				expectFileRatio({
-					stdout, file, maxRatio: 75, minRatio: 70, outputExt: 'avif',
-				});
+				expectStringContains(stdout, 'Animated AVIF is not supported');
 				expectFileNotModified(file);
+				expectFileNotExists('gif-not-optimized.avif');
 			});
 
-			test('Files in provided directory should be converted', () => {
+			test('Files in provided directory should be converted (except GIF)', () => {
 				const fileBasename = 'png-not-optimized';
 				const stdout = runCliWithParameters(`--avif --lossless ${workDirectory}`);
 				const stdoutRatio = grepTotalRatio(stdout);
 
 				expectStringContains(stdout, 'Converting 6 images (lossless)...');
-				expectRatio(stdoutRatio, 45, 50);
+				expectRatio(stdoutRatio, 27, 31);
 				expectFileNotModified(`${fileBasename}.png`);
 				expectFileExists(`${fileBasename}.avif`);
+
+				expectStringContains(stdout, 'Animated AVIF is not supported');
+				expectFileNotExists('gif-not-optimized.avif');
 			});
 		});
 	});
@@ -329,7 +332,7 @@ describe('CLI', () => {
 	describe('Force rewrite AVIF or WebP (--force)', () => {
 		test('Should not be overwritten', () => {
 			const fileBasename = 'png-not-optimized';
-			const parameters = `--avif --webp ${workDirectory}${fileBasename}.png`;
+			const parameters = `--verbose --avif --webp ${workDirectory}${fileBasename}.png`;
 
 			runCliWithParameters(parameters);
 			const stdout = runCliWithParameters(parameters);
@@ -368,13 +371,13 @@ describe('CLI', () => {
 				const fileName = 'png-not-optimized.png';
 
 				runCliWithParameters(`--output ${outputDirectory} ${workDirectory}${fileName}`);
-				expect(fs.existsSync(path.join(outputDirectory, workDirectory, fileName))).toBeTruthy();
+				expect(fs.existsSync(path.join(outputDirectory, fileName))).toBeTruthy();
 			});
 
 			test('Should output list of files', () => {
 				runCliWithParameters(`--output ${outputDirectory} ${workDirectory}*.jpg ${workDirectory}*.jpeg`);
-				expect(fs.existsSync(path.join(outputDirectory, workDirectory, 'jpeg-low-quality.jpg'))).toBeTruthy();
-				expect(fs.existsSync(path.join(outputDirectory, workDirectory, 'jpeg-not-optimized.jpeg'))).toBeTruthy();
+				expect(fs.existsSync(path.join(outputDirectory, 'jpeg-low-quality.jpg'))).toBeTruthy();
+				expect(fs.existsSync(path.join(outputDirectory, 'jpeg-not-optimized.jpeg'))).toBeTruthy();
 			});
 		});
 
@@ -383,13 +386,13 @@ describe('CLI', () => {
 				const fileBasename = 'png-not-optimized';
 
 				runCliWithParameters(`--avif --output ${outputDirectory} ${workDirectory}${fileBasename}.png`);
-				expect(fs.existsSync(path.join(outputDirectory, workDirectory, `${fileBasename}.avif`))).toBeTruthy();
+				expect(fs.existsSync(path.join(outputDirectory, `${fileBasename}.avif`))).toBeTruthy();
 			});
 
 			test('Should output list of files', () => {
 				runCliWithParameters(`--avif --output ${outputDirectory} ${workDirectory}*.jpg ${workDirectory}*.jpeg`);
-				expect(fs.existsSync(path.join(outputDirectory, workDirectory, 'jpeg-low-quality.avif'))).toBeTruthy();
-				expect(fs.existsSync(path.join(outputDirectory, workDirectory, 'jpeg-not-optimized.avif'))).toBeTruthy();
+				expect(fs.existsSync(path.join(outputDirectory, 'jpeg-low-quality.avif'))).toBeTruthy();
+				expect(fs.existsSync(path.join(outputDirectory, 'jpeg-not-optimized.avif'))).toBeTruthy();
 			});
 		});
 	});
@@ -471,10 +474,6 @@ function calculateDirectorySize(directoryPath) {
 	return totalSize;
 }
 
-function calcRatio(from, to) {
-	return Math.round((from - to) / from * 100);
-}
-
 function runCliWithParameters(parameters) {
 	return execSync(`node ${cliPath} ${parameters}`).toString();
 }
@@ -506,7 +505,7 @@ function expectFileRatio({ file, maxRatio, minRatio, stdout, outputExt }) {
 	const sizeBefore = fs.statSync(path.join(images, file)).size;
 	const sizeAfter = fs.statSync(path.join(temporary, outputFile)).size;
 
-	const calculatedRatio = calcRatio(sizeBefore, sizeAfter);
+	const calculatedRatio = calculateRatio(sizeBefore, sizeAfter);
 	const stdoutRatio = grepTotalRatio(stdout);
 
 	expect(stdoutRatio).toBe(calculatedRatio);
@@ -516,7 +515,7 @@ function expectFileRatio({ file, maxRatio, minRatio, stdout, outputExt }) {
 function expectTotalRatio({ maxRatio, minRatio, stdout }) {
 	const sizeBefore = calculateDirectorySize(images);
 	const sizeAfter = calculateDirectorySize(temporary);
-	const calculatedRatio = calcRatio(sizeBefore, sizeAfter);
+	const calculatedRatio = calculateRatio(sizeBefore, sizeAfter);
 	const stdoutRatio = grepTotalRatio(stdout);
 
 	expect(stdoutRatio).toBe(calculatedRatio);
@@ -533,4 +532,9 @@ function expectFileNotModified(fileName) {
 function expectFileExists(fileName) {
 	const isFileExists = fs.existsSync(path.join(temporary, fileName));
 	expect(isFileExists).toBe(true);
+}
+
+function expectFileNotExists(fileName) {
+	const isFileExists = fs.existsSync(path.join(temporary, fileName));
+	expect(isFileExists).toBe(false);
 }

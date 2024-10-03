@@ -1,4 +1,4 @@
-import formatBytes from '../lib/format-bytes.js';
+import { formatBytes } from '../lib/format-bytes.js';
 
 test('1023 should be formatted as “1023 Bytes”', () => {
 	expect(formatBytes(1023)).toBe('1023 Bytes');
