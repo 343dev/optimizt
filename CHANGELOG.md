@@ -1,5 +1,16 @@
 # Changelog
 
+## 9.0.0 (2024-10-03)
+
+Changes:
+
+- Improved image processing workflow. Check the [migration guide](./MIGRATION.md) for details.
+- Added an interactive log for image processing.
+- Changed the “File already exists” message from “error” to “info,” now only shown in verbose mode.
+- Added a notice that animated AVIF is not supported (unfortunately).
+- Fixed the progress indicator in conversion mode. It now correctly shows the total number of items.
+- Fixed output to the user directory. The original folder structure is now preserved (i hope so!).
+
 ## 8.0.0 (2024-08-05)
 
 ❤️ Thank you for using Optimizt. If you have any suggestions or feedback, please don't hesitate to [open an issue](https://github.com/343dev/optimizt/issues).
