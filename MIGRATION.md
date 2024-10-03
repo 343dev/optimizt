@@ -1,5 +1,16 @@
 # Migration
 
+## 8.0.1 → 9.0.0
+
+The main change in the new version is how Optimizt handles file processing. Before, the result was stored in memory until all files were processed. This could cause the app to crash if it ran out of memory, leading to a loss of optimization results. Now, each file is processed one by one, and the result is saved to disk immediately. Logging events also happen in real-time, instead of waiting until all files are done.
+
+Previously, if you tried to create an AVIF or WebP file that already existed, an error message would appear in the log. Now, it shows an informational message, but only if you use the --verbose option.
+
+To handle AVIF files, Optimizt uses the sharp module, which uses the libheif library. However, libheif doesn't support converting to animated AVIF (AVIS). In earlier versions, Optimizt would quietly convert animated GIFs into static AVIF. But from this version, an error will show up if you try to do this.
+
+The logic for creating file structures when using the --output option has also changed. Now, the original file structure will be recreated inside the output folder, starting from the folder passed to the app. Who knows how this worked before, but hopefully, it works better now!
+
+
 ## 7.0.2 → 8.0.0
 
 Optimizt now checks for the EXIF Orientation tag before processing images and rotates the resulting image accordingly.
