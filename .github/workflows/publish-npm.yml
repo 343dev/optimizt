@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  publish_to_npm:
     runs-on: ubuntu-latest
     steps:
       -
@@ -31,12 +31,14 @@ jobs:
             echo "VERSION_CHANGED=false" >> $GITHUB_OUTPUT
           fi
       -
+        name: Cancelling
+        if: ${{ steps.check.outputs.VERSION_CHANGED == 'false' }}
+        uses: andymckay/cancel-action@0.4
+      -
         name: Install dependencies
-        if: ${{ steps.check.outputs.VERSION_CHANGED == 'true' }}
         run: npm ci
       -
         name: Publish to npm
-        if: ${{ steps.check.outputs.VERSION_CHANGED == 'true' }}
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
