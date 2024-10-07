@@ -1,6 +1,4 @@
-# Workflow is triggered after a new Optimizt version is successfully published to NPM
-
-name: Build Docker image and publish to Docker Hub
+name: Build image and publish to Docker Hub
 
 on:
   workflow_run:
@@ -13,7 +11,7 @@ env:
   IMAGE_PLATFORMS: linux/amd64,linux/arm64
 
 jobs:
-  docker:
+  build_and_push_to_docker_hub:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
@@ -43,9 +41,3 @@ jobs:
           push: true
           platforms: ${{ env.IMAGE_PLATFORMS }}
           tags: ${{ env.IMAGE_NAME }}:latest,${{ env.IMAGE_NAME }}:${{ env.PKG_VERSION }}
-
-  fail:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
-    steps:
-      - run: echo "'Publish Package to npmjs' workflow failed"
