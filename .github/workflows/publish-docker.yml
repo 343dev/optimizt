@@ -1,0 +1,43 @@
+name: Build image and publish to Docker Hub
+
+on:
+  workflow_run:
+    workflows: [Publish Package to npmjs]
+    types: [completed]
+    branches: [main]
+
+env:
+  IMAGE_NAME: 343dev/optimizt
+  IMAGE_PLATFORMS: linux/amd64,linux/arm64
+
+jobs:
+  build_and_push_to_docker_hub:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      -
+        name: Checkout repository
+        uses: actions/checkout@v4
+      -
+        name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Define variables
+        run: |
+          echo "PKG_VERSION=$(grep -m1 version ./package.json | sed 's/[", ]//g' | cut -d ":" -f 2)" >> $GITHUB_ENV
+      -
+        name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          platforms: ${{ env.IMAGE_PLATFORMS }}
+          tags: ${{ env.IMAGE_NAME }}:latest,${{ env.IMAGE_NAME }}:${{ env.PKG_VERSION }}
