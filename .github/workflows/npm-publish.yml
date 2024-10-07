@@ -1,0 +1,44 @@
+name: Publish Package to npmjs
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.17.0'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Check if package version has changed
+        id: check
+        run: |
+          LATEST_VERSION=$(npm view . version)
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          if [ "$LATEST_VERSION" != "$CURRENT_VERSION" ]; then
+            echo "Version changed from $LATEST_VERSION to $CURRENT_VERSION"
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "Version unchanged"
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install dependencies
+        if: steps.check.outputs.version_changed == 'true'
+        run: npm ci
+
+      - name: Publish to npm
+        if: steps.check.outputs.version_changed == 'true'
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
