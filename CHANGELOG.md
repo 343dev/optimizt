@@ -1,5 +1,10 @@
 # Changelog
 
+## 9.0.2 (2024-10-08)
+
+- Fixed Guetzli install.
+
+
 ## 9.0.1 (2024-10-08)
 
 - Fixed installing on Windows.
