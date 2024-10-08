@@ -1,5 +1,10 @@
 # Changelog
 
+## 9.0.1 (2024-10-08)
+
+- Fixed installing on Windows.
+
+
 ## 9.0.0 (2024-10-03)
 
 Changes:
