@@ -1,4 +1,70 @@
-name: optimizt
+# GitHub Actions: интеграция Optimizt с помощью «Workflow»
+
+## Пример создания AVIF и WebP-версий после push в основную ветку
+
+Воркфлоу отслеживает наличие JPEG и PNG файлов при пуше коммитов в основную ветку, и при обнаружении таковых добавит AVIF и WebP версии с помощью нового коммита.
+
+В директории `.github/workflows` вашего репозитория создайте файл `optimizt-push.yml` со следующим содержимым:
+
+```yml
+name: Create AVIF & WebP
+
+on:
+  # Runs on "push" event for the "main" branch but only if there are changes to JPEG and PNG files.
+  push:
+    branches:
+      - main
+    paths:
+      - "**.jpe?g"
+      - "**.png"
+
+  # Allows manual workflow trigger from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Install Node.js to avoid EACCESS errors during package installation
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 18.17.0
+
+      - name: Install Optimizt
+        run: npm install --global @343dev/optimizt
+
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false # Use personal access token instead of GITHUB_TOKEN
+          fetch-depth: 0 # Download all commits (default is just the latest)
+
+      - name: Run Optimizt
+        run: optimizt --verbose --force --avif --webp .
+
+      - name: Commit changes
+        run: |
+          git add -A
+          git config --local user.email "actions@github.com"
+          git config --local user.name "github-actions[bot]"
+          git diff --quiet && git diff --staged --quiet \
+            || git commit -am "Create WebP & AVIF versions"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+```
+
+## Пример оптимизации изображений в PR
+
+Воркфлоу отслеживает наличие изображений в пул-реквесте, и при обнаружении таковых оптимизирует их, а так же добавит AVIF и WebP версии с помощью нового коммита.
+
+В директории `.github/workflows` вашего репозитория создайте файл `optimizt-pr.yml` со следующим содержимым:
+
+```yml
+name: Optimize images
 
 on:
   pull_request:
@@ -99,3 +165,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.head_ref }}
+```

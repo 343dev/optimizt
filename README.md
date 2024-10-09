@@ -2,25 +2,23 @@
 
 <img align="right" width="192" height="192"
      alt="Optimizt avatar: OK sign with Mona Lisa picture between the fingers"
-     src="./images/logo.png">
+     src="./docs/logo.png">
 
 [![npm](https://img.shields.io/npm/v/@343dev/optimizt.svg)](https://www.npmjs.com/package/@343dev/optimizt)
 
-**Optimizt** is a CLI tool that helps you prepare images during frontend development.
+**Optimizt** is a command-line tool that helps prepare images for the web.
 
-It can compress PNG, JPEG, GIF and SVG lossy and lossless and create AVIF and WebP versions for raster images.
+It can compress PNG, JPEG, GIF and SVG lossy and lossless, and also create AVIF and WebP versions for raster images.
 
 [По-русски](./README.ru.md)
 
 ## Rationale
 
-As frontend developers we have to care about pictures: compress PNG & JPEG, remove useless parts of SVG,
-create AVIF and WebP for modern browsers, etc. One day we got tired of using a bunch of apps for that,
-and created one tool that does everything we want.
+As frontend developers, we have to care about pictures: compress PNG and JPEG, remove useless parts of SVG, create AVIF and WebP for modern browsers, and so on. One day, we got tired of using a bunch of apps for that, and created one tool that does everything we want.
 
 ## Usage
 
-Install the tool:
+Install:
 
 ```sh
 npm i -g @343dev/optimizt
@@ -34,401 +32,74 @@ optimizt path/to/picture.jpg
 
 ## Command line flags
 
-- `--avif` — create AVIF versions for the passed paths instead of compressing them.
-- `--webp` — create WebP versions for the passed paths instead of compressing them.
-- `-f, --force` — create AVIF and WebP even if file already exists.
+- `--avif` — create AVIF versions of images.
+- `--webp` — create WebP versions of images.
+- `-f, --force` — recreate AVIF and WebP versions if the file already exists.
 - `-l, --lossless` — optimize losslessly instead of lossily.
-- `-v, --verbose` — show additional info, e.g. skipped files.
-- `-c, --config` — use this configuration, overriding default config options if present.
+- `-v, --verbose` — show more details during the process (e.g. skipped files).
+- `-c, --config` — use a provided configuration file instead of the default one.
 - `-o, --output` — write result to provided directory.
-- `-V, --version` — show tool version.
+- `-V, --version` — show the tool version.
 - `-h, --help` — show help.
 
-## Examples
+## Usage Examples
 
 ```bash
-# one image optimization
+# optimize one image
 optimizt path/to/picture.jpg
 
-# list of images optimization losslessly
+# optimize several images losslessly
 optimizt --lossless path/to/picture.jpg path/to/another/picture.png
 
-# recursive AVIF creation in the passed directory
-optimizt --avif path/to/directory
+# recursively create AVIF and WebP versions for images in a directory
+optimizt --avif --webp path/to/directory
 
-# recursive WebP creation in the passed directory
-optimizt --webp path/to/directory
-
-# recursive JPEG optimization in the current directory
+# recursively optimize JPEG files in the current directory
 find . -iname \*.jpg -exec optimizt {} +
 ```
 
 ## Differences between Lossy and Lossless
 
-### Lossy (by default)
+### Lossy (default)
 
-Allows you to obtain the final image with a balance between a high level of compression and a minimum level
-of visual distortion.
+Gives the best balance between compression and minimal visual changes.
 
-### Lossless (--lossless flag)
+### Lossless (with `--lossless` flag)
 
-When creating AVIF and WebP versions, optimizations are applied that do not affect the visual quality of the images.
+When creating AVIF and WebP, it uses lossless compression. For PNG, JPEG, and GIF optimization, it maximizes image quality at the cost of larger file size.
 
-PNG, JPEG, and GIF optimization uses settings that maximize the visual quality of the image at the expense of
-the final file size.
-
-When processing SVG files, the settings for Lossy and Lossless modes are identical.
+For SVG files, the settings in Lossy and Lossless modes are identical.
 
 ## Configuration
 
-[JPEG](https://sharp.pixelplumbing.com/api-output#jpeg), [PNG](https://sharp.pixelplumbing.com/api-output#png),
-[WebP](https://sharp.pixelplumbing.com/api-output#webp), and [AVIF](https://sharp.pixelplumbing.com/api-output#avif)
-processing is done using [sharp](https://github.com/lovell/sharp) library, while SVG is processed using
-[svgo](https://github.com/svg/svgo) utility.
+Image processing is done using [sharp](https://github.com/lovell/sharp) for [JPEG](https://sharp.pixelplumbing.com/api-output#jpeg), [PNG](https://sharp.pixelplumbing.com/api-output#png), [WebP](https://sharp.pixelplumbing.com/api-output#webp), and [AVIF](https://sharp.pixelplumbing.com/api-output#avif), while SVG is processed by [svgo](https://github.com/svg/svgo).
 
-For optimizing GIFs, [gifsicle](https://github.com/kohler/gifsicle) is used, and for converting to WebP,
-[gif2webp](https://developers.google.com/speed/webp/docs/gif2webp) is used.
+For GIF, [gifsicle](https://github.com/kohler/gifsicle) is used, and for converting GIF to WebP — [gif2webp](https://developers.google.com/speed/webp/docs/gif2webp).
 
-> 💡 Lossless mode uses [Guetzli](https://github.com/google/guetzli) encoder to optimize JPEG, which allows to get
-> a high level of compression and still have a good visual quality. But you should keep in mind that if you optimize
-> the file again, the size may decrease at the expense of degrading the visual quality of the image.
+> [!NOTE]
+> In Lossless mode for JPEG, we use [Guetzli](https://github.com/google/guetzli), which offers high level of compression with good visual quality. However, repeated optimization may degrade visual quality.
 
-The default settings are located in [.optimiztrc.cjs](./.optimiztrc.cjs), the file contains a list of supported parameters
-and their brief description.
+The default settings are located in [.optimiztrc.cjs](./.optimiztrc.cjs), and the file contains a list of supported parameters and their brief description.
 
-To disable any of the parameters, you should use `false` for the value.
+To disable any parameter, use the value `false`.
 
-When running with the `--config path/to/.optimiztrc.cjs` flag, the settings from the specified configuration file will
-be used for image processing.
+When running with the `--config path/to/.optimiztrc.cjs` flag, the settings from the specified configuration file will be used for image processing.
 
-When running normally, without the `--config` flag, a recursive search for the `.optimiztrc.cjs` file will be performed
-starting from the current directory and up to the root of the file system. If the file is not found, the default
-settings will be applied.
-
-## Integrations
-
-### External Tool in WebStorm, PhpStorm, etc
-
-<details>
-
-#### Add an External Tool
-
-Open _Preferences → Tools → External Tools_ and add a new tool with these options:
-
-- Program: path to the exec file (usually simply `optimizt`)
-- Arguments: desired ones, but use `$FilePath$` to pass Optimizt the path of the selected file or directory
-- Working Directory: `$ContentRoot$`
-- Synchronize files after execution: ✔️
-
-Set other options at your discretion. For example:
-
-![](images/ws_external-tools.png)
-
-As you see on the screenshot above, you may add several “external tools” with the different options passed.
-
-#### How to use
-
-Run the tool through the context menu on a file or directory:
-
-<img src="images/ws_menu.png" width="55%">
-
-#### Shortcuts
-
-To add shortcuts for the added tool go to _Preferences → Keymap → External Tools_:
-
-![](images/ws_keymap.png)
-
-</details>
-
-### Tasks in Visual Studio Code
-
-<details>
-
-#### Add Task
-
-Run `>Tasks: Open User Tasks` from the _Command Palette_.
-
-In an open file, add new tasks to the `tasks` array, for example:
-
-```javascript
-{
-  // See https://go.microsoft.com/fwlink/?LinkId=733558
-  // for the documentation about the tasks.json format
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "optimizt: Optimize Image",
-      "type": "shell",
-      "command": "optimizt",
-      "args": [
-        "--verbose",
-        {
-          "value": "${file}",
-          "quoting": "strong"
-        }
-      ],
-      "presentation": {
-        "echo": false,
-        "showReuseMessage": false,
-        "clear": true
-      }
-    },
-    {
-      "label": "optimizt: Optimize Image (lossless)",
-      "type": "shell",
-      "command": "optimizt",
-      "args": [
-        "--lossless",
-        "--verbose",
-        {
-          "value": "${file}",
-          "quoting": "strong"
-        }
-      ],
-      "presentation": {
-        "echo": false,
-        "showReuseMessage": false,
-        "clear": true
-      }
-    },
-    {
-      "label": "optimizt: Create WebP",
-      "type": "shell",
-      "command": "optimizt",
-      "args": [
-        "--webp",
-        "--verbose",
-        {
-          "value": "${file}",
-          "quoting": "strong"
-        }
-      ],
-      "presentation": {
-        "echo": false,
-        "showReuseMessage": false,
-        "clear": true
-      }
-    },
-    {
-      "label": "optimizt: Create WebP (lossless)",
-      "type": "shell",
-      "command": "optimizt",
-      "args": [
-        "--webp",
-        "--lossless",
-        "--verbose",
-        {
-          "value": "${file}",
-          "quoting": "strong"
-        }
-      ],
-      "presentation": {
-        "echo": false,
-        "showReuseMessage": false,
-        "clear": true
-      }
-    }
-  ]
-}
-```
-
-#### How to use
-
-1. Open the file for processing using Optimizt, it should be in the active tab.
-2. Run `>Tasks: Run Task` from the _Command Palette_.
-3. Select the required task.
-
-#### Shortcuts
-
-You can add shortcuts for a specific task by run `>Preferences: Open Keyboard Shortcuts (JSON)` from the _Command Palette_.
-
-An example of adding a hotkey to run the "optimizt: Optimize Image (lossless)" task:
-
-```javascript
-// Place your key bindings in this file to override the defaults
-[
-  {
-    "key": "ctrl+l",
-    "command": "workbench.action.tasks.runTask",
-    "args": "optimizt: Optimize Image (lossless)"
-  }
-]
-```
-
-</details>
-
-### Plugin for Sublime Text 3
-
-<details>
-
-You’ll find the user settings directory in one of the following paths:
-
-- macOS: `~/Library/Application Support/Sublime Text 3/Packages/User`
-- Linux: `~/.config/sublime-text-3/Packages/User`
-- Windows: `%APPDATA%\Sublime Text 3\Packages\User`
-
-#### Add plugin
-
-Inside the settings directory create a file `optimizt.py` with the following content:
-
-```python
-import os
-import sublime
-import sublime_plugin
-
-optimizt = "~/.nodenv/shims/optimizt"
-
-class OptimiztCommand(sublime_plugin.WindowCommand):
-  def run(self, paths=[], options=""):
-    if len(paths) < 1:
-      return
-
-    safe_paths = ["\"" + i + "\"" for i in paths]
-    shell_cmd = optimizt + " " + options + " " + " ".join(safe_paths)
-    cwd = os.path.dirname(paths[0])
-
-    self.window.run_command("exec", {
-      "shell_cmd": shell_cmd,
-      "working_dir": cwd
-    })
-```
-
-Specify path to executable inside `optimizt` variable, this path can be obtained by running
-`command -v optimizt` (on *nix) or `where optimizt` (on Windows).
-
-#### Integrate the plugin into the sidebar context menu
-
-Inside the settings directory create a file `Side Bar.sublime-menu` with the following content:
-
-```json
-[
-    {
-        "caption": "Optimizt",
-        "children": [
-          {
-              "caption": "Optimize Images",
-              "command": "optimizt",
-              "args": {
-                "paths": [],
-                "options": "--verbose"
-              }
-          },
-          {
-              "caption": "Optimize Images (lossless)",
-              "command": "optimizt",
-              "args": {
-                "paths": [],
-                "options": "--lossless --verbose"
-              }
-          },
-          {
-              "caption": "Create WebP",
-              "command": "optimizt",
-              "args": {
-                "paths": [],
-                "options": "--webp --verbose"
-              }
-          },
-          {
-              "caption": "Create WebP (lossless)",
-              "command": "optimizt",
-              "args": {
-                "paths": [],
-                "options": "--webp --lossless --verbose"
-              }
-          }
-        ]
-    }
-]
-```
-
-#### How to use
-
-Run the tool through the context menu on a file or directory:
-
-<img src="images/st_sidebar_menu.png" width="55%">
-
-</details>
-
-### Workflow for GitHub Actions
-
-<details>
-
-Create `optimizt.yml` file in the `.github/workflows` directory of your repository.
-
-Insert the following code into `optimizt.yml`:
-
-```yml
-name: optimizt
-
-on:
-  # Triggers the workflow on push events but only for the “main” branch
-  # and only when there's JPEG/PNG in the commmit
-  push:
-    branches:
-      - main
-    paths:
-      - "**.jpe?g"
-      - "**.png"
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-jobs:
-  convert:
-    runs-on: ubuntu-latest
-
-    steps:
-      # Install Node.js to avoid EACCESS errors upon install packages
-      - uses: actions/setup-node@v2
-        with:
-          node-version: 14
-
-      - name: Install Optimizt
-        run: npm install --global @343dev/optimizt
-
-      - uses: actions/checkout@v2
-        with:
-          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
-          fetch-depth: 0 # get all commits (only the last one fetched by default)
-
-      - name: Run Optimizt
-        run: optimizt --verbose --force --avif --webp .
-
-      - name: Commit changes
-        run: |
-          git add -A
-          git config --local user.email "actions@github.com"
-          git config --local user.name "github-actions[bot]"
-          git diff --quiet && git diff --staged --quiet \
-            || git commit -am "Create WebP & AVIF versions"
-
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
-```
-
-This workflow will find all JPEG and PNG files in pushed commits and add the AVIF and WebP versions via a new commit.
-
-More examples you can find in the [workflows](./workflows) directory.
-
-</details>
+If no `--config` flag is provided, a recursive search for the `.optimiztrc.cjs` file will be performed, starting from the current directory up to the root of the file system. If the file is not found, the default settings will be applied.
 
 ## Troubleshooting
 
-### “spawn guetzli ENOENT”, etc
+### “spawn guetzli ENOENT”, etc.
 
-Make sure that the [ignore-scripts](https://docs.npmjs.com/cli/v6/using-npm/config#ignore-scripts) option is not active.
+Make sure that the [ignore-scripts](https://docs.npmjs.com/cli/v6/using-npm/config#ignore-scripts) option is not enabled.
 
-See [#9](https://github.com/funbox/optimizt/issues/9).
+Details: [funbox/optimizt/issues/9](https://github.com/funbox/optimizt/issues/9).
 
-### “pkg-config: command not found”, “fatal error: 'png.h' file not found”, etc
+### “pkg-config: command not found”, “fatal error: 'png.h' file not found”, etc.
 
-Some operating systems may lack of required libraries and utils, so you need to install them.
+Some OS may lack necessary libraries. Install them manually.
 
-Example (on macOS via [Homebrew](https://brew.sh)):
+Example for macOS using [Homebrew](https://brew.sh):
 
 ```bash
 brew install pkg-config libpng
@@ -436,39 +107,50 @@ brew install pkg-config libpng
 
 ## Docker
 
-### Pull by name
+### Using a pre-built image
 
 ```bash
+# pull by name
 docker pull 343dev/optimizt
+
+# pull by name and version
+docker pull 343dev/optimizt:9.0.2
 ```
 
-### Pull by name and version
+### Build the image manually
 
 ```bash
-docker pull 343dev/optimizt:4.1.0
+# clone the Optimizt repository
+git clone https://github.com/343dev/optimizt.git
+
+# go to the repository folder
+cd optimizt
+
+# build the image
+docker build --tag 343dev/optimizt .
 ```
-
-### Build the image
-
-If you want to manually build the Docker image, you need to:
-
-1. Clone this repo and cd into it.
-2. Run `docker build -t 343dev/optimizt .`.
 
 OR:
 
-- Run `docker build -t 343dev/optimizt https://github.com/343dev/optimizt.git`, but keep in mind that the
-[.dockerignore](.dockerignore) file will be [ignored](https://github.com/docker/cli/issues/2827).
+```bash
+# build the image without cloning the repository
+# in this case “.dockerignore” file will be ignored; see: https://github.com/docker/cli/issues/2827
+docker build --tag 343dev/optimizt https://github.com/343dev/optimizt.git
+```
 
-### Run the container
-
-Inside the container WORKDIR is set to `/src`, so by default all paths will be resolved relative to it.
-
-Usage example:
+### Running the container
 
 ```bash
-docker run -v $(pwd):/src 343dev/optimizt --webp image.png
+# inside the container, WORKDIR is set to `/src`, so all paths will resolve from there
+docker run --rm --volume $(pwd):/src 343dev/optimizt --webp ./image.png
 ```
+
+## Integrations
+
+- [JetBrains IDEs](./docs/jetbrains.md)
+- [Visual Studio Code](./docs/vscode.md)
+- [Sublime Text 3](./docs/sublime-text.md)
+- [GitHub Actions Workflow](./docs/github.md)
 
 ## Credits
 
