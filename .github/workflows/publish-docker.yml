@@ -40,4 +40,4 @@ jobs:
         with:
           push: true
           platforms: ${{ env.IMAGE_PLATFORMS }}
-          tags: ${{ env.IMAGE_NAME }}:latest,${{ env.IMAGE_NAME }}:${{ env.PKG_VERSION }}
+          tags: ${{ env.IMAGE_NAME }}:${{ env.PKG_VERSION }},${{ env.IMAGE_NAME }}:latest
