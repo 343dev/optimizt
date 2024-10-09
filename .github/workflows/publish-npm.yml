@@ -1,12 +1,15 @@
 name: Publish Package to npmjs
 
 on:
-  push:
+  workflow_run:
+    workflows: [Node.js CI]
+    types: [completed]
     branches: [main]
 
 jobs:
   publish_to_npm:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       actions: write # “andymckay/cancel-action” requires “write” access to the “actions” permission
       id-token: write # Provenance generation in GitHub Actions requires “write” access to the “id-token” permission
