@@ -8,8 +8,8 @@ jobs:
   publish_to_npm:
     runs-on: ubuntu-latest
     permissions:
-      actions: write # Fix for “Error: Resource not accessible by integration” by Cancelling step
-      id-token: write # Provenance generation in GitHub Actions requires "write" access to the "id-token" permission
+      actions: write # “andymckay/cancel-action” requires “write” access to the “actions” permission
+      id-token: write # Provenance generation in GitHub Actions requires “write” access to the “id-token” permission
     steps:
       -
         name: Checkout repository
