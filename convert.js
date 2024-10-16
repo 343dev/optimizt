@@ -49,59 +49,57 @@ export async function convert({ filePaths, config }) {
 
 	const totalSize = { before: 0, after: 0 };
 
-	const avifConfig = isLossless
-		? config?.avif?.lossless
-		: config?.avif?.lossy;
-	const webpConfig = isLossless
-		? config?.webp?.lossless
-		: config?.webp?.lossy;
-	const webpGifConfig = isLossless
-		? config?.webpGif?.lossless
-		: config?.webpGif?.lossy;
+	const getConfig = format => config?.[format]?.[isLossless ? 'lossless' : 'lossy'];
 
-	const tasksSimultaneousLimit = pLimit(os.cpus().length);
-	const tasksPromises = filePaths.reduce((accumulator, filePath) => {
-		if (shouldConvertToAvif) {
-			accumulator.push(
-				tasksSimultaneousLimit(
-					() => processFile({
-						filePath,
-						config: avifConfig || {},
-						progressBarContainer,
-						progressBar,
-						totalSize,
-						isForced,
-						format: 'AVIF',
-						processFunction: processAvif,
-					}),
-				),
-			);
-		}
+	const avifConfig = getConfig('avif');
+	const webpConfig = getConfig('webp');
+	const webpGifConfig = getConfig('webpGif');
 
-		if (shouldConvertToWebp) {
-			accumulator.push(
-				tasksSimultaneousLimit(
-					() => processFile({
-						filePath,
-						config: (path.extname(filePath.input).toLowerCase() === '.gif'
-							? webpGifConfig
-							: webpConfig)
-							|| {},
-						progressBarContainer,
-						progressBar,
-						totalSize,
-						isForced,
-						format: 'WebP',
-						processFunction: processWebp,
-					}),
-				),
-			);
-		}
+	const cpuCount = os.cpus().length;
+	const tasksSimultaneousLimit = pLimit(cpuCount);
 
-		return accumulator;
-	}, []);
+	await Promise.all(
+		filePaths.reduce((accumulator, filePath) => {
+			if (shouldConvertToAvif) {
+				accumulator.push(
+					tasksSimultaneousLimit(
+						() => processFile({
+							filePath,
+							config: avifConfig || {},
+							progressBarContainer,
+							progressBar,
+							totalSize,
+							isForced,
+							format: 'AVIF',
+							processFunction: processAvif,
+						}),
+					),
+				);
+			}
 
-	await Promise.all(tasksPromises);
+			if (shouldConvertToWebp) {
+				const isGif = path.extname(filePath.input).toLowerCase() === '.gif';
+
+				accumulator.push(
+					tasksSimultaneousLimit(
+						() => processFile({
+							filePath,
+							config: (isGif ? webpGifConfig : webpConfig) || {},
+							progressBarContainer,
+							progressBar,
+							totalSize,
+							isForced,
+							format: 'WebP',
+							processFunction: processWebp,
+						}),
+					),
+				);
+			}
+
+			return accumulator;
+		}, []),
+	);
+
 	progressBarContainer.update(); // Prevent logs lost. See: https://github.com/npkgz/cli-progress/issues/145#issuecomment-1859594159
 	progressBarContainer.stop();
 
