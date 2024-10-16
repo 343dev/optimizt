@@ -1,5 +1,14 @@
 # Changelog
 
+## 9.1.0 (2024-10-16)
+
+- Disabled parallel optimization of JPEG files in Lossless mode.
+
+Guetzli uses a huge amount of RAM. In my case, when optimizing a file of about 30 MB, one process could use up to 12 GB of memory. If there are multiple files, parallel optimization with Guetzli consumes all available RAM, causing the system to use Swap, leading to slowdowns and freezes.
+
+For this reason I decided to disable parallel optimization of JPEG files in Lossless mode. Now, it will take more time but will have less impact on the OS performance.
+
+
 ## 9.0.2 (2024-10-08)
 
 - Fixed Guetzli install.
