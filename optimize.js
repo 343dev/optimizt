@@ -42,28 +42,29 @@ export async function optimize({ filePaths, config }) {
 	const totalSize = { before: 0, after: 0 };
 
 	const cpuCount = os.cpus().length;
-	const tasksSimultaneousLimit = pLimit(
-		/*
-			Guetzli uses a large amount of memory and a significant amount of CPU time.
-			To reduce the processor load in lossless mode, we reduce the number
-			of simultaneous tasks by half.
-		 */
-		isLossless ? Math.round(cpuCount / 2) : cpuCount,
-	);
-	const tasksPromises = filePaths.map(
-		filePath => tasksSimultaneousLimit(
-			() => processFile({
+	const tasksSimultaneousLimit = pLimit(cpuCount);
+	const guetzliTasksSimultaneousLimit = pLimit(1); // Guetzli uses a large amount of memory and a significant amount of CPU time. To reduce system load, we only allow one instance of guetzli to run at the same time.
+
+	await Promise.all(
+		filePaths.map(filePath => {
+			const extension = path.extname(filePath.input).toLowerCase();
+			const isJpeg = extension === '.jpg' || extension === '.jpeg';
+
+			const limit = isJpeg && isLossless
+				? guetzliTasksSimultaneousLimit
+				: tasksSimultaneousLimit;
+
+			return limit(() => processFile({
 				filePath,
 				config,
 				progressBarContainer,
 				progressBar,
 				totalSize,
 				isLossless,
-			}),
-		),
+			}));
+		}),
 	);
 
-	await Promise.all(tasksPromises);
 	progressBarContainer.update(); // Prevent logs lost. See: https://github.com/npkgz/cli-progress/issues/145#issuecomment-1859594159
 	progressBarContainer.stop();
 
