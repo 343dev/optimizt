@@ -1,5 +1,10 @@
 # Changelog
 
+## 9.1.1 (2024-10-22)
+
+- Replaced [imagemin/guetzli-bin](https://github.com/imagemin/guetzli-bin) with [343dev/guetzli](https://github.com/343dev/guetzli).
+
+
 ## 9.1.0 (2024-10-16)
 
 - Disabled parallel optimization of JPEG files in Lossless mode.

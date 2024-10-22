@@ -2,9 +2,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
+import guetzli from '@343dev/guetzli';
 import execBuffer from 'exec-buffer';
 import gifsicle from 'gifsicle';
-import guetzli from 'guetzli';
 import pLimit from 'p-limit';
 import sharp from 'sharp';
 import { optimize as svgoOptimize } from 'svgo';
