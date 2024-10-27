@@ -2,8 +2,6 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import execBuffer from 'exec-buffer';
-import gif2webp from 'gif2webp-bin';
 import pLimit from 'p-limit';
 import sharp from 'sharp';
 
@@ -20,7 +18,6 @@ import {
 	logProgress,
 	logProgressVerbose,
 } from './lib/log.js';
-import { optionsToArguments } from './lib/options-to-arguments.js';
 import { parseImageMetadata } from './lib/parse-image-metadata.js';
 import { programOptions } from './lib/program-options.js';
 import { showTotal } from './lib/show-total.js';
@@ -187,23 +184,9 @@ async function processWebp({ fileBuffer, config }) {
 	const imageMetadata = await parseImageMetadata(fileBuffer);
 	checkImageFormat(imageMetadata.format);
 
-	if (imageMetadata.format === 'gif') {
-		return execBuffer({
-			bin: gif2webp,
-			args: [
-				...optionsToArguments({
-					options: config,
-					prefix: '-',
-				}),
-				execBuffer.input,
-				'-o',
-				execBuffer.output,
-			],
-			input: fileBuffer,
-		});
-	}
+	const isAnimated = imageMetadata.pages > 1;
 
-	return sharp(fileBuffer)
+	return sharp(fileBuffer, { animated: isAnimated })
 		.rotate() // Rotate image using information from EXIF Orientation tag
 		.webp(config)
 		.toBuffer();

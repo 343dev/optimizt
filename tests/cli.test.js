@@ -247,7 +247,7 @@ describe('CLI', () => {
 				const stdoutRatio = grepTotalRatio(stdout);
 
 				expectStringContains(stdout, 'Converting 6 images (lossy)...');
-				expectRatio(stdoutRatio, 55, 60);
+				expectRatio(stdoutRatio, 60, 65);
 				expectFileNotModified(`${fileBasename}.png`);
 				expectFileExists(`${fileBasename}.webp`);
 			});
