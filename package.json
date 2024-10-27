@@ -43,7 +43,7 @@
 	},
 	"type": "module",
 	"engines": {
-		"node": ">=18.17"
+		"node": ">=18.18"
 	},
 	"dependencies": {
 		"@343dev/guetzli": "^1.0.1",
