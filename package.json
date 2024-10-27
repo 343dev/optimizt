@@ -58,7 +58,6 @@
 		"svgo": "^3.3.2"
 	},
 	"devDependencies": {
-		"@343dev/eslint-config": "^1.0.0",
 		"eslint": "^8.57.0",
 		"jest": "^29.7.0",
 		"lint-staged": "^15.2.10",
@@ -72,11 +71,5 @@
 		"*.js": [
 			"eslint --fix"
 		]
-	},
-	"eslintConfig": {
-		"extends": "@343dev",
-		"env": {
-			"jest": true
-		}
 	}
 }
