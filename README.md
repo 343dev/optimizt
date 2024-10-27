@@ -74,7 +74,7 @@ For SVG files, the settings in Lossy and Lossless modes are identical.
 
 Image processing is done using [sharp](https://github.com/lovell/sharp) for [JPEG](https://sharp.pixelplumbing.com/api-output#jpeg), [PNG](https://sharp.pixelplumbing.com/api-output#png), [WebP](https://sharp.pixelplumbing.com/api-output#webp), and [AVIF](https://sharp.pixelplumbing.com/api-output#avif), while SVG is processed by [svgo](https://github.com/svg/svgo).
 
-For GIF, [gifsicle](https://github.com/kohler/gifsicle) is used, and for converting GIF to WebP — [gif2webp](https://developers.google.com/speed/webp/docs/gif2webp).
+For GIF, [gifsicle](https://github.com/kohler/gifsicle) is used.
 
 > [!NOTE]
 > In Lossless mode for JPEG, we use [Guetzli](https://github.com/google/guetzli), which offers high level of compression with good visual quality. However, repeated optimization may degrade visual quality.
