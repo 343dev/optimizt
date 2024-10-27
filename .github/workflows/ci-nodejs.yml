@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.17.0, 20.18.0, latest]
+        node-version: [18.18.0, 20.18.0, latest]
     steps:
       -
         name: Checkout repository
