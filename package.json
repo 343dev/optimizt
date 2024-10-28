@@ -52,7 +52,7 @@
 		"fdir": "^6.4.0",
 		"gifsicle": "^7.0.0",
 		"p-limit": "^6.1.0",
-		"sharp": "^0.33.4",
+		"sharp": "^0.33.5",
 		"svgo": "^3.3.2"
 	},
 	"devDependencies": {
