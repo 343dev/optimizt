@@ -50,7 +50,6 @@ export async function convert({ filePaths, config }) {
 
 	const avifConfig = getConfig('avif');
 	const webpConfig = getConfig('webp');
-	const webpGifConfig = getConfig('webpGif');
 
 	const cpuCount = os.cpus().length;
 	const tasksSimultaneousLimit = pLimit(cpuCount);
@@ -75,13 +74,11 @@ export async function convert({ filePaths, config }) {
 			}
 
 			if (shouldConvertToWebp) {
-				const isGif = path.extname(filePath.input).toLowerCase() === '.gif';
-
 				accumulator.push(
 					tasksSimultaneousLimit(
 						() => processFile({
 							filePath,
-							config: (isGif ? webpGifConfig : webpConfig) || {},
+							config: webpConfig || {},
 							progressBarContainer,
 							progressBar,
 							totalSize,
