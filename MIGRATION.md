@@ -1,5 +1,14 @@
 # Migration
 
+## 9.1.1 → 10.0.0
+
+Node.js version must be 18.18 or higher.
+
+The “sharp” module now replaces “gif2webp” for converting GIFs to WebP. Consequently, the “webpGif” section in [.optimiztrc.cjs](.optimiztrc.cjs) has been replaced with a “webp” section. If you use a custom configuration file, please remove any “webpGif” section.
+
+Default settings in Optimizt’s configuration have been updated. Note that in lossless mode, image processing times may increase slightly, but resulting file sizes are expected to be smaller compared to previous versions.
+
+
 ## 8.0.1 → 9.0.0
 
 The main change in the new version is how Optimizt handles file processing. Before, the result was stored in memory until all files were processed. This could cause the app to crash if it ran out of memory, leading to a loss of optimization results. Now, each file is processed one by one, and the result is saved to disk immediately. Logging events also happen in real-time, instead of waiting until all files are done.
