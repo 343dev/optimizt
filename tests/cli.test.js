@@ -134,7 +134,7 @@ describe('CLI', () => {
 				const stdout = runCliWithParameters(`--avif ${workDirectory}${file}`);
 
 				expectFileRatio({
-					stdout, file, maxRatio: 90, minRatio: 85, outputExt: 'avif',
+					stdout, file, maxRatio: 85, minRatio: 80, outputExt: 'avif',
 				});
 				expectFileNotModified(file);
 			});
@@ -164,7 +164,7 @@ describe('CLI', () => {
 				const stdoutRatio = grepTotalRatio(stdout);
 
 				expectStringContains(stdout, 'Converting 6 images (lossy)...');
-				expectRatio(stdoutRatio, 85, 95);
+				expectRatio(stdoutRatio, 80, 85);
 				expectFileNotModified(`${fileBasename}.png`);
 				expectFileExists(`${fileBasename}.avif`);
 			});
@@ -179,7 +179,7 @@ describe('CLI', () => {
 				const stdout = runCliWithParameters(`--avif --lossless ${workDirectory}${file}`);
 
 				expectFileRatio({
-					stdout, file, maxRatio: 40, minRatio: 35, outputExt: 'avif',
+					stdout, file, maxRatio: 30, minRatio: 25, outputExt: 'avif',
 				});
 				expectFileNotModified(file);
 			});
@@ -199,7 +199,7 @@ describe('CLI', () => {
 				const stdoutRatio = grepTotalRatio(stdout);
 
 				expectStringContains(stdout, 'Converting 6 images (lossless)...');
-				expectRatio(stdoutRatio, 27, 31);
+				expectRatio(stdoutRatio, 15, 20);
 				expectFileNotModified(`${fileBasename}.png`);
 				expectFileExists(`${fileBasename}.avif`);
 
@@ -236,7 +236,7 @@ describe('CLI', () => {
 				const stdout = runCliWithParameters(`--webp ${workDirectory}${file}`);
 
 				expectFileRatio({
-					stdout, file, maxRatio: 40, minRatio: 35, outputExt: 'webp',
+					stdout, file, maxRatio: 30, minRatio: 25, outputExt: 'webp',
 				});
 				expectFileNotModified(file);
 			});
@@ -259,7 +259,7 @@ describe('CLI', () => {
 				const stdout = runCliWithParameters(`--webp --lossless ${workDirectory}${file}`);
 
 				expectFileRatio({
-					stdout, file, maxRatio: 80, minRatio: 75, outputExt: 'webp',
+					stdout, file, maxRatio: 85, minRatio: 80, outputExt: 'webp',
 				});
 				expectFileNotModified(file);
 			});
@@ -269,7 +269,7 @@ describe('CLI', () => {
 				const stdout = runCliWithParameters(`--webp --lossless ${workDirectory}${file}`);
 
 				expectFileRatio({
-					stdout, file, maxRatio: 45, minRatio: 40, outputExt: 'webp',
+					stdout, file, maxRatio: 50, minRatio: 45, outputExt: 'webp',
 				});
 				expectFileNotModified(file);
 			});
@@ -321,7 +321,7 @@ describe('CLI', () => {
 
 				expectStringContains(stdout, 'Converting 1 image (lossless)...');
 				expectStringContains(stdout, path.join(temporary, `${fileBasename}.png`));
-				expectRatio(stdoutRatio, 40, 45);
+				expectRatio(stdoutRatio, 35, 40);
 				expectFileNotModified(`${fileBasename}.png`);
 				expectFileExists(`${fileBasename}.avif`);
 				expectFileExists(`${fileBasename}.webp`);

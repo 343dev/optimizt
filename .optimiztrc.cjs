@@ -15,7 +15,7 @@ module.exports = {
 			},
 			// https://github.com/google/guetzli
 			lossless: {
-				quality: 90, // visual quality to aim for, expressed as a JPEG quality value
+				quality: 90, // visual quality to aim for, expressed as a JPEG quality value; should be >= 84, otherwise the output will have noticeable artifacts
 				memlimit: 6000, // memory limit in MB; guetzli will fail if unable to stay under the limit
 				nomemlimit: false, // do not limit memory usage
 			},
@@ -39,7 +39,7 @@ module.exports = {
 				adaptiveFiltering: true,
 				palette: false,
 				quality: 100,
-				effort: 7,
+				effort: 10,
 				colors: 256,
 				dither: 1.0,
 			},
@@ -88,15 +88,15 @@ module.exports = {
 		// https://sharp.pixelplumbing.com/api-output#avif
 		avif: {
 			lossy: {
-				quality: 50, // quality, integer 1-100
+				quality: 64, // quality, integer 1-100
 				lossless: false, // use lossless compression
 				effort: 4, // CPU effort, between 0 (fastest) and 9 (slowest)
 				chromaSubsampling: '4:4:4', // set to '4:2:0' to use chroma subsampling
 			},
 			lossless: {
-				quality: 50,
+				quality: 100,
 				lossless: true,
-				effort: 4,
+				effort: 9,
 				chromaSubsampling: '4:4:4',
 			},
 		},
@@ -104,50 +104,26 @@ module.exports = {
 		// https://sharp.pixelplumbing.com/api-output#webp
 		webp: {
 			lossy: {
-				quality: 85, // quality, integer 1-100
-				alphaQuality: 100, // quality of alpha layer, integer 0-100
+				quality: 82, // quality, integer 1-100
+				alphaQuality: 82, // quality of alpha layer, integer 0-100
 				lossless: false, // use lossless compression mode
 				nearLossless: false, // use near_lossless compression mode
 				smartSubsample: false, // use high quality chroma subsampling
 				preset: 'default', // named preset for preprocessing/filtering, one of: default, photo, picture, drawing, icon, text
 				effort: 4, // CPU effort, between 0 (fastest) and 6 (slowest)
-				minSize: false, // prevent use of animation key frames to minimise file size (slow)
+				minSize: true, // prevent use of animation key frames to minimise file size (slow)
 				mixed: false, // allow mixture of lossy and lossless animation frames (slow)
 			},
 			lossless: {
-				quality: 85,
+				quality: 100,
 				alphaQuality: 100,
 				lossless: true,
 				nearLossless: false,
 				smartSubsample: false,
-				effort: 4,
+				preset: 'default',
+				effort: 6,
 				minSize: false,
 				mixed: false,
-			},
-		},
-
-		// https://developers.google.com/speed/webp/docs/gif2webp
-		webpGif: {
-			lossy: {
-				lossy: true, // encode image using lossy compression
-				mixed: false, // for each frame in the image, pick lossy or lossless compression heuristically
-				q: 75, // in case of lossy compression, a small factor produces a smaller file with lower quality; best quality is achieved by using a value of 100
-				m: 6, // compression method (0=fast, 6=slowest)
-				min_size: true, // minimize output size; can be combined with -q, -m, -lossy or -mixed options
-				f: 0, // filter strength (0=off..100); for lossy encoding only
-				metadata: 'xmp', // comma separated list of metadata to copy from the input to the output if present; valid values: all, none, icc, xmp
-				loop_compatibility: false, // use compatibility mode for Chrome version prior to M62 (inclusive)
-				mt: true, // use multi-threading if available
-			},
-			lossless: {
-				lossy: false,
-				mixed: false,
-				q: 100,
-				m: false,
-				min_size: false,
-				metadata: 'xmp',
-				loop_compatibility: false,
-				mt: true,
 			},
 		},
 	},

@@ -1,5 +1,15 @@
 # Changelog
 
+## 10.0.0 (2024-10-28)
+
+Breaking Changes:
+
+- Supported Node.js version updated to 18.18 or higher.
+- Replaced “gif2webp” with “sharp” for GIF-to-WebP conversions.
+- Removed the “webpGif” section from [.optimiztrc.cjs](.optimiztrc.cjs).
+- Fine-tuned params in [.optimiztrc.cjs](.optimiztrc.cjs).
+
+
 ## 9.1.1 (2024-10-22)
 
 - Replaced [imagemin/guetzli-bin](https://github.com/imagemin/guetzli-bin) with [343dev/guetzli](https://github.com/343dev/guetzli).

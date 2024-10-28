@@ -72,9 +72,9 @@ find . -iname \*.jpg -exec optimizt {} +
 
 ## Конфигурация
 
-Операции с [JPEG](https://sharp.pixelplumbing.com/api-output#jpeg), [PNG](https://sharp.pixelplumbing.com/api-output#png), [WebP](https://sharp.pixelplumbing.com/api-output#webp) и [AVIF](https://sharp.pixelplumbing.com/api-output#avif) производятся с помощью библиотеки [sharp](https://github.com/lovell/sharp), а SVG обрабатывается с помощью утилиты [svgo](https://github.com/svg/svgo).
+Операции с [JPEG](https://sharp.pixelplumbing.com/api-output#jpeg), [PNG](https://sharp.pixelplumbing.com/api-output#png), [WebP](https://sharp.pixelplumbing.com/api-output#webp) и [AVIF](https://sharp.pixelplumbing.com/api-output#avif) производятся с помощью библиотеки [sharp](https://github.com/lovell/sharp).
 
-Для оптимизации GIF используется [gifsicle](https://github.com/kohler/gifsicle), а для конвертации GIF в WebP — [gif2webp](https://developers.google.com/speed/webp/docs/gif2webp).
+SVG обрабатывается с помощью утилиты [svgo](https://github.com/svg/svgo), а для оптимизации GIF используется [gifsicle](https://github.com/kohler/gifsicle).
 
 > [!NOTE]
 > В режиме Lossless для оптимизации JPEG используется энкодер [Guetzli](https://github.com/google/guetzli), который позволяет получить высокий уровень компрессии и при этом сохранить хорошее визуальное качество изображения. Но, нужно иметь в виду, что при повторной оптимизации файла размер может уменьшаться за счёт деградации визуального качества изображения.

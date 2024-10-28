@@ -2,8 +2,6 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import execBuffer from 'exec-buffer';
-import gif2webp from 'gif2webp-bin';
 import pLimit from 'p-limit';
 import sharp from 'sharp';
 
@@ -20,7 +18,6 @@ import {
 	logProgress,
 	logProgressVerbose,
 } from './lib/log.js';
-import { optionsToArguments } from './lib/options-to-arguments.js';
 import { parseImageMetadata } from './lib/parse-image-metadata.js';
 import { programOptions } from './lib/program-options.js';
 import { showTotal } from './lib/show-total.js';
@@ -53,7 +50,6 @@ export async function convert({ filePaths, config }) {
 
 	const avifConfig = getConfig('avif');
 	const webpConfig = getConfig('webp');
-	const webpGifConfig = getConfig('webpGif');
 
 	const cpuCount = os.cpus().length;
 	const tasksSimultaneousLimit = pLimit(cpuCount);
@@ -78,13 +74,11 @@ export async function convert({ filePaths, config }) {
 			}
 
 			if (shouldConvertToWebp) {
-				const isGif = path.extname(filePath.input).toLowerCase() === '.gif';
-
 				accumulator.push(
 					tasksSimultaneousLimit(
 						() => processFile({
 							filePath,
-							config: (isGif ? webpGifConfig : webpConfig) || {},
+							config: webpConfig || {},
 							progressBarContainer,
 							progressBar,
 							totalSize,
@@ -187,23 +181,9 @@ async function processWebp({ fileBuffer, config }) {
 	const imageMetadata = await parseImageMetadata(fileBuffer);
 	checkImageFormat(imageMetadata.format);
 
-	if (imageMetadata.format === 'gif') {
-		return execBuffer({
-			bin: gif2webp,
-			args: [
-				...optionsToArguments({
-					options: config,
-					prefix: '-',
-				}),
-				execBuffer.input,
-				'-o',
-				execBuffer.output,
-			],
-			input: fileBuffer,
-		});
-	}
+	const isAnimated = imageMetadata.pages > 1;
 
-	return sharp(fileBuffer)
+	return sharp(fileBuffer, { animated: isAnimated })
 		.rotate() // Rotate image using information from EXIF Orientation tag
 		.webp(config)
 		.toBuffer();
