@@ -1,3 +1,4 @@
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -195,20 +196,39 @@ function processPng({ fileBuffer, config, isLossless }) {
 }
 
 function processGif({ fileBuffer, config, isLossless }) {
-	return execBuffer({
-		bin: gifsicle,
-		args: [
+	return new Promise((resolve, reject) => {
+		const processArguments = [
 			...optionsToArguments({
 				options: (isLossless ? config?.gif?.lossless : config?.gif?.lossy) || {},
 				concat: true,
 			}),
 			`--threads=${os.cpus().length}`,
 			'--no-warnings',
-			'--output',
-			execBuffer.output,
-			execBuffer.input,
-		],
-		input: fileBuffer,
+			'-',
+		];
+		const process = spawn(gifsicle, processArguments);
+
+		process.stdin.write(fileBuffer);
+		process.stdin.end();
+
+		const stdoutChunks = [];
+		process.stdout.on('data', chunk => {
+			stdoutChunks.push(chunk);
+		});
+
+		process.on('error', error => {
+			reject(new Error(`Error processing GIF: ${error.message}`));
+		});
+
+		process.on('close', code => {
+			if (code !== 0) {
+				reject(new Error(`GIF optimization process exited with code ${code}`));
+				return;
+			}
+
+			const processedFileBuffer = Buffer.concat(stdoutChunks);
+			resolve(processedFileBuffer);
+		});
 	});
 }
 
