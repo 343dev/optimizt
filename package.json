@@ -48,7 +48,6 @@
 		"@343dev/guetzli": "^1.1.0",
 		"cli-progress": "^3.11.0",
 		"commander": "^12.1.0",
-		"exec-buffer": "^3.2.0",
 		"fdir": "^6.4.0",
 		"gifsicle": "^7.0.1",
 		"p-limit": "^6.1.0",
