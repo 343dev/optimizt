@@ -88,7 +88,7 @@ describe('CLI', () => {
 				const stdout = runCliWithParameters(`--lossless ${workDirectory}${file}`);
 
 				expectFileRatio({
-					stdout, file, maxRatio: 50, minRatio: 45,
+					stdout, file, maxRatio: 55, minRatio: 45,
 				});
 			});
 

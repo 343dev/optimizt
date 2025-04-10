@@ -1,9 +1,9 @@
+import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
 import guetzli from '@343dev/guetzli';
-import execBuffer from 'exec-buffer';
 import gifsicle from 'gifsicle';
 import pLimit from 'p-limit';
 import sharp from 'sharp';
@@ -164,28 +164,30 @@ async function processJpeg({ fileBuffer, config, isLossless }) {
 	const sharpImage = sharp(fileBuffer)
 		.rotate(); // Rotate image using information from EXIF Orientation tag
 
-	if (isLossless) {
-		const inputBuffer = await sharpImage
-			.toColorspace('srgb') // Replace colorspace (guetzli works only with sRGB)
-			.jpeg({ quality: 100, optimizeCoding: false }) // Applying maximum quality to minimize losses during image processing with sharp
+	if (!isLossless) {
+		return sharpImage
+			.jpeg(config?.jpeg?.lossy || {})
 			.toBuffer();
-
-		return execBuffer({
-			bin: guetzli,
-			args: [
-				...optionsToArguments({
-					options: config?.jpeg?.lossless || {},
-				}),
-				execBuffer.input,
-				execBuffer.output,
-			],
-			input: inputBuffer,
-		});
 	}
 
-	return sharpImage
-		.jpeg(config?.jpeg?.lossy || {})
+	const inputBuffer = await sharpImage
+		.toColorspace('srgb') // Replace colorspace (guetzli works only with sRGB)
+		.jpeg({ quality: 100, optimizeCoding: false }) // Applying maximum quality to minimize losses during image processing with sharp
 		.toBuffer();
+
+	const commandOptions = [
+		...optionsToArguments({
+			options: config?.jpeg?.lossless || {},
+		}),
+		'-',
+		'-',
+	];
+
+	return pipe({
+		command: guetzli,
+		commandOptions,
+		inputBuffer,
+	});
 }
 
 function processPng({ fileBuffer, config, isLossless }) {
@@ -195,20 +197,20 @@ function processPng({ fileBuffer, config, isLossless }) {
 }
 
 function processGif({ fileBuffer, config, isLossless }) {
-	return execBuffer({
-		bin: gifsicle,
-		args: [
-			...optionsToArguments({
-				options: (isLossless ? config?.gif?.lossless : config?.gif?.lossy) || {},
-				concat: true,
-			}),
-			`--threads=${os.cpus().length}`,
-			'--no-warnings',
-			'--output',
-			execBuffer.output,
-			execBuffer.input,
-		],
-		input: fileBuffer,
+	const commandOptions = [
+		...optionsToArguments({
+			options: (isLossless ? config?.gif?.lossless : config?.gif?.lossy) || {},
+			concat: true,
+		}),
+		`--threads=${os.cpus().length}`,
+		'--no-warnings',
+		'-',
+	];
+
+	return pipe({
+		command: gifsicle,
+		commandOptions,
+		inputBuffer: fileBuffer,
 	});
 }
 
@@ -219,4 +221,32 @@ function processSvg({ fileBuffer, config }) {
 			config.svg,
 		).data,
 	);
+}
+
+function pipe({ command, commandOptions, inputBuffer }) {
+	return new Promise((resolve, reject) => {
+		const process = spawn(command, commandOptions);
+
+		process.stdin.write(inputBuffer);
+		process.stdin.end();
+
+		const stdoutChunks = [];
+		process.stdout.on('data', chunk => {
+			stdoutChunks.push(chunk);
+		});
+
+		process.on('error', error => {
+			reject(new Error(`Error processing image: ${error.message}`));
+		});
+
+		process.on('close', code => {
+			if (code !== 0) {
+				reject(new Error(`Image optimization process exited with code ${code}`));
+				return;
+			}
+
+			const processedFileBuffer = Buffer.concat(stdoutChunks);
+			resolve(processedFileBuffer);
+		});
+	});
 }
