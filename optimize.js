@@ -175,37 +175,18 @@ async function processJpeg({ fileBuffer, config, isLossless }) {
 		.jpeg({ quality: 100, optimizeCoding: false }) // Applying maximum quality to minimize losses during image processing with sharp
 		.toBuffer();
 
-	return new Promise((resolve, reject) => {
-		const processArguments = [
-			...optionsToArguments({
-				options: config?.jpeg?.lossless || {},
-			}),
-			'-',
-			'-',
-		];
-		const process = spawn(guetzli, processArguments);
+	const commandOptions = [
+		...optionsToArguments({
+			options: config?.jpeg?.lossless || {},
+		}),
+		'-',
+		'-',
+	];
 
-		process.stdin.write(inputBuffer);
-		process.stdin.end();
-
-		const stdoutChunks = [];
-		process.stdout.on('data', chunk => {
-			stdoutChunks.push(chunk);
-		});
-
-		process.on('error', error => {
-			reject(new Error(`Error processing JPG: ${error.message}`));
-		});
-
-		process.on('close', code => {
-			if (code !== 0) {
-				reject(new Error(`JPG optimization process exited with code ${code}`));
-				return;
-			}
-
-			const processedFileBuffer = Buffer.concat(stdoutChunks);
-			resolve(processedFileBuffer);
-		});
+	return pipe({
+		command: guetzli,
+		commandOptions,
+		inputBuffer,
 	});
 }
 
@@ -216,39 +197,20 @@ function processPng({ fileBuffer, config, isLossless }) {
 }
 
 function processGif({ fileBuffer, config, isLossless }) {
-	return new Promise((resolve, reject) => {
-		const processArguments = [
-			...optionsToArguments({
-				options: (isLossless ? config?.gif?.lossless : config?.gif?.lossy) || {},
-				concat: true,
-			}),
-			`--threads=${os.cpus().length}`,
-			'--no-warnings',
-			'-',
-		];
-		const process = spawn(gifsicle, processArguments);
+	const commandOptions = [
+		...optionsToArguments({
+			options: (isLossless ? config?.gif?.lossless : config?.gif?.lossy) || {},
+			concat: true,
+		}),
+		`--threads=${os.cpus().length}`,
+		'--no-warnings',
+		'-',
+	];
 
-		process.stdin.write(fileBuffer);
-		process.stdin.end();
-
-		const stdoutChunks = [];
-		process.stdout.on('data', chunk => {
-			stdoutChunks.push(chunk);
-		});
-
-		process.on('error', error => {
-			reject(new Error(`Error processing GIF: ${error.message}`));
-		});
-
-		process.on('close', code => {
-			if (code !== 0) {
-				reject(new Error(`GIF optimization process exited with code ${code}`));
-				return;
-			}
-
-			const processedFileBuffer = Buffer.concat(stdoutChunks);
-			resolve(processedFileBuffer);
-		});
+	return pipe({
+		command: gifsicle,
+		commandOptions,
+		inputBuffer: fileBuffer,
 	});
 }
 
@@ -259,4 +221,32 @@ function processSvg({ fileBuffer, config }) {
 			config.svg,
 		).data,
 	);
+}
+
+function pipe({ command, commandOptions, inputBuffer }) {
+	return new Promise((resolve, reject) => {
+		const process = spawn(command, commandOptions);
+
+		process.stdin.write(inputBuffer);
+		process.stdin.end();
+
+		const stdoutChunks = [];
+		process.stdout.on('data', chunk => {
+			stdoutChunks.push(chunk);
+		});
+
+		process.on('error', error => {
+			reject(new Error(`Error processing image: ${error.message}`));
+		});
+
+		process.on('close', code => {
+			if (code !== 0) {
+				reject(new Error(`Image optimization process exited with code ${code}`));
+				return;
+			}
+
+			const processedFileBuffer = Buffer.concat(stdoutChunks);
+			resolve(processedFileBuffer);
+		});
+	});
 }
