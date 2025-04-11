@@ -58,7 +58,6 @@
 		"@343dev/eslint-config": "^2.0.0",
 		"eslint": "^9.13.0",
 		"globals": "^15.11.0",
-		"jest": "^29.7.0",
 		"lint-staged": "^15.2.10",
 		"simple-git-hooks": "^2.11.1",
 		"vitest": "^3.1.1"
