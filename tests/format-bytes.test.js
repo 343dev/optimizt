@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest';
+
 import { formatBytes } from '../lib/format-bytes.js';
 
 test('1023 should be formatted as “1023 Bytes”', () => {

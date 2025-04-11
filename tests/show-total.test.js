@@ -1,25 +1,25 @@
-import { jest } from '@jest/globals';
+import { expect, test, vi } from 'vitest';
 
 import { showTotal } from '../lib/show-total.js';
 
 test('Savings size and compression ratio are displayed', () => {
 	const fileSize = 1_048_576;
 
-	console.log = jest.fn();
+	const consoleSpy = vi.spyOn(console, 'log');
 
 	showTotal(fileSize, fileSize / 2);
-	expect(console.log.mock.calls[1][1]).toBe('Yay! You saved 512 KB (50%)');
+	expect(consoleSpy.mock.calls[1][1]).toBe('Yay! You saved 512 KB (50%)');
 
-	console.log.mockRestore();
+	consoleSpy.mockRestore();
 });
 
 test('Savings size and compression ratio are not displayed', () => {
 	const fileSize = 1_048_576;
 
-	console.log = jest.fn();
+	const consoleSpy = vi.spyOn(console, 'log');
 
 	showTotal(fileSize, fileSize * 2);
-	expect(console.log.mock.calls[1][1]).toBe('Done!');
+	expect(consoleSpy.mock.calls[1][1]).toBe('Done!');
 
-	console.log.mockRestore();
+	consoleSpy.mockRestore();
 });
