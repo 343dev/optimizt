@@ -60,7 +60,8 @@
 		"globals": "^15.11.0",
 		"jest": "^29.7.0",
 		"lint-staged": "^15.2.10",
-		"simple-git-hooks": "^2.11.1"
+		"simple-git-hooks": "^2.11.1",
+		"vitest": "^3.1.1"
 	},
 	"simple-git-hooks": {
 		"pre-commit": "npx lint-staged",
