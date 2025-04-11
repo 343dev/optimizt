@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest';
+
 import { getPlural } from '../lib/get-plural.js';
 
 test('Should return “image” if num equals 1', () => {

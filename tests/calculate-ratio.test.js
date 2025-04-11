@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest';
+
 import { calculateRatio } from '../lib/calculate-ratio.js';
 
 test('Ratio should be “50” if the file size has decreased by 50%', () => {

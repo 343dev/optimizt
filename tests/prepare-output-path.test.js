@@ -1,39 +1,39 @@
+import { expect, test, vi } from 'vitest';
+
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-
-import { jest } from '@jest/globals';
 
 import { prepareOutputDirectoryPath } from '../lib/prepare-output-directory-path.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 test('Exit if the path does not exist', async () => {
-	const processExitMock = jest.spyOn(process, 'exit').mockImplementation(exitCode => {
+	const processExitMock = vi.spyOn(process, 'exit').mockImplementation(exitCode => {
 		throw new Error(`Process exit with status code: ${exitCode}`);
 	});
 
-	console.log = jest.fn();
+	const consoleSpy = vi.spyOn(console, 'log');
 
 	await expect(() => prepareOutputDirectoryPath('not+exists')).rejects.toThrow();
 	expect(processExitMock).toHaveBeenCalledWith(1);
-	expect(console.log.mock.calls[0][1]).toBe('Output path does not exist');
+	expect(consoleSpy.mock.calls[0][1]).toBe('Output path does not exist');
 
-	console.log.mockRestore();
+	consoleSpy.mockRestore();
 	processExitMock.mockRestore();
 });
 
 test('Exit if specified path to file instead of directory', async () => {
-	const processExitMock = jest.spyOn(process, 'exit').mockImplementation(exitCode => {
+	const processExitMock = vi.spyOn(process, 'exit').mockImplementation(exitCode => {
 		throw new Error(`Process exit with status code: ${exitCode}`);
 	});
 
-	console.log = jest.fn();
+	const consoleSpy = vi.spyOn(console, 'log');
 
 	await expect(() => prepareOutputDirectoryPath(path.resolve(dirname, 'images', 'svg-not-optimized.svg'))).rejects.toThrow();
 	expect(processExitMock).toHaveBeenCalledWith(1);
-	expect(console.log.mock.calls[0][1]).toBe('Output path must be a directory');
+	expect(consoleSpy.mock.calls[0][1]).toBe('Output path must be a directory');
 
-	console.log.mockRestore();
+	consoleSpy.mockRestore();
 	processExitMock.mockRestore();
 });
 
