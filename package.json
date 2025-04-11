@@ -35,7 +35,7 @@
 		".optimiztrc.cjs"
 	],
 	"scripts": {
-		"license-check": "npx license-compliance@3.0.1 --report detailed --allow '0BSD;Apache-2.0;Artistic-2.0;BSD-2-Clause;BSD-3-Clause;BSD-4-Clause;CC0-1.0;CC-BY-4.0;CC-BY-SA-4.0;GPL-2.0-only;ISC;LGPL-2.1-or-later;LGPL-3.0-or-later;MIT;MPL-1.1;MPL-2.0;Python-2.0;Unlicense;W3C;W3C-20150513;X11;Zlib' --exclude 'spdx-exceptions'",
+		"license-check": "npx license-compliance@3.0.1 --report detailed --allow '0BSD;Apache-2.0;Artistic-2.0;BlueOak-1.0.0;BSD-2-Clause;BSD-3-Clause;BSD-4-Clause;CC0-1.0;CC-BY-4.0;ISC;LGPL-2.1-or-later;LGPL-3.0-or-later;MIT;MPL-1.1;MPL-2.0;Python-2.0;Unlicense;W3C;W3C-20150513;X11;Zlib' --exclude 'spdx-exceptions;@343dev/gifsicle'",
 		"lint": "eslint ./",
 		"test": "vitest run --testTimeout 60000",
 		"test-coverage": "vitest run --testTimeout 60000 --coverage",
