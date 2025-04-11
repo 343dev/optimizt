@@ -3,8 +3,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
+import gifsicle from '@343dev/gifsicle';
 import guetzli from '@343dev/guetzli';
-import gifsicle from 'gifsicle';
 import pLimit from 'p-limit';
 import sharp from 'sharp';
 import { optimize as svgoOptimize } from 'svgo';

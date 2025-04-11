@@ -61,7 +61,7 @@ describe('CLI', () => {
 				const stdout = runCliWithParameters(`${workDirectory}${file}`);
 
 				expectFileRatio({
-					stdout, file, maxRatio: 40, minRatio: 35,
+					stdout, file, maxRatio: 45, minRatio: 35,
 				});
 			});
 
