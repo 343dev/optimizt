@@ -52,12 +52,14 @@ module.exports = {
 				careful: false, // write larger GIFs that avoid bugs in other programs
 				colors: 256, // reduce the number of distinct colors to num or less; must be between 2 and 256
 				lossy: 100, // alter image colors to shrink output file size at the cost of artifacts and noise
+				gamma: 1, // set the color space/gamma correction to gamma, which can be a real number, ‘srgb’ (the default), or ‘oklab’
 			},
 			lossless: {
 				optimize: 0,
 				careful: true,
 				colors: 256,
 				lossy: 0,
+				gamma: 'srgb',
 			},
 		},
 
