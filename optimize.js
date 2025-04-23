@@ -95,7 +95,7 @@ async function processFile({
 		const isChanged = !fileBuffer.equals(processedFileBuffer);
 		const isSvg = path.extname(filePath.input).toLowerCase() === '.svg';
 
-		if (!isOptimized && !(isChanged && isSvg)) {
+		if (!isOptimized && (!isChanged || !isSvg)) {
 			logProgressVerbose(getRelativePath(filePath.input), {
 				description: `${(isChanged ? 'File size increased' : 'Nothing changed')}. Skipped`,
 				progressBarContainer,
