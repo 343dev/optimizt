@@ -7,23 +7,25 @@ on:
     branches: [main]
 
 jobs:
-  run_tests:
-    runs-on: ubuntu-latest
+  tests:
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node-version: [18.18.0, 20.18.0, latest]
+        node-version: [18.18.0, latest]
+        os: [
+            ubuntu-latest, # x64
+            ubuntu-24.04-arm, # arm64
+            macos-13, # x64
+            macos-latest, # arm64
+          ]
     steps:
-      -
-        name: Checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
-      -
-        name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js ${{ matrix.node-version }} on ${{ matrix.os }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      -
-        name: Install dependencies
+      - name: Install dependencies
         run: npm ci
-      -
-        name: Run tests
+      - name: Run tests
         run: npm test
