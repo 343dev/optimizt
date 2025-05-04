@@ -1,5 +1,13 @@
 # Migration
 
+## 10.0.0 → 11.0.0
+
+If you use an external configuration file (`.optimiztrc.cjs`), add the following parameters with a value of `1` to preserve the previous behavior:
+
+- [optimize.gif.lossy.gamma](https://github.com/343dev/optimizt/blob/a53d5b82facf4d24a25d2e60d9dd15868e79acbf/.optimiztrc.cjs#L55)
+- [optimize.gif.lossless.gamma](https://github.com/343dev/optimizt/blob/a53d5b82facf4d24a25d2e60d9dd15868e79acbf/.optimiztrc.cjs#L62)
+
+
 ## 9.1.1 → 10.0.0
 
 Node.js version must be 18.18 or higher.
