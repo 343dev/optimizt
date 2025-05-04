@@ -19,11 +19,11 @@
 	"author": "Andrey Warkentin (https://github.com/343dev)",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/343dev/optimizt"
+		"url": "git+https://github.com/343dev/optimizt.git"
 	},
 	"exports": "./index.js",
 	"bin": {
-		"optimizt": "./cli.js"
+		"optimizt": "cli.js"
 	},
 	"files": [
 		"MIGRATION.md",
