@@ -36,9 +36,9 @@
 	],
 	"scripts": {
 		"license-check": "npx license-compliance@3.0.1 --report detailed --allow '0BSD;Apache-2.0;Artistic-2.0;BSD-2-Clause;BSD-3-Clause;BSD-4-Clause;CC0-1.0;CC-BY-4.0;CC-BY-SA-4.0;GPL-2.0-only;ISC;LGPL-2.1-or-later;LGPL-3.0-or-later;MIT;MPL-1.1;MPL-2.0;Python-2.0;Unlicense;W3C;W3C-20150513;X11;Zlib' --exclude 'spdx-exceptions'",
-		"lint": "npx eslint ./",
+		"lint": "eslint ./",
 		"test": "NODE_OPTIONS=--experimental-vm-modules jest tests",
-		"update-git-hooks": "npx simple-git-hooks"
+		"update-git-hooks": "simple-git-hooks"
 	},
 	"type": "module",
 	"engines": {
@@ -48,19 +48,19 @@
 		"@343dev/gifsicle": "^1.0.0",
 		"@343dev/guetzli": "^1.1.0",
 		"cli-progress": "^3.11.0",
-		"commander": "^12.1.0",
-		"fdir": "^6.4.0",
-		"p-limit": "^6.1.0",
-		"sharp": "^0.33.5",
+		"commander": "^13.1.0",
+		"fdir": "^6.4.4",
+		"p-limit": "^6.2.0",
+		"sharp": "^0.34.1",
 		"svgo": "^3.3.2"
 	},
 	"devDependencies": {
 		"@343dev/eslint-config": "^3.0.0",
-		"eslint": "^9.25.1",
-		"globals": "^15.11.0",
+		"eslint": "^9.26.0",
+		"globals": "^16.0.0",
 		"jest": "^29.7.0",
-		"lint-staged": "^15.2.10",
-		"simple-git-hooks": "^2.11.1"
+		"lint-staged": "^15.5.1",
+		"simple-git-hooks": "^2.13.0"
 	},
 	"simple-git-hooks": {
 		"pre-commit": "npx lint-staged",

@@ -59,7 +59,7 @@ module.exports = {
 				careful: true,
 				colors: 256,
 				lossy: 0,
-				gamma: 'srgb',
+				gamma: 1,
 			},
 		},
 

@@ -22,6 +22,7 @@ program
 	.option('-o, --output <path>', 'write output to directory');
 
 program
+	.allowExcessArguments()
 	.usage('[options] <dir> <file ...>')
 	.version(packageJson.version, '-V, --version')
 	.description(packageJson.description)

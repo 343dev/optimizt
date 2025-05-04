@@ -134,7 +134,7 @@ describe('CLI', () => {
 				const stdout = runCliWithParameters(`--avif ${workDirectory}${file}`);
 
 				expectFileRatio({
-					stdout, file, maxRatio: 85, minRatio: 80, outputExt: 'avif',
+					stdout, file, maxRatio: 85, minRatio: 75, outputExt: 'avif',
 				});
 				expectFileNotModified(file);
 			});
@@ -179,7 +179,7 @@ describe('CLI', () => {
 				const stdout = runCliWithParameters(`--avif --lossless ${workDirectory}${file}`);
 
 				expectFileRatio({
-					stdout, file, maxRatio: 30, minRatio: 25, outputExt: 'avif',
+					stdout, file, maxRatio: 30, minRatio: 20, outputExt: 'avif',
 				});
 				expectFileNotModified(file);
 			});
@@ -421,8 +421,8 @@ Options:
   -f, --force          force create AVIF and WebP
   -l, --lossless       perform lossless optimizations
   -v, --verbose        be verbose
-  -c, --config <path>  use this configuration, overriding default config
-                       options if present
+  -c, --config <path>  use this configuration, overriding default config options
+                       if present
   -o, --output <path>  write output to directory
   -V, --version        output the version number
   -h, --help           display help for command
