@@ -1,5 +1,30 @@
 # Changelog
 
+## 11.0.0 (2025-05-04)
+
+### Breaking Changes
+
+- Replaced [imagemin/gifsicle-bin](https://github.com/imagemin/gifsicle-bin) package with [343dev/gifsicle](https://github.com/343dev/gifsicle).
+- Added new configuration parameters in [.optimiztrc.cjs](.optimiztrc.cjs):
+  - [optimize.gif.lossy.gamma](https://github.com/343dev/optimizt/blob/a53d5b82facf4d24a25d2e60d9dd15868e79acbf/.optimiztrc.cjs#L55)
+  - [optimize.gif.lossless.gamma](https://github.com/343dev/optimizt/blob/a53d5b82facf4d24a25d2e60d9dd15868e79acbf/.optimiztrc.cjs#L62)
+- Updated gifsicle to version 1.96.
+
+### Benefits
+
+- **Reduced Dependencies**: Total project dependencies decreased from 218 to 41.
+- **Improved Platform Support**: Added arm64 binary versions for `guetzli` and `gifsicle`.
+
+### Important Note About Gamma Parameters
+
+The new gamma parameters were added because of changes in gifsicle 1.96. In this version:
+
+- The `--lossy` option now measures color errors using the color space selected by `--gamma` (defaults to sRGB).
+- A new algorithm for computing color differences has been implemented.
+- This means `--lossy=N` will behave differently than in previous versions and may compress less than expected.
+- For behavior similar to previous versions, use `--lossy=N --gamma=1`.
+
+
 ## 10.0.0 (2024-10-28)
 
 Breaking Changes:
