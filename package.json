@@ -57,7 +57,7 @@
 	"devDependencies": {
 		"@343dev/eslint-config": "^3.0.0",
 		"eslint": "^9.26.0",
-		"globals": "^15.11.0",
+		"globals": "^16.0.0",
 		"jest": "^29.7.0",
 		"lint-staged": "^15.2.10",
 		"simple-git-hooks": "^2.11.1"
