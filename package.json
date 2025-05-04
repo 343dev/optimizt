@@ -51,7 +51,7 @@
 		"commander": "^13.1.0",
 		"fdir": "^6.4.4",
 		"p-limit": "^6.2.0",
-		"sharp": "^0.33.5",
+		"sharp": "^0.34.1",
 		"svgo": "^3.3.2"
 	},
 	"devDependencies": {
