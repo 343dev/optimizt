@@ -36,9 +36,9 @@
 	],
 	"scripts": {
 		"license-check": "npx license-compliance@3.0.1 --report detailed --allow '0BSD;Apache-2.0;Artistic-2.0;BSD-2-Clause;BSD-3-Clause;BSD-4-Clause;CC0-1.0;CC-BY-4.0;CC-BY-SA-4.0;GPL-2.0-only;ISC;LGPL-2.1-or-later;LGPL-3.0-or-later;MIT;MPL-1.1;MPL-2.0;Python-2.0;Unlicense;W3C;W3C-20150513;X11;Zlib' --exclude 'spdx-exceptions'",
-		"lint": "npx eslint ./",
+		"lint": "eslint ./",
 		"test": "NODE_OPTIONS=--experimental-vm-modules jest tests",
-		"update-git-hooks": "npx simple-git-hooks"
+		"update-git-hooks": "simple-git-hooks"
 	},
 	"type": "module",
 	"engines": {
@@ -56,7 +56,7 @@
 	},
 	"devDependencies": {
 		"@343dev/eslint-config": "^3.0.0",
-		"eslint": "^9.25.1",
+		"eslint": "^9.26.0",
 		"globals": "^15.11.0",
 		"jest": "^29.7.0",
 		"lint-staged": "^15.2.10",
