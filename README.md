@@ -10,8 +10,6 @@
 
 It can compress PNG, JPEG, GIF, and SVG lossy or lossless, and create AVIF and WebP versions for raster images.
 
-[По-русски](./README.ru.md)
-
 ## Rationale
 
 As frontend developers, we have to care about pictures: compress PNG and JPEG, remove useless parts of SVG, create AVIF and WebP for modern browsers, and so on. One day, we got tired of using a bunch of apps for that, and created one tool that does everything we want.
