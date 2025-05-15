@@ -1,4 +1,6 @@
-import { jest } from '@jest/globals';
+import {
+	describe, expect, test, vi,
+} from 'vitest';
 
 import { colorize } from '../lib/colorize.js';
 import { LOG_TYPES, log } from '../lib/log.js';
@@ -77,12 +79,12 @@ function expectLog({
 		? colorize(description).dim
 		: undefined;
 
-	console.log = jest.fn();
+	const consoleSpy = vi.spyOn(console, 'log');
 	log(title, { type, description });
 
-	expect(console.log.mock.calls[0][0]).toBe(symbolColored);
-	expect(console.log.mock.calls[0][1]).toBe(title);
-	expect(console.log.mock.calls[0][4]).toBe(descriptionColored);
+	expect(consoleSpy.mock.calls[0][0]).toBe(symbolColored);
+	expect(consoleSpy.mock.calls[0][1]).toBe(title);
+	expect(consoleSpy.mock.calls[0][4]).toBe(descriptionColored);
 
-	console.log.mockRestore();
+	consoleSpy.mockRestore();
 }
