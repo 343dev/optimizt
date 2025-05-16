@@ -1,3 +1,7 @@
+import {
+	afterEach, beforeEach, describe, expect, test,
+} from 'vitest';
+
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -27,6 +31,12 @@ afterEach(() => {
 });
 
 describe('CLI', () => {
+	afterEach(async () => {
+		// Fix for `Error: [vitest-worker]: Timeout calling "onTaskUpdate"`
+		// https://github.com/vitest-dev/vitest/issues/4497#issuecomment-1887757764
+		await new Promise(resolve => setImmediate(resolve)); // eslint-disable-line no-promise-executor-return
+	});
+
 	describe('Optimization', () => {
 		describe('Lossy', () => {
 			test('SVG should be optimized', () => {
