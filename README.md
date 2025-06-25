@@ -137,6 +137,11 @@ Optimizt works seamlessly with:
 - [Sublime Text 3](./docs/sublime-text.md)
 - [GitHub Actions Workflow](./docs/github.md)
 
+## Articles
+
+- [anuwong.com](https://anuwong.com/blog/2023-08-21-save-tons-of-gbs-with-optimizt/) — Compress files before uploading, save tons of GBs. 🇹🇭
+- [Linux Format, Issue 277 (July 2021)](https://www.linuxformat.com/archives?issue=277#:~:text=Kitchen%20Tales%2C%20zFRAG%2C-,Optimizt,-and%20SingleFileZ.) — Optimizt is ideal for reducing the disk footprint of images without any reduction in quality.
+
 ## Credits
 
 Cute picture for the project was made by [Igor Garybaldi](http://pandabanda.com/).
