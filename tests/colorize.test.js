@@ -1,4 +1,6 @@
-import { describe, expect, test } from 'vitest';
+import {
+	describe, expect, test, beforeEach, afterEach,
+} from 'vitest';
 
 import { colorize } from '../lib/colorize.js';
 
@@ -102,5 +104,65 @@ describe('Other', () => {
 	test('Colorize arguments are concatenated', () => {
 		const expected = isTTY ? '\u001B[0m1 2 3\u001B[0m' : '1 2 3';
 		expect(colorize(1, 2, 3).reset).toBe(expected);
+	});
+});
+
+describe('TTY State Coverage', () => {
+	let originalIsTTY;
+
+	beforeEach(() => {
+		originalIsTTY = process.stdout.isTTY;
+	});
+
+	afterEach(() => {
+		process.stdout.isTTY = originalIsTTY;
+	});
+
+	test('Should apply color codes when TTY is true', () => {
+		// Mock TTY to true
+		process.stdout.isTTY = true;
+
+		const result = colorize('Test').red;
+		expect(result).toBe('\u001B[31mTest\u001B[39m');
+	});
+
+	test('Should strip color codes when TTY is false', () => {
+		// Mock TTY to false
+		process.stdout.isTTY = false;
+
+		const result = colorize('Test').red;
+		expect(result).toBe('Test');
+	});
+
+	test('Should apply background color codes when TTY is true', () => {
+		// Mock TTY to true
+		process.stdout.isTTY = true;
+
+		const result = colorize('Test').bgRed;
+		expect(result).toBe('\u001B[41mTest\u001B[0m');
+	});
+
+	test('Should strip background color codes when TTY is false', () => {
+		// Mock TTY to false
+		process.stdout.isTTY = false;
+
+		const result = colorize('Test').bgRed;
+		expect(result).toBe('Test');
+	});
+
+	test('Should apply dim formatting when TTY is true', () => {
+		// Mock TTY to true
+		process.stdout.isTTY = true;
+
+		const result = colorize('Test').dim;
+		expect(result).toBe('\u001B[2mTest\u001B[22m');
+	});
+
+	test('Should strip dim formatting when TTY is false', () => {
+		// Mock TTY to false
+		process.stdout.isTTY = false;
+
+		const result = colorize('Test').dim;
+		expect(result).toBe('Test');
 	});
 });

@@ -41,3 +41,14 @@ test('Format: SVG should be detected as “svg”', async () => {
 test('Pages: Frames count should be detected in animated GIF', async () => {
 	expect(gifMetadata.pages).toBe(10);
 });
+
+test('Error handling: Should return empty object when Sharp fails to parse metadata', async () => {
+	// Create an invalid/corrupted image buffer
+	const invalidBuffer = Buffer.from('invalid image data that will cause Sharp to throw');
+
+	// Call parseImageMetadata with the invalid buffer
+	const result = await parseImageMetadata(invalidBuffer);
+
+	// Verify that empty object is returned when parsing fails
+	expect(result).toEqual({});
+});

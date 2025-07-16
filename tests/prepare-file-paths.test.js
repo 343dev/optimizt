@@ -1,5 +1,6 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -58,6 +59,99 @@ test('Only relative file paths are generated', async () => {
 			expect.stringMatching(new RegExp(`^${dirname}`)),
 		]),
 	);
+});
+
+test('File system errors are handled gracefully', async () => {
+	// Mock fs.promises.stat to throw an error for specific paths
+	const originalStat = fs.promises.stat;
+	const mockStat = vi.fn().mockImplementation(filePath => {
+		if (filePath.includes('inaccessible')) {
+			throw new Error('ENOENT: no such file or directory');
+		}
+
+		return originalStat(filePath);
+	});
+
+	vi.spyOn(fs.promises, 'stat').mockImplementation(mockStat);
+
+	const result = await prepareFilePaths({
+		inputPaths: [
+			'/inaccessible/path/file.jpg',
+			'/another/inaccessible/file.png',
+			resolvePath(['images', 'jpeg-not-optimized.jpeg']), // This should work
+		],
+		extensions: ['jpg', 'png', 'jpeg'],
+	});
+
+	// Should only include the accessible file, inaccessible paths should be ignored
+	expect(result.length).toBeGreaterThan(0);
+	expect(result.every(item => !item.input.includes('inaccessible'))).toBe(true);
+
+	// Restore original implementation
+	vi.restoreAllMocks();
+});
+
+test('Output path generation with directories', async () => {
+	const outputDirectory = '/output/directory';
+
+	const result = await prepareFilePaths({
+		inputPaths: [resolvePath(['images'])], // Directory input
+		outputDirectoryPath: outputDirectory,
+		extensions: ['jpg', 'jpeg', 'png', 'gif', 'svg'],
+	});
+
+	// Should have files with modified output paths
+	expect(result.length).toBeGreaterThan(0);
+
+	// All output paths should start with the output directory
+	for (const item of result) {
+		expect(item.output).toMatch(new RegExp(`^${outputDirectory.replaceAll(/[/\\]/g, String.raw`[/\\]`)}`));
+		expect(item.input).not.toBe(item.output);
+	}
+});
+
+test('Output path generation with individual files', async () => {
+	const outputDirectory = '/output/directory';
+
+	const result = await prepareFilePaths({
+		inputPaths: [
+			resolvePath(['images', 'jpeg-not-optimized.jpeg']),
+			resolvePath(['images', 'png-not-optimized.png']),
+		], // Individual file inputs
+		outputDirectoryPath: outputDirectory,
+		extensions: ['jpg', 'jpeg', 'png', 'gif', 'svg'],
+	});
+
+	// Should have files with modified output paths
+	expect(result.length).toBe(2);
+
+	// All output paths should start with the output directory
+	for (const item of result) {
+		expect(item.output).toMatch(new RegExp(`^${outputDirectory.replaceAll(/[/\\]/g, String.raw`[/\\]`)}`));
+		expect(item.input).not.toBe(item.output);
+	}
+});
+
+test('Complex directory structures with output path', async () => {
+	const outputDirectory = '/complex/output';
+
+	const result = await prepareFilePaths({
+		inputPaths: [
+			resolvePath(['images']), // Directory with subdirectories
+			resolvePath(['images', 'jpeg-not-optimized.jpeg']), // Individual file
+		],
+		outputDirectoryPath: outputDirectory,
+		extensions: ['jpg', 'jpeg', 'png', 'gif', 'svg'],
+	});
+
+	// Should include files from subdirectories
+	expect(result.length).toBeGreaterThan(2);
+
+	// Check that subdirectory files have correct output paths
+	const subdirFile = result.find(item => item.input.includes('subdirectory'));
+	expect(subdirFile).toBeDefined();
+	expect(subdirFile.output).toMatch(new RegExp(`^${outputDirectory.replaceAll(/[/\\]/g, String.raw`[/\\]`)}`));
+	expect(subdirFile.output).toMatch(/subdirectory/);
 });
 
 function resolvePath(segments) {

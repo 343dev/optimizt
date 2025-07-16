@@ -40,3 +40,23 @@ test('Exit if specified path to file instead of directory', async () => {
 test('Full path is generated', async () => {
 	expect(await prepareOutputDirectoryPath('tests/images')).toBe(path.resolve(dirname, 'images'));
 });
+
+test('Returns empty string when outputDirectoryPath is null', async () => {
+	expect(await prepareOutputDirectoryPath(null)).toBe(''); // eslint-disable-line unicorn/no-null
+});
+
+test('Returns empty string when outputDirectoryPath is undefined', async () => {
+	expect(await prepareOutputDirectoryPath()).toBe('');
+});
+
+test('Returns empty string when outputDirectoryPath is empty string', async () => {
+	expect(await prepareOutputDirectoryPath('')).toBe('');
+});
+
+test('Returns empty string when outputDirectoryPath is falsy (0)', async () => {
+	expect(await prepareOutputDirectoryPath(0)).toBe('');
+});
+
+test('Returns empty string when outputDirectoryPath is falsy (false)', async () => {
+	expect(await prepareOutputDirectoryPath(false)).toBe('');
+});

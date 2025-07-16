@@ -2,6 +2,10 @@ import { expect, test } from 'vitest';
 
 import { formatBytes } from '../lib/format-bytes.js';
 
+test('0 should be formatted as "0 Bytes"', () => {
+	expect(formatBytes(0)).toBe('0 Bytes');
+});
+
 test('1023 should be formatted as “1023 Bytes”', () => {
 	expect(formatBytes(1023)).toBe('1023 Bytes');
 });
