@@ -4,12 +4,12 @@ import {
 
 import optimizt from '../index.js';
 
-// Mock Node.js built-in modules
+// vi.mock() required for Node.js built-in modules
 vi.mock('node:url', () => ({
 	pathToFileURL: vi.fn(),
 }));
 
-// Mock convert and optimize modules
+// vi.mock() required for main module functions
 vi.mock('../convert.js', () => ({
 	convert: vi.fn(),
 }));
@@ -18,7 +18,7 @@ vi.mock('../optimize.js', () => ({
 	optimize: vi.fn(),
 }));
 
-// Mock utility functions from lib directory
+// vi.mock() required for utility functions due to complex module interdependencies
 vi.mock('../lib/constants.js', () => ({
 	SUPPORTED_FILE_TYPES: {
 		CONVERT: ['gif', 'jpeg', 'jpg', 'png'],

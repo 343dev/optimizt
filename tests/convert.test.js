@@ -4,7 +4,7 @@ import {
 
 import { convert } from '../convert.js';
 
-// Mock Node.js built-in modules
+// vi.mock() required for Node.js built-in modules
 vi.mock('node:fs', () => {
 	const mockPromises = {
 		readFile: vi.fn(),
@@ -36,7 +36,7 @@ vi.mock('node:path', async () => {
 	};
 });
 
-// Mock external dependencies
+// vi.mock() required for external dependencies
 vi.mock('p-limit', () => ({
 	default: vi.fn(_limit => function_ => function_()), // eslint-disable-line unicorn/consistent-function-scoping
 }));
@@ -50,7 +50,7 @@ vi.mock('sharp', () => ({
 	})),
 }));
 
-// Mock utility functions from lib directory
+// vi.mock() required for utility functions due to complex module interdependencies
 vi.mock('../lib/calculate-ratio.js', () => ({
 	calculateRatio: vi.fn(),
 }));
@@ -70,6 +70,7 @@ vi.mock('../lib/create-progress-bar-container.js', () => ({
 	})),
 }));
 
+// vi.mock() required for constants module
 vi.mock('../lib/constants.js', () => ({
 	SUPPORTED_FILE_TYPES: {
 		CONVERT: ['gif', 'jpeg', 'jpg', 'png'],
@@ -104,6 +105,7 @@ vi.mock('../lib/parse-image-metadata.js', () => ({
 	parseImageMetadata: vi.fn(),
 }));
 
+// vi.mock() required for program options module state
 vi.mock('../lib/program-options.js', () => ({
 	programOptions: {
 		isForced: false,

@@ -1,9 +1,11 @@
+/* eslint-disable max-nested-callbacks */
+/* eslint-disable max-lines */
 /* eslint-disable no-await-in-loop */
 import {
 	afterEach, beforeEach, describe, expect, test, vi,
 } from 'vitest';
 
-// Mock Node.js built-in modules
+// vi.mock() required for Node.js built-in modules
 const mockFs = {
 	readFile: vi.fn(),
 };
@@ -15,7 +17,7 @@ const mockPath = {
 
 const mockFileURLToPath = vi.fn();
 
-// Mock commander program
+// vi.mock() required for external dependencies
 const mockProgram = {
 	option: vi.fn().mockReturnThis(),
 	allowExcessArguments: vi.fn().mockReturnThis(),
@@ -28,10 +30,10 @@ const mockProgram = {
 	opts: vi.fn().mockReturnValue({}),
 };
 
-// Mock main optimizt function
+// vi.mock() required for main module function
 const mockOptimizt = vi.fn();
 
-// Mock setProgramOptions
+// vi.mock() required for utility module function
 const mockSetProgramOptions = vi.fn();
 
 vi.mock('node:fs/promises', () => ({

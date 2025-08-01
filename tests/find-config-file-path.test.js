@@ -3,11 +3,11 @@ import {
 } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
-import { logErrorAndExit } from '../lib/log.js';
+import * as logModule from '../lib/log.js';
 
 import { findConfigFilePath } from '../lib/find-config-file-path.js';
 
-// Mock dependencies
+// vi.mock() required for Node.js built-in module mocking
 vi.mock('node:fs', () => ({
 	default: {
 		promises: {
@@ -16,23 +16,21 @@ vi.mock('node:fs', () => ({
 	},
 }));
 
-vi.mock('../lib/log.js', () => ({
-	logErrorAndExit: vi.fn(),
-}));
-
+// vi.mock() required for constants module
 vi.mock('../lib/constants.js', () => ({
 	DEFAULT_CONFIG_FILENAME: '.optimiztrc.cjs',
 }));
 
 describe('findConfigFilePath', () => {
 	const mockStat = vi.mocked(fs.promises.stat);
-	const mockLogErrorAndExit = vi.mocked(logErrorAndExit);
+	let mockLogErrorAndExit;
 
 	const mockCwd = '/mock/current/directory';
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 		vi.spyOn(process, 'cwd').mockReturnValue(mockCwd);
+		mockLogErrorAndExit = vi.spyOn(logModule, 'logErrorAndExit').mockImplementation(() => {});
 	});
 
 	afterEach(() => {

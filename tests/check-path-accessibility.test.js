@@ -5,7 +5,7 @@ import { access } from 'node:fs/promises';
 
 import { checkPathAccessibility } from '../lib/check-path-accessibility.js';
 
-// Mock the fs.promises.access function
+// vi.mock() required for Node.js built-in module mocking
 vi.mock('node:fs/promises', () => ({
 	access: vi.fn(),
 }));

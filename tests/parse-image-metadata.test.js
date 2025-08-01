@@ -1,54 +1,159 @@
-import { expect, test } from 'vitest';
-
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {
+	describe, expect, test, vi, beforeEach,
+} from 'vitest';
 
 import { parseImageMetadata } from '../lib/parse-image-metadata.js';
 
-const dirname = path.dirname(fileURLToPath(import.meta.url));
+// vi.mock() required for external dependency
+vi.mock('sharp', () => ({
+	default: vi.fn(),
+}));
 
-function readFile(filePath) {
-	return fs.readFileSync(path.resolve(dirname, filePath));
-}
+describe('parseImageMetadata', () => {
+	let sharp;
 
-const gifBuffer = readFile('images/gif-not-optimized.gif');
-const jpegBuffer = readFile('images/jpeg-one-pixel.jpg');
-const pngBuffer = readFile('images/png-not-optimized.png');
-const svgBuffer = readFile('images/svg-optimized.svg');
+	beforeEach(async () => {
+		vi.clearAllMocks();
+		const sharpModule = await import('sharp');
+		sharp = sharpModule.default;
+	});
 
-const gifMetadata = await parseImageMetadata(gifBuffer);
-const jpegMetadata = await parseImageMetadata(jpegBuffer);
-const pngMetadata = await parseImageMetadata(pngBuffer);
-const svgMetadata = await parseImageMetadata(svgBuffer);
+	describe('format detection', () => {
+		test('should detect GIF format correctly', async () => {
+			const mockBuffer = Buffer.from('mock-gif-data');
+			const mockSharpInstance = {
+				metadata: vi.fn().mockResolvedValue({
+					format: 'gif',
+					pages: 10,
+				}),
+			};
+			sharp.mockReturnValue(mockSharpInstance);
 
-test('Format: GIF should be detected as “gif”', async () => {
-	expect(gifMetadata.format).toBe('gif');
-});
+			const result = await parseImageMetadata(mockBuffer);
 
-test('Format: JPEG should be detected as “jpeg”', async () => {
-	expect(jpegMetadata.format).toBe('jpeg');
-});
+			expect(sharp).toHaveBeenCalledWith(mockBuffer);
+			expect(mockSharpInstance.metadata).toHaveBeenCalled();
+			expect(result.format).toBe('gif');
+		});
 
-test('Format: PNG should be detected as “png”', async () => {
-	expect(pngMetadata.format).toBe('png');
-});
+		test('should detect JPEG format correctly', async () => {
+			const mockBuffer = Buffer.from('mock-jpeg-data');
+			const mockSharpInstance = {
+				metadata: vi.fn().mockResolvedValue({
+					format: 'jpeg',
+					pages: 1,
+				}),
+			};
+			sharp.mockReturnValue(mockSharpInstance);
 
-test('Format: SVG should be detected as “svg”', async () => {
-	expect(svgMetadata.format).toBe('svg');
-});
+			const result = await parseImageMetadata(mockBuffer);
 
-test('Pages: Frames count should be detected in animated GIF', async () => {
-	expect(gifMetadata.pages).toBe(10);
-});
+			expect(sharp).toHaveBeenCalledWith(mockBuffer);
+			expect(mockSharpInstance.metadata).toHaveBeenCalled();
+			expect(result.format).toBe('jpeg');
+		});
 
-test('Error handling: Should return empty object when Sharp fails to parse metadata', async () => {
-	// Create an invalid/corrupted image buffer
-	const invalidBuffer = Buffer.from('invalid image data that will cause Sharp to throw');
+		test('should detect PNG format correctly', async () => {
+			const mockBuffer = Buffer.from('mock-png-data');
+			const mockSharpInstance = {
+				metadata: vi.fn().mockResolvedValue({
+					format: 'png',
+					pages: 1,
+				}),
+			};
+			sharp.mockReturnValue(mockSharpInstance);
 
-	// Call parseImageMetadata with the invalid buffer
-	const result = await parseImageMetadata(invalidBuffer);
+			const result = await parseImageMetadata(mockBuffer);
 
-	// Verify that empty object is returned when parsing fails
-	expect(result).toEqual({});
+			expect(sharp).toHaveBeenCalledWith(mockBuffer);
+			expect(mockSharpInstance.metadata).toHaveBeenCalled();
+			expect(result.format).toBe('png');
+		});
+
+		test('should detect SVG format correctly', async () => {
+			const mockBuffer = Buffer.from('mock-svg-data');
+			const mockSharpInstance = {
+				metadata: vi.fn().mockResolvedValue({
+					format: 'svg',
+					pages: 1,
+				}),
+			};
+			sharp.mockReturnValue(mockSharpInstance);
+
+			const result = await parseImageMetadata(mockBuffer);
+
+			expect(sharp).toHaveBeenCalledWith(mockBuffer);
+			expect(mockSharpInstance.metadata).toHaveBeenCalled();
+			expect(result.format).toBe('svg');
+		});
+	});
+
+	describe('metadata extraction', () => {
+		test('should detect frame count in animated GIF', async () => {
+			const mockBuffer = Buffer.from('mock-animated-gif-data');
+			const mockSharpInstance = {
+				metadata: vi.fn().mockResolvedValue({
+					format: 'gif',
+					pages: 10,
+				}),
+			};
+			sharp.mockReturnValue(mockSharpInstance);
+
+			const result = await parseImageMetadata(mockBuffer);
+
+			expect(result.pages).toBe(10);
+		});
+
+		test('should handle single frame images', async () => {
+			const mockBuffer = Buffer.from('mock-static-image-data');
+			const mockSharpInstance = {
+				metadata: vi.fn().mockResolvedValue({
+					format: 'jpeg',
+					pages: 1,
+				}),
+			};
+			sharp.mockReturnValue(mockSharpInstance);
+
+			const result = await parseImageMetadata(mockBuffer);
+
+			expect(result.pages).toBe(1);
+		});
+	});
+
+	describe('error handling', () => {
+		test('should return empty object when Sharp fails to parse metadata', async () => {
+			const invalidBuffer = Buffer.from('invalid image data that will cause Sharp to throw');
+			const mockSharpInstance = {
+				metadata: vi.fn().mockRejectedValue(new Error('Sharp parsing failed')),
+			};
+			sharp.mockReturnValue(mockSharpInstance);
+
+			const result = await parseImageMetadata(invalidBuffer);
+
+			expect(result).toEqual({});
+		});
+
+		test('should handle Sharp constructor throwing error', async () => {
+			const invalidBuffer = Buffer.from('invalid image data');
+			sharp.mockImplementation(() => {
+				throw new Error('Sharp constructor failed');
+			});
+
+			const result = await parseImageMetadata(invalidBuffer);
+
+			expect(result).toEqual({});
+		});
+
+		test('should handle metadata method returning undefined', async () => {
+			const mockBuffer = Buffer.from('mock-data');
+			const mockSharpInstance = {
+				metadata: vi.fn().mockResolvedValue(),
+			};
+			sharp.mockReturnValue(mockSharpInstance);
+
+			const result = await parseImageMetadata(mockBuffer);
+
+			expect(result).toBeUndefined();
+		});
+	});
 });

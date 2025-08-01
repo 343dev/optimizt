@@ -16,54 +16,60 @@ describe('getRelativePath', () => {
 		vi.restoreAllMocks();
 	});
 
-	test('should return relative path for absolute path within current directory', () => {
-		const absolutePath = `/mock/current/directory${path.sep}src${path.sep}file.js`;
-		const expected = `src${path.sep}file.js`;
+	describe('paths within current directory', () => {
+		test('should return relative path for absolute path within current directory', () => {
+			const absolutePath = `/mock/current/directory${path.sep}src${path.sep}file.js`;
+			const expected = `src${path.sep}file.js`;
 
-		expect(getRelativePath(absolutePath)).toBe(expected);
+			expect(getRelativePath(absolutePath)).toBe(expected);
+		});
+
+		test('should return relative path for nested file within current directory', () => {
+			const absolutePath = `/mock/current/directory${path.sep}lib${path.sep}utils${path.sep}helper.js`;
+			const expected = `lib${path.sep}utils${path.sep}helper.js`;
+
+			expect(getRelativePath(absolutePath)).toBe(expected);
+		});
+
+		test('should handle file directly in current directory', () => {
+			const directFile = `/mock/current/directory${path.sep}file.js`;
+			const expected = 'file.js';
+
+			expect(getRelativePath(directFile)).toBe(expected);
+		});
 	});
 
-	test('should return relative path for nested file within current directory', () => {
-		const absolutePath = `/mock/current/directory${path.sep}lib${path.sep}utils${path.sep}helper.js`;
-		const expected = `lib${path.sep}utils${path.sep}helper.js`;
+	describe('paths outside current directory', () => {
+		test('should return original path for absolute path outside current directory', () => {
+			const absolutePath = `/different/directory${path.sep}file.js`;
 
-		expect(getRelativePath(absolutePath)).toBe(expected);
+			expect(getRelativePath(absolutePath)).toBe(absolutePath);
+		});
+
+		test('should return original path for relative path input', () => {
+			const relativePath = `src${path.sep}file.js`;
+
+			expect(getRelativePath(relativePath)).toBe(relativePath);
+		});
 	});
 
-	test('should return original path for absolute path outside current directory', () => {
-		const absolutePath = `/different/directory${path.sep}file.js`;
+	describe('edge cases', () => {
+		test('should handle path that exactly matches current directory', () => {
+			const exactPath = mockCwd;
 
-		expect(getRelativePath(absolutePath)).toBe(absolutePath);
-	});
+			expect(getRelativePath(exactPath)).toBe(exactPath);
+		});
 
-	test('should return original path for relative path input', () => {
-		const relativePath = `src${path.sep}file.js`;
+		test('should handle empty string input', () => {
+			const emptyPath = '';
 
-		expect(getRelativePath(relativePath)).toBe(relativePath);
-	});
+			expect(getRelativePath(emptyPath)).toBe(emptyPath);
+		});
 
-	test('should handle path that exactly matches current directory', () => {
-		const exactPath = mockCwd;
+		test('should handle path with current directory as prefix but not exact match', () => {
+			const similarPath = `/mock/current/directory-similar${path.sep}file.js`;
 
-		expect(getRelativePath(exactPath)).toBe(exactPath);
-	});
-
-	test('should handle empty string input', () => {
-		const emptyPath = '';
-
-		expect(getRelativePath(emptyPath)).toBe(emptyPath);
-	});
-
-	test('should handle path with current directory as prefix but not exact match', () => {
-		const similarPath = `/mock/current/directory-similar${path.sep}file.js`;
-
-		expect(getRelativePath(similarPath)).toBe(similarPath);
-	});
-
-	test('should handle file directly in current directory', () => {
-		const directFile = `/mock/current/directory${path.sep}file.js`;
-		const expected = 'file.js';
-
-		expect(getRelativePath(directFile)).toBe(expected);
+			expect(getRelativePath(similarPath)).toBe(similarPath);
+		});
 	});
 });

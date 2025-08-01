@@ -4,7 +4,7 @@ import {
 
 import { optimize } from '../optimize.js';
 
-// Mock Node.js built-in modules
+// vi.mock() required for Node.js built-in modules
 vi.mock('node:child_process', () => ({
 	spawn: vi.fn(),
 }));
@@ -44,7 +44,7 @@ vi.mock('node:path', async () => {
 	};
 });
 
-// Mock external dependencies
+// vi.mock() required for external dependencies
 vi.mock('@343dev/gifsicle', () => ({
 	default: '/mock/path/to/gifsicle',
 }));
@@ -71,7 +71,7 @@ vi.mock('svgo', () => ({
 	optimize: vi.fn(),
 }));
 
-// Mock utility functions from lib directory
+// vi.mock() required for utility functions due to complex module interdependencies
 vi.mock('../lib/calculate-ratio.js', () => ({
 	calculateRatio: vi.fn(),
 }));
