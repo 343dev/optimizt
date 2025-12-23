@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.0.0] - 2025-12-23
+
+### Added
+
+- Configure trusted publishing for npm package to enhance security by eliminating token-based publishing risks (see [npm trusted publishers](https://docs.npmjs.com/trusted-publishers)).
+
+### Changed
+
+- **BREAKING:** Increase minimum Node.js version to 20.19.0 due to dependency requirements.
+- **BREAKING:** Update SVGO config in default [.optimiztrc.cjs](.optimiztrc.cjs) to migrate from v3 to v4 (see [migration guide](./MIGRATION.md)).
+- Update all dependencies to latest versions with a 7-day cooling period and fix versions to prevent security vulnerabilities during installations.
+
 ## [11.0.0] - 2025-05-04
 
 ### Added

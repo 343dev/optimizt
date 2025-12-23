@@ -1,5 +1,35 @@
 # Migration
 
+## 11.0.0 → 12.0.0
+
+The SVGO configuration has been updated to be compatible with SVGO v4 (see [migration guide](https://svgo.dev/docs/migrations/migration-from-v3-to-v4/)). If you use a custom [.optimiztrc.cjs](.optimiztrc.cjs) file, update your SVG plugins configuration to match the new format.
+
+See the changes in commit [8c1215e](https://github.com/343dev/optimizt/commit/8c1215e2441ce03770d36d5c7ae31e28e9ef5659):
+
+```diff
+diff --git a/.optimiztrc.cjs b/.optimiztrc.cjs
+index ca611d2..148dcd4 100644
+--- a/.optimiztrc.cjs
++++ b/.optimiztrc.cjs
+@@ -71,14 +71,8 @@ module.exports = {
+ 				indent: 2,
+ 			},
+ 			plugins: [
+-				{
+-					name: 'preset-default',
+-					params: {
+-						overrides: {
+-							removeViewBox: false,
+-						},
+-					},
+-				},
++				'preset-default',
++				'removeTitle',
+ 				'cleanupListOfValues',
+ 				'convertStyleToAttrs',
+ 				'reusePaths',
+```
+
 ## 10.0.0 → 11.0.0
 
 If you use an external configuration file (`.optimiztrc.cjs`), add the following parameters with a value of `1` to preserve the previous behavior:
