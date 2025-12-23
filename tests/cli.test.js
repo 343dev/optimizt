@@ -31,12 +31,6 @@ afterEach(() => {
 });
 
 describe('CLI', () => {
-	afterEach(async () => {
-		// Fix for `Error: [vitest-worker]: Timeout calling "onTaskUpdate"`
-		// https://github.com/vitest-dev/vitest/issues/4497#issuecomment-1887757764
-		await new Promise(resolve => setImmediate(resolve)); // eslint-disable-line no-promise-executor-return
-	});
-
 	describe('Optimization', () => {
 		describe('Lossy', () => {
 			test('SVG should be optimized', () => {

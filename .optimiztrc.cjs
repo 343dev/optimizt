@@ -71,14 +71,8 @@ module.exports = {
 				indent: 2,
 			},
 			plugins: [
-				{
-					name: 'preset-default',
-					params: {
-						overrides: {
-							removeViewBox: false,
-						},
-					},
-				},
+				'preset-default',
+				'removeTitle',
 				'cleanupListOfValues',
 				'convertStyleToAttrs',
 				'reusePaths',
