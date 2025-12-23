@@ -5,6 +5,7 @@
      src="./docs/logo.png">
 
 [![npm](https://img.shields.io/npm/v/@343dev/optimizt.svg)](https://www.npmjs.com/package/@343dev/optimizt)
+[![Docker](https://img.shields.io/docker/v/343dev/optimizt?label=Docker)](https://hub.docker.com/r/343dev/optimizt)
 
 **Optimizt** is a command-line tool that helps prepare images for the web.
 
