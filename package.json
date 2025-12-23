@@ -43,15 +43,15 @@
 	},
 	"type": "module",
 	"engines": {
-		"node": ">=18.18"
+		"node": ">=20.19.0"
 	},
 	"dependencies": {
 		"@343dev/gifsicle": "1.0.0",
 		"@343dev/guetzli": "1.1.0",
 		"cli-progress": "3.12.0",
-		"commander": "13.1.0",
+		"commander": "14.0.2",
 		"fdir": "6.5.0",
-		"p-limit": "6.2.0",
+		"p-limit": "7.2.0",
 		"sharp": "0.34.5",
 		"svgo": "4.0.0"
 	},
@@ -59,7 +59,7 @@
 		"@343dev/eslint-config": "3.0.0",
 		"@vitest/coverage-v8": "4.0.16",
 		"eslint": "9.39.2",
-		"lint-staged": "15.5.2",
+		"lint-staged": "16.2.7",
 		"simple-git-hooks": "2.13.1",
 		"vitest": "4.0.16"
 	},
