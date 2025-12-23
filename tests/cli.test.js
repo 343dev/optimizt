@@ -485,7 +485,7 @@ function calculateDirectorySize(directoryPath) {
 }
 
 function runCliWithParameters(parameters) {
-	return execSync(`node ${cliPath} ${parameters}`).toString();
+	return execSync(`node "${cliPath}" ${parameters}`).toString();
 }
 
 function grepTotalRatio(string) {
