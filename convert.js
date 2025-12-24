@@ -110,10 +110,10 @@ async function processFile({
 	format,
 	processFunction,
 }) {
-	try {
-		const { dir, name } = path.parse(filePath.output);
-		const outputFilePath = path.join(dir, `${name}.${format.toLowerCase()}`);
+	const { dir, name } = path.parse(filePath.output);
+	const outputFilePath = path.join(dir, `${name}.${format.toLowerCase()}`);
 
+	try {
 		const isAccessible = await checkPathAccessibility(outputFilePath);
 
 		if (!isForced && isAccessible) {
@@ -141,14 +141,14 @@ async function processFile({
 		const before = formatBytes(fileSize);
 		const after = formatBytes(processedFileSize);
 
-		logProgress(getRelativePath(filePath.input), {
+		logProgress(getRelativePath(outputFilePath), {
 			type: LOG_TYPES.SUCCESS,
 			description: `${before} → ${format} ${after}. Ratio: ${ratio}%`,
 			progressBarContainer,
 		});
 	} catch (error) {
 		if (error.message) {
-			logProgress(getRelativePath(filePath.input), {
+			logProgress(getRelativePath(outputFilePath), {
 				type: LOG_TYPES.ERROR,
 				description: (error.message || '').trim(),
 				progressBarContainer,

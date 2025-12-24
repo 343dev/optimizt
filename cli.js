@@ -19,7 +19,9 @@ program
 	.option('-l, --lossless', 'perform lossless optimizations')
 	.option('-v, --verbose', 'be verbose')
 	.option('-c, --config <path>', 'use this configuration, overriding default config options if present')
-	.option('-o, --output <path>', 'write output to directory');
+	.option('-o, --output <path>', 'write output to directory')
+	.option('-p, --prefix <text>', 'add prefix to optimized file names')
+	.option('-s, --suffix <text>', 'add suffix to optimized file names');
 
 program
 	.allowExcessArguments()
@@ -31,7 +33,7 @@ program
 if (program.args.length === 0) {
 	program.help();
 } else {
-	const { avif, webp, force, lossless, verbose, config, output } = program.opts();
+	const { avif, webp, force, lossless, verbose, config, output, prefix, suffix } = program.opts();
 
 	setProgramOptions({
 		shouldConvertToAvif: Boolean(avif),
@@ -39,6 +41,8 @@ if (program.args.length === 0) {
 		isForced: Boolean(force),
 		isLossless: Boolean(lossless),
 		isVerbose: Boolean(verbose),
+		filePrefix: prefix || '',
+		fileSuffix: suffix || '',
 	});
 
 	optimizt({

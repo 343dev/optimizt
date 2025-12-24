@@ -309,7 +309,8 @@ describe('CLI', () => {
 				const stdoutRatio = grepTotalRatio(stdout);
 
 				expectStringContains(stdout, 'Converting 1 image (lossy)...');
-				expectStringContains(stdout, path.join(temporary, `${fileBasename}.png`));
+				expectStringContains(stdout, path.join(temporary, `${fileBasename}.avif`));
+				expectStringContains(stdout, path.join(temporary, `${fileBasename}.webp`));
 				expectRatio(stdoutRatio, 85, 90);
 				expectFileNotModified(`${fileBasename}.png`);
 				expectFileExists(`${fileBasename}.avif`);
@@ -324,7 +325,8 @@ describe('CLI', () => {
 				const stdoutRatio = grepTotalRatio(stdout);
 
 				expectStringContains(stdout, 'Converting 1 image (lossless)...');
-				expectStringContains(stdout, path.join(temporary, `${fileBasename}.png`));
+				expectStringContains(stdout, path.join(temporary, `${fileBasename}.avif`));
+				expectStringContains(stdout, path.join(temporary, `${fileBasename}.webp`));
 				expectRatio(stdoutRatio, 35, 40);
 				expectFileNotModified(`${fileBasename}.png`);
 				expectFileExists(`${fileBasename}.avif`);
@@ -413,6 +415,46 @@ describe('CLI', () => {
 		});
 	});
 
+	describe('Prefix and Suffix (--prefix --suffix)', () => {
+		let outputDirectory;
+
+		beforeEach(() => {
+			outputDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'optimizt-test-'));
+		});
+
+		afterEach(() => {
+			if (outputDirectory) {
+				fs.rmSync(outputDirectory, { recursive: true });
+			}
+		});
+
+		test('Should add prefix and suffix to optimized filenames', () => {
+			const fileName = 'png-not-optimized.png';
+			const expectedOutput = 'prepng-not-optimizedsuf.png';
+
+			runCliWithParameters(`--prefix pre --suffix suf --output ${outputDirectory} ${workDirectory}${fileName}`);
+			expect(fs.existsSync(path.join(outputDirectory, expectedOutput))).toBeTruthy();
+		});
+
+		test('Should add prefix and suffix to converted filenames', () => {
+			const fileBasename = 'png-not-optimized';
+			const expectedAvif = 'prepng-not-optimizedsuf.avif';
+			const expectedWebp = 'prepng-not-optimizedsuf.webp';
+
+			runCliWithParameters(`--avif --webp --prefix pre --suffix suf --output ${outputDirectory} ${workDirectory}${fileBasename}.png`);
+			expect(fs.existsSync(path.join(outputDirectory, expectedAvif))).toBeTruthy();
+			expect(fs.existsSync(path.join(outputDirectory, expectedWebp))).toBeTruthy();
+		});
+
+		test('Should sanitize forbidden characters in prefix and suffix', () => {
+			const fileName = 'png-not-optimized.png';
+			const expectedOutput = 'unsafepng-not-optimizedunsafe.png';
+
+			runCliWithParameters(`--prefix "<un:safe>" --suffix "<un:safe>" --output ${outputDirectory} ${workDirectory}${fileName}`);
+			expect(fs.existsSync(path.join(outputDirectory, expectedOutput))).toBeTruthy();
+		});
+	});
+
 	describe('Help (--help)', () => {
 		const helpString = `\
 Usage: cli [options] <dir> <file ...>
@@ -428,6 +470,8 @@ Options:
   -c, --config <path>  use this configuration, overriding default config options
                        if present
   -o, --output <path>  write output to directory
+  -p, --prefix <text>  add prefix to optimized file names
+  -s, --suffix <text>  add suffix to optimized file names
   -V, --version        output the version number
   -h, --help           display help for command
 `;
@@ -501,8 +545,6 @@ function expectRatio(current, min, max) {
 }
 
 function expectFileRatio({ file, maxRatio, minRatio, stdout, outputExt }) {
-	expectStringContains(stdout, path.join(temporary, file));
-
 	const fileBasename = path.basename(file, path.extname(file));
 	const outputFile = outputExt ? `${fileBasename}.${outputExt}` : file;
 
@@ -512,6 +554,7 @@ function expectFileRatio({ file, maxRatio, minRatio, stdout, outputExt }) {
 	const calculatedRatio = calculateRatio(sizeBefore, sizeAfter);
 	const stdoutRatio = grepTotalRatio(stdout);
 
+	expectStringContains(stdout, path.join(temporary, outputFile));
 	expect(stdoutRatio).toBe(calculatedRatio);
 	expectRatio(stdoutRatio, minRatio, maxRatio);
 }
