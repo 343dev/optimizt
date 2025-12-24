@@ -38,6 +38,8 @@ optimizt path/to/picture.jpg
 - `-v, --verbose` — show detailed output (e.g. skipped files).
 - `-c, --config` — use a custom configuration file instead of the default.
 - `-o, --output` — write results to the specified directory.
+- `-p, --prefix` — add prefix to optimized file names.
+- `-s, --suffix` — add suffix to optimized file names.
 - `-V, --version` — display the tool version.
 - `-h, --help` — show help message.
 

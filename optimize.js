@@ -96,7 +96,7 @@ async function processFile({
 		const isSvg = path.extname(filePath.input).toLowerCase() === '.svg';
 
 		if (!isOptimized && (!isChanged || !isSvg)) {
-			logProgressVerbose(getRelativePath(filePath.input), {
+			logProgressVerbose(getRelativePath(filePath.output), {
 				description: `${(isChanged ? 'File size increased' : 'Nothing changed')}. Skipped`,
 				progressBarContainer,
 			});
@@ -110,14 +110,14 @@ async function processFile({
 		const before = formatBytes(fileSize);
 		const after = formatBytes(processedFileSize);
 
-		logProgress(getRelativePath(filePath.input), {
+		logProgress(getRelativePath(filePath.output), {
 			type: isOptimized ? LOG_TYPES.SUCCESS : LOG_TYPES.WARNING,
 			description: `${before} → ${after}. Ratio: ${ratio}%`,
 			progressBarContainer,
 		});
 	} catch (error) {
 		if (error.message) {
-			logProgress(getRelativePath(filePath.input), {
+			logProgress(getRelativePath(filePath.output), {
 				type: LOG_TYPES.ERROR,
 				description: (error.message || '').trim(),
 				progressBarContainer,
