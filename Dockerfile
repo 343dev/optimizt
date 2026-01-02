@@ -7,9 +7,7 @@ COPY . .
 
 ENV NODE_ENV="production"
 
-RUN apk update \
-	&& apk add --no-cache gcompat \
-	&& npm ci \
+RUN npm ci \
 	&& npm link \
 	&& npm cache clean --force
 
