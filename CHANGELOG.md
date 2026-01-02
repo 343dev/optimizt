@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [12.1.1] - 2025-01-02
+
+### Changed
+
+- Updated `@343dev/gifsicle` and `@343dev/guetzli` packages, which now allow Optimizt to work on Alpine Linux without installing additional packages. Previously, the `gcompat` package was required as the `guetzli` and `gifsicle` binaries were built for glibc-based systems, which is absent on Alpine Linux.
+
 ## [12.1.0] - 2025-12-24
 
 ### Added
