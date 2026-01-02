@@ -46,7 +46,7 @@ export async function optimize({ filePaths, config }) {
 	const guetzliTasksSimultaneousLimit = pLimit(1); // Guetzli uses a large amount of memory and a significant amount of CPU time. To reduce system load, we only allow one instance of guetzli to run at the same time.
 
 	await Promise.all(
-		filePaths.map(filePath => {
+		filePaths.map((filePath) => {
 			const extension = path.extname(filePath.input).toLowerCase();
 			const isJpeg = extension === '.jpg' || extension === '.jpeg';
 
@@ -231,15 +231,15 @@ function pipe({ command, commandOptions, inputBuffer }) {
 		process.stdin.end();
 
 		const stdoutChunks = [];
-		process.stdout.on('data', chunk => {
+		process.stdout.on('data', (chunk) => {
 			stdoutChunks.push(chunk);
 		});
 
-		process.on('error', error => {
+		process.on('error', (error) => {
 			reject(new Error(`Error processing image: ${error.message}`));
 		});
 
-		process.on('close', code => {
+		process.on('close', (code) => {
 			if (code !== 0) {
 				reject(new Error(`Image optimization process exited with code ${code}`));
 				return;

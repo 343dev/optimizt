@@ -52,6 +52,6 @@ if (program.args.length === 0) {
 	});
 }
 
-process.on('unhandledRejection', error => {
+process.on('unhandledRejection', (error) => {
 	console.error(error);
 });

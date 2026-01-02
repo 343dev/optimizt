@@ -4,6 +4,9 @@ export default [
 	...config,
 
 	{
-		ignores: ['.optimiztrc.cjs'],
+		ignores: [
+			'coverage/',
+			'.optimiztrc.cjs',
+		],
 	},
 ];

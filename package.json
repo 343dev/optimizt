@@ -56,7 +56,7 @@
 		"svgo": "4.0.0"
 	},
 	"devDependencies": {
-		"@343dev/eslint-config": "3.0.0",
+		"@343dev/eslint-config": "4.0.0",
 		"@vitest/coverage-v8": "4.0.16",
 		"eslint": "9.39.2",
 		"lint-staged": "16.2.7",

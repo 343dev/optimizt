@@ -54,45 +54,43 @@ export async function convert({ filePaths, config }) {
 	const cpuCount = os.cpus().length;
 	const tasksSimultaneousLimit = pLimit(cpuCount);
 
-	await Promise.all(
-		filePaths.reduce((accumulator, filePath) => {
-			if (shouldConvertToAvif) {
-				accumulator.push(
-					tasksSimultaneousLimit(
-						() => processFile({
-							filePath,
-							config: avifConfig || {},
-							progressBarContainer,
-							progressBar,
-							totalSize,
-							isForced,
-							format: 'AVIF',
-							processFunction: processAvif,
-						}),
-					),
-				);
-			}
+	const tasks = [];
+	for (const filePath of filePaths) {
+		if (shouldConvertToAvif) {
+			tasks.push(
+				tasksSimultaneousLimit(
+					() => processFile({
+						filePath,
+						config: avifConfig || {},
+						progressBarContainer,
+						progressBar,
+						totalSize,
+						isForced,
+						format: 'AVIF',
+						processFunction: processAvif,
+					}),
+				),
+			);
+		}
 
-			if (shouldConvertToWebp) {
-				accumulator.push(
-					tasksSimultaneousLimit(
-						() => processFile({
-							filePath,
-							config: webpConfig || {},
-							progressBarContainer,
-							progressBar,
-							totalSize,
-							isForced,
-							format: 'WebP',
-							processFunction: processWebp,
-						}),
-					),
-				);
-			}
-
-			return accumulator;
-		}, []),
-	);
+		if (shouldConvertToWebp) {
+			tasks.push(
+				tasksSimultaneousLimit(
+					() => processFile({
+						filePath,
+						config: webpConfig || {},
+						progressBarContainer,
+						progressBar,
+						totalSize,
+						isForced,
+						format: 'WebP',
+						processFunction: processWebp,
+					}),
+				),
+			);
+		}
+	}
+	await Promise.all(tasks);
 
 	progressBarContainer.update(); // Prevent logs lost. See: https://github.com/npkgz/cli-progress/issues/145#issuecomment-1859594159
 	progressBarContainer.stop();
