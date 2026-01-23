@@ -1,6 +1,6 @@
 # @343dev/optimizt
 
-<img align="right" width="192" height="192"
+<img align="right" width="176" height="176"
      alt="Optimizt logo: OK hand sign with Mona Lisa image between the fingers"
      src="./docs/logo.png">
 
