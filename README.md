@@ -4,6 +4,7 @@
      alt="Optimizt logo: OK hand sign with Mona Lisa image between the fingers"
      src="./docs/logo.png">
 
+[![NPM Downloads](https://img.shields.io/npm/dw/%40343dev%2Foptimizt)](https://www.npmjs.com/package/@343dev/optimizt)
 [![npm](https://img.shields.io/npm/v/@343dev/optimizt.svg)](https://www.npmjs.com/package/@343dev/optimizt)
 [![Docker](https://img.shields.io/docker/v/343dev/optimizt?label=Docker)](https://hub.docker.com/r/343dev/optimizt)
 
