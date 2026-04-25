@@ -148,3 +148,10 @@ Optimizt works seamlessly with:
 ## Credits
 
 Cute picture for the project was made by [Igor Garybaldi](http://pandabanda.com/).
+
+## Other projects
+
+- 📦 [harold](https://github.com/343dev/harold) — CLI tool that compares frontend project bundle sizes between snapshots
+- 🐳 [jailbot](https://github.com/343dev/jailbot) — Docker container wrapper with automatic filesystem path mounting
+- 📝 [markdown-lint](https://github.com/343dev/markdown-lint) — Markdown code style linter based on Prettier, Remark, and Typograf
+- 🔤 [languagetool-node](https://github.com/343dev/languagetool-node) — CLI spell and grammar checker powered by LanguageTool
