@@ -1,10 +1,9 @@
 name: Publish Package to npmjs
 
 on:
-  workflow_run:
-    workflows: [Node.js CI]
-    types: [completed]
+  push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   id-token: write # Required for OIDC
@@ -13,39 +12,31 @@ permissions:
 jobs:
   publish_to_npm:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      -
-        name: Checkout repository
-        uses: actions/checkout@v6
-      -
-        name: Setup Node.js
-        uses: actions/setup-node@v6
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          node-version: 'latest'
-          registry-url: 'https://registry.npmjs.org'
-      -
-        name: Check if package version has changed
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: "latest"
+          registry-url: "https://registry.npmjs.org"
+      - name: Check if package version has changed
         id: check
         run: |
           LATEST_VERSION=$(npm view . version)
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           if [ "$LATEST_VERSION" != "$CURRENT_VERSION" ]; then
             echo "Version changed from $LATEST_VERSION to $CURRENT_VERSION"
-            echo "VERSION_CHANGED=true" >> $GITHUB_OUTPUT
+            echo "VERSION_CHANGED=true" >> "$GITHUB_OUTPUT"
           else
             echo "Version unchanged"
-            echo "VERSION_CHANGED=false" >> $GITHUB_OUTPUT
+            echo "VERSION_CHANGED=false" >> "$GITHUB_OUTPUT"
           fi
-      -
-        name: Cancelling
-        uses: andymckay/cancel-action@0.5
-        if: ${{ steps.check.outputs.VERSION_CHANGED == 'false' }}
-      -
-        name: Install dependencies
+      - name: Install dependencies
         if: ${{ steps.check.outputs.VERSION_CHANGED == 'true' }}
         run: npm ci
-      -
-        name: Publish to npm
+      - name: Publish to npm
         if: ${{ steps.check.outputs.VERSION_CHANGED == 'true' }}
         run: npm publish --access public
