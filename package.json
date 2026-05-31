@@ -53,7 +53,7 @@
 		"fdir": "6.5.0",
 		"p-limit": "7.3.0",
 		"sharp": "0.34.5",
-		"svgo": "4.0.0"
+		"svgo": "4.0.1"
 	},
 	"devDependencies": {
 		"@343dev/eslint-config": "4.0.0",
