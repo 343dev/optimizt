@@ -18,11 +18,13 @@ const images = path.resolve(dirname, 'images');
 let temporary;
 let workDirectory;
 
+/* eslint-disable unicorn/no-top-level-assignment-in-function -- shared fixtures assigned in setup, read by tests and helpers */
 beforeEach(() => {
 	temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'optimizt-test-'));
 	workDirectory = `${temporary}${path.sep}`;
 	copyRecursive(images, temporary);
 });
+/* eslint-enable unicorn/no-top-level-assignment-in-function */
 
 afterEach(() => {
 	if (temporary) {
@@ -493,7 +495,9 @@ function copyRecursive(from, to) {
 		fs.mkdirSync(to);
 	}
 
-	for (const item of fs.readdirSync(from, { withFileTypes: true })) {
+	const items = fs.readdirSync(from, { withFileTypes: true });
+
+	for (const item of items) {
 		const fromPath = path.join(from, item.name);
 		const toPath = path.join(to, item.name);
 
@@ -508,7 +512,9 @@ function copyRecursive(from, to) {
 function calculateDirectorySize(directoryPath) {
 	let totalSize = 0;
 
-	for (const item of fs.readdirSync(directoryPath, { withFileTypes: true })) {
+	const items = fs.readdirSync(directoryPath, { withFileTypes: true });
+
+	for (const item of items) {
 		const itemPath = path.join(directoryPath, item.name);
 
 		if (item.isDirectory()) {
@@ -528,7 +534,7 @@ function runCliWithParameters(parameters) {
 
 function grepTotalRatio(string) {
 	const [, ratio] = /You\ssaved\s.+\((\d{1,3})%\)/.exec(string);
-	return Number.parseInt(ratio, 10);
+	return Number(ratio);
 }
 
 function expectStringContains(string, containing) {
