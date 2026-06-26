@@ -1,4 +1,4 @@
-FROM node:current-alpine
+FROM node:22.22.1-alpine3.23
 LABEL maintainer="Andrey Warkentin (https://github.com/343dev)"
 
 WORKDIR /app
