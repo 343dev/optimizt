@@ -1,5 +1,19 @@
 # Migration
 
+## 12.1.1 → 13.0.0
+
+Node.js version must be 22.22.1 or higher.
+
+Optimizt is now exposed only as a CLI package. If you imported Optimizt internals from JavaScript, switch to the `optimizt` CLI instead.
+
+Git hooks are no longer configured through `simple-git-hooks`. This affects only contributors working on Optimizt code, not users installing Optimizt as a package. After cloning the repository, contributors can run:
+
+```shell
+npm run enable-git-hooks
+```
+
+This configures Git to use versioned hooks from the `.githooks` directory through `core.hooksPath`.
+
 ## 11.0.0 → 12.0.0
 
 The SVGO configuration has been updated to be compatible with SVGO v4 (see [migration guide](https://svgo.dev/docs/migrations/migration-from-v3-to-v4/)). If you use a custom [.optimiztrc.cjs](.optimiztrc.cjs) file, update your SVG plugins configuration to match the new format.
