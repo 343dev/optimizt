@@ -40,7 +40,7 @@
 		"lint": "eslint --ignore-pattern 'coverage/*' ./",
 		"test": "vitest run --testTimeout 60000",
 		"test-coverage": "vitest run --testTimeout 60000 --coverage",
-		"update-git-hooks": "simple-git-hooks"
+		"enable-git-hooks": "git config core.hooksPath .githooks"
 	},
 	"dependencies": {
 		"@343dev/gifsicle": "1.2.0",
@@ -57,17 +57,12 @@
 		"@vitest/coverage-v8": "4.1.9",
 		"eslint": "9.39.2",
 		"lint-staged": "17.0.7",
-		"simple-git-hooks": "2.13.1",
 		"vitest": "4.1.9"
 	},
 	"engines": {
 		"node": ">=22.22.1"
 	},
 	"type": "module",
-	"simple-git-hooks": {
-		"pre-commit": "npx lint-staged",
-		"pre-push": "npm test && npm run license-check"
-	},
 	"lint-staged": {
 		"*.js": [
 			"eslint --fix"
