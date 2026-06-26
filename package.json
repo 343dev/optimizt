@@ -46,7 +46,7 @@
 		"@343dev/gifsicle": "1.1.0",
 		"@343dev/guetzli": "1.2.0",
 		"cli-progress": "3.12.0",
-		"commander": "14.0.3",
+		"commander": "15.0.0",
 		"fdir": "6.5.0",
 		"p-limit": "7.3.0",
 		"sharp": "0.34.5",
