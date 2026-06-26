@@ -43,8 +43,8 @@
 		"update-git-hooks": "simple-git-hooks"
 	},
 	"dependencies": {
-		"@343dev/gifsicle": "1.1.0",
-		"@343dev/guetzli": "1.2.0",
+		"@343dev/gifsicle": "1.2.0",
+		"@343dev/guetzli": "1.3.0",
 		"cli-progress": "3.12.0",
 		"commander": "15.0.0",
 		"fdir": "6.5.0",
