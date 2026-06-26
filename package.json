@@ -49,7 +49,7 @@
 		"commander": "15.0.0",
 		"fdir": "6.5.0",
 		"p-limit": "7.3.0",
-		"sharp": "0.35.1",
+		"sharp": "0.35.2",
 		"svgo": "4.0.1"
 	},
 	"devDependencies": {
