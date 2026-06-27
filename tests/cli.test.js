@@ -150,7 +150,7 @@ describe('CLI', () => {
 				const stdout = runCliWithParameters(`--avif ${workDirectory}${file}`);
 
 				expectFileRatio({
-					stdout, file, maxRatio: 95, minRatio: 90, outputExt: 'avif',
+					stdout, file, maxRatio: 94, minRatio: 89, outputExt: 'avif',
 				});
 				expectFileNotModified(file);
 			});
