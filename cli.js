@@ -10,7 +10,7 @@ import optimizt from './index.js';
 import { setProgramOptions } from './lib/program-options.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
-const packageJson = JSON.parse(await fs.readFile(path.join(dirname, 'package.json')));
+const packageJson = JSON.parse(await fs.readFile(path.join(dirname, 'package.json'), 'utf8'));
 
 program
 	.option('--avif', 'create AVIF and exit')

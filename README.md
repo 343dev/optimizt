@@ -94,6 +94,16 @@ When using `--config path/to/.optimiztrc.cjs`, the specified configuration file 
 Ensure the [ignore-scripts](https://docs.npmjs.com/cli/v6/using-npm/config#ignore-scripts) npm option is disabled.
 Details: [funbox/optimizt/issues/9](https://github.com/funbox/optimizt/issues/9).
 
+## Development
+
+After cloning the repository, enable Git hooks once:
+
+```sh
+npm run enable-git-hooks
+```
+
+This configures Git to use the versioned hooks from the [.githooks](./.githooks) directory.
+
 ## Docker
 
 ### Pre-Built Image

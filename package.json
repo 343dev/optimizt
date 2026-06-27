@@ -1,6 +1,6 @@
 {
 	"name": "@343dev/optimizt",
-	"version": "12.1.1",
+	"version": "13.0.0",
 	"description": "CLI image optimization tool",
 	"keywords": [
 		"svg",
@@ -40,34 +40,29 @@
 		"lint": "eslint --ignore-pattern 'coverage/*' ./",
 		"test": "vitest run --testTimeout 60000",
 		"test-coverage": "vitest run --testTimeout 60000 --coverage",
-		"update-git-hooks": "simple-git-hooks"
+		"enable-git-hooks": "git config core.hooksPath .githooks"
 	},
 	"dependencies": {
-		"@343dev/gifsicle": "1.1.0",
-		"@343dev/guetzli": "1.2.0",
+		"@343dev/gifsicle": "1.2.0",
+		"@343dev/guetzli": "1.3.0",
 		"cli-progress": "3.12.0",
-		"commander": "14.0.3",
+		"commander": "15.0.0",
 		"fdir": "6.5.0",
 		"p-limit": "7.3.0",
-		"sharp": "0.34.5",
+		"sharp": "0.35.2",
 		"svgo": "4.0.1"
 	},
 	"devDependencies": {
-		"@343dev/eslint-config": "4.0.0",
-		"@vitest/coverage-v8": "4.1.7",
-		"eslint": "9.39.2",
-		"lint-staged": "17.0.5",
-		"simple-git-hooks": "2.13.1",
-		"vitest": "4.1.7"
+		"@343dev/eslint-config": "5.0.0",
+		"@vitest/coverage-v8": "4.1.9",
+		"eslint": "10.5.0",
+		"lint-staged": "17.0.7",
+		"vitest": "4.1.9"
 	},
 	"engines": {
 		"node": ">=22.22.1"
 	},
 	"type": "module",
-	"simple-git-hooks": {
-		"pre-commit": "npx lint-staged",
-		"pre-push": "npm test && npm run license-check"
-	},
 	"lint-staged": {
 		"*.js": [
 			"eslint --fix"

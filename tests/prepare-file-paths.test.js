@@ -52,10 +52,11 @@ test('Files are filtered by extension', async () => {
 
 test('Only relative file paths are generated', async () => {
 	const inputPaths = await generateInputPaths();
+	const absolutePathPattern = new RegExp(`^${dirname}`);
 
 	expect(inputPaths).not.toEqual(
 		expect.arrayContaining([
-			expect.stringMatching(new RegExp(`^${dirname}`)),
+			expect.stringMatching(absolutePathPattern),
 		]),
 	);
 });

@@ -5,12 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [13.0.0] - 2026-06-27
 
 ### Changed
 
-- **BREAKING:** Increased the minimum Node.js version to 22.22.1.
+- **BREAKING:** Increased the minimum Node.js version to 22.22.1 (required by `lint-staged`).
 - **BREAKING:** Restricted package exports so Optimizt is only exposed as a CLI package.
+- Pinned the Docker base image to `node:22.22.1-alpine3.23` for reproducible builds.
+- Replaced `simple-git-hooks` with versioned hooks in `.githooks`; contributors working on Optimizt code can run `npm run enable-git-hooks` after cloning to configure `core.hooksPath`.
+- Updated dependencies no longer ship `postinstall` scripts, following the ecosystem move away from dependency lifecycle scripts in npm and other package managers (see [npm RFC #868](https://github.com/npm/rfcs/pull/868)).
 
 ### Removed
 
