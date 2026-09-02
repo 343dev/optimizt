@@ -85,7 +85,10 @@ Image processing leverages:
 
 Default settings are defined in [.optimiztrc.cjs](./.optimiztrc.cjs), which includes all supported parameters. Disable any parameter by setting it to `false`.
 
-When using `--config path/to/.optimiztrc.cjs`, the specified configuration file will be used. If no `--config` is provided, Optimizt searches recursively from the current directory upward for `.optimiztrc.cjs`. If none is found, defaults are applied.
+When using `--config path/to/.optimiztrc.cjs`, the specified configuration file replaces the bundled settings for the selected mode. If no `--config` is provided, Optimizt searches recursively from the current directory upward for `.optimiztrc.cjs`. If none is found, defaults are applied.
+
+> [!WARNING]
+> `.optimiztrc.cjs` is executable code. Auto-discovered and explicitly selected configuration runs with your user permissions; use Optimizt only in repositories you trust.
 
 ## Troubleshooting
 
@@ -139,7 +142,7 @@ docker build --tag 343dev/optimizt https://github.com/343dev/optimizt.git
 
 ```bash
 # mount current directory to /src in the container
-docker run --rm --volume $(pwd):/src 343dev/optimizt --webp ./image.png
+docker run --rm --user "$(id -u):$(id -g)" --volume "$(pwd):/src" 343dev/optimizt --webp ./image.png
 ```
 
 ## Integrations
