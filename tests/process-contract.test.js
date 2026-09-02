@@ -73,6 +73,44 @@ describe('process contract', () => {
 		expect(result.stderr).toContain('No eligible images found');
 	});
 
+	test('a missing explicit configuration is reported precisely', async () => {
+		const directory = await makeTemporaryDirectory();
+		const imagePath = path.join(directory, 'image.png');
+		const configPath = path.join(directory, 'missing.cjs');
+		await fs.copyFile(fixturePath, imagePath);
+
+		const result = await runCli(['--config', configPath, imagePath]);
+
+		expect(result.code).toBe(1);
+		expect(result.stderr).toContain(`Config file does not exist: ${configPath}`);
+		expect(result.stderr).not.toContain('Configuration file is invalid');
+	});
+
+	test('a non-file explicit configuration is reported precisely', async () => {
+		const directory = await makeTemporaryDirectory();
+		const imagePath = path.join(directory, 'image.png');
+		await fs.copyFile(fixturePath, imagePath);
+
+		const result = await runCli(['--config', directory, imagePath]);
+
+		expect(result.code).toBe(1);
+		expect(result.stderr).toContain(`Config path does not refer to a file: ${directory}`);
+		expect(result.stderr).not.toContain('Configuration file is invalid');
+	});
+
+	test('an output root that is not a directory fails preflight', async () => {
+		const directory = await makeTemporaryDirectory();
+		const imagePath = path.join(directory, 'image.png');
+		const outputPath = path.join(directory, 'output.txt');
+		await fs.copyFile(fixturePath, imagePath);
+		await fs.writeFile(outputPath, 'not a directory');
+
+		const result = await runCli(['--output', outputPath, imagePath]);
+
+		expect(result.code).toBe(1);
+		expect(result.stderr).toContain(`Output path is not a directory: ${outputPath}`);
+	});
+
 	test('force is rejected outside conversion mode', async () => {
 		const result = await runCli(['--force', '/unused']);
 
