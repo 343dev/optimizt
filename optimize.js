@@ -9,11 +9,13 @@ import pLimit from 'p-limit';
 import sharp from 'sharp';
 import { optimize as svgoOptimize } from 'svgo';
 
+import { atomicWrite } from './lib/atomic-write.js';
 import { calculateRatio } from './lib/calculate-ratio.js';
 import { createProgressBarContainer } from './lib/create-progress-bar-container.js';
 import { formatBytes } from './lib/format-bytes.js';
 import { getPlural } from './lib/get-plural.js';
 import { getRelativePath } from './lib/get-relative-path.js';
+import { isInterrupted, registerChild } from './lib/lifecycle.js';
 import {
 	LOG_TYPES,
 	log,
@@ -25,8 +27,9 @@ import { parseImageMetadata } from './lib/parse-image-metadata.js';
 import { programOptions } from './lib/program-options.js';
 import { showTotal } from './lib/show-total.js';
 
-export async function optimize({ filePaths, config }) {
+export async function optimize({ operations, config }) {
 	const { isLossless } = programOptions;
+	const filePaths = operations.map(operation => ({ input: operation.input, output: operation.output }));
 
 	const filePathsCount = filePaths.length;
 
@@ -45,8 +48,8 @@ export async function optimize({ filePaths, config }) {
 	const tasksSimultaneousLimit = pLimit(cpuCount);
 	const guetzliTasksSimultaneousLimit = pLimit(1); // Guetzli uses a large amount of memory and a significant amount of CPU time. To reduce system load, we only allow one instance of guetzli to run at the same time.
 
-	await Promise.all(
-		filePaths.map((filePath) => {
+	const outcomes = await Promise.all(
+		filePaths.map((filePath, planIndex) => {
 			const extension = path.extname(filePath.input).toLowerCase();
 			const isJpeg = extension === '.jpg' || extension === '.jpeg';
 
@@ -54,21 +57,25 @@ export async function optimize({ filePaths, config }) {
 				? guetzliTasksSimultaneousLimit
 				: tasksSimultaneousLimit;
 
-			return limit(() => processFile({
-				filePath,
-				config,
-				progressBarContainer,
-				progressBar,
-				totalSize,
-				isLossless,
-			}));
+			return limit(() => isInterrupted()
+				? { planIndex, status: 'unstarted' }
+				: processFile({
+					filePath,
+					config,
+					progressBarContainer,
+					progressBar,
+					totalSize,
+					isLossless,
+					planIndex,
+				}));
 		}),
 	);
 
 	progressBarContainer.update(); // Prevent logs lost. See: https://github.com/npkgz/cli-progress/issues/145#issuecomment-1859594159
 	progressBarContainer.stop();
 
-	showTotal(totalSize.before, totalSize.after);
+	showTotal(totalSize.before, totalSize.after, outcomes);
+	return { failed: outcomes.filter(outcome => outcome.status === 'failed').length, outcomes };
 }
 
 async function processFile({
@@ -78,6 +85,7 @@ async function processFile({
 	progressBar,
 	totalSize,
 	isLossless,
+	planIndex,
 }) {
 	try {
 		const fileBuffer = await fs.promises.readFile(filePath.input);
@@ -101,11 +109,10 @@ async function processFile({
 				progressBarContainer,
 			});
 
-			return;
+			return { planIndex, status: 'skipped' };
 		}
 
-		await fs.promises.mkdir(path.dirname(filePath.output), { recursive: true });
-		await fs.promises.writeFile(filePath.output, processedFileBuffer);
+		await atomicWrite(filePath.output, processedFileBuffer);
 
 		const before = formatBytes(fileSize);
 		const after = formatBytes(processedFileSize);
@@ -115,6 +122,7 @@ async function processFile({
 			description: `${before} → ${after}. Ratio: ${ratio}%`,
 			progressBarContainer,
 		});
+		return { after: processedFileSize, before: fileSize, planIndex, status: 'processed' };
 	} catch (error) {
 		if (error.message) {
 			logProgress(getRelativePath(filePath.output), {
@@ -125,6 +133,7 @@ async function processFile({
 		} else {
 			progressBarContainer.log(error);
 		}
+		return { error, output: filePath.output, planIndex, status: 'failed' };
 	} finally {
 		progressBar.increment();
 	}
@@ -226,6 +235,7 @@ function processSvg({ fileBuffer, config }) {
 function pipe({ command, commandOptions, inputBuffer }) {
 	return new Promise((resolve, reject) => {
 		const process = spawn(command, commandOptions);
+		registerChild(process);
 
 		process.stdin.write(inputBuffer);
 		process.stdin.end();

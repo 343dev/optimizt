@@ -2,24 +2,25 @@ import { expect, test, vi } from 'vitest';
 
 import { showTotal } from '../lib/show-total.js';
 
-test('Savings size and compression ratio are displayed', () => {
-	const fileSize = 1_048_576;
+vi.mock('../lib/log.js', () => ({
+	log: vi.fn(),
+	logEmptyLine: vi.fn(),
+}));
 
-	const consoleSpy = vi.spyOn(console, 'log');
+import { log } from '../lib/log.js';
 
-	showTotal(fileSize, fileSize / 2);
-	expect(consoleSpy.mock.calls[1][1]).toBe('Yay! You saved 512 KB (50%)');
-
-	consoleSpy.mockRestore();
+test('optimization summary reports savings for written operations', () => {
+	showTotal(100, 60, [{ status: 'processed' }, { status: 'skipped' }]);
+	expect(log).toHaveBeenCalledWith('1 processed, 1 skipped, 0 failed');
+	expect(log).toHaveBeenCalledWith('40 Bytes saved (40%)');
 });
 
-test('Savings size and compression ratio are not displayed', () => {
-	const fileSize = 1_048_576;
+test('summary omits size when no operation was processed', () => {
+	showTotal(0, 0, [{ status: 'failed' }]);
+	expect(log).toHaveBeenCalledWith('0 processed, 0 skipped, 1 failed');
+});
 
-	const consoleSpy = vi.spyOn(console, 'log');
-
-	showTotal(fileSize, fileSize * 2);
-	expect(consoleSpy.mock.calls[1][1]).toBe('Done!');
-
-	consoleSpy.mockRestore();
+test('conversion summary reports created bytes', () => {
+	showTotal(100, 60, [{ status: 'processed' }], { conversion: true });
+	expect(log).toHaveBeenCalledWith('60 Bytes created');
 });
