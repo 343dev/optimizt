@@ -18,6 +18,7 @@ import {
 	logProgress,
 	logProgressVerbose,
 } from './lib/log.js';
+import { OUTCOME_STATUS } from './lib/outcome-status.js';
 import { parseImageMetadata } from './lib/parse-image-metadata.js';
 import { programOptions } from './lib/program-options.js';
 import { showTotal } from './lib/show-total.js';
@@ -47,7 +48,7 @@ export async function convert({ operations, config }) {
 	const tasksSimultaneousLimit = pLimit(cpuCount);
 
 	const outcomes = await Promise.all(operations.map((operation, planIndex) => tasksSimultaneousLimit(() => {
-		if (isInterrupted()) return { planIndex, status: 'unstarted' };
+		if (isInterrupted()) return { planIndex, status: OUTCOME_STATUS.UNSTARTED };
 		const isAvif = operation.format === 'avif';
 		return processFile({
 			config: (isAvif ? avifConfig : webpConfig) || {},
@@ -66,7 +67,7 @@ export async function convert({ operations, config }) {
 	progressBarContainer.stop();
 
 	showTotal(totalSize.before, totalSize.after, outcomes, { conversion: true });
-	return { failed: outcomes.filter(outcome => outcome.status === 'failed').length, outcomes };
+	return { failed: outcomes.filter(outcome => outcome.status === OUTCOME_STATUS.FAILED).length, outcomes };
 }
 
 async function processFile({
@@ -89,7 +90,7 @@ async function processFile({
 				progressBarContainer,
 			});
 
-			return { planIndex, status: 'skipped' };
+			return { planIndex, status: OUTCOME_STATUS.SKIPPED };
 		}
 
 		const fileBuffer = await fs.promises.readFile(filePath.input);
@@ -112,18 +113,9 @@ async function processFile({
 			description: `${before} → ${format} ${after}. Ratio: ${ratio}%`,
 			progressBarContainer,
 		});
-		return { after: processedFileSize, before: fileSize, planIndex, status: 'processed' };
+		return { after: processedFileSize, before: fileSize, planIndex, status: OUTCOME_STATUS.PROCESSED };
 	} catch (error) {
-		if (error.message) {
-			logProgress(getRelativePath(outputFilePath), {
-				type: LOG_TYPES.ERROR,
-				description: (error.message || '').trim(),
-				progressBarContainer,
-			});
-		} else {
-			progressBarContainer.log(error);
-		}
-		return { error, output: outputFilePath, planIndex, status: 'failed' };
+		return { error, output: outputFilePath, planIndex, status: OUTCOME_STATUS.FAILED };
 	} finally {
 		progressBar.increment();
 	}

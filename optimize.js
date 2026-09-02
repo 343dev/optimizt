@@ -23,6 +23,7 @@ import {
 	logProgressVerbose,
 } from './lib/log.js';
 import { optionsToArguments } from './lib/options-to-arguments.js';
+import { OUTCOME_STATUS } from './lib/outcome-status.js';
 import { parseImageMetadata } from './lib/parse-image-metadata.js';
 import { programOptions } from './lib/program-options.js';
 import { showTotal } from './lib/show-total.js';
@@ -58,7 +59,7 @@ export async function optimize({ operations, config }) {
 				: tasksSimultaneousLimit;
 
 			return limit(() => isInterrupted()
-				? { planIndex, status: 'unstarted' }
+				? { planIndex, status: OUTCOME_STATUS.UNSTARTED }
 				: processFile({
 					filePath,
 					config,
@@ -75,7 +76,7 @@ export async function optimize({ operations, config }) {
 	progressBarContainer.stop();
 
 	showTotal(totalSize.before, totalSize.after, outcomes);
-	return { failed: outcomes.filter(outcome => outcome.status === 'failed').length, outcomes };
+	return { failed: outcomes.filter(outcome => outcome.status === OUTCOME_STATUS.FAILED).length, outcomes };
 }
 
 async function processFile({
@@ -109,7 +110,7 @@ async function processFile({
 				progressBarContainer,
 			});
 
-			return { planIndex, status: 'skipped' };
+			return { planIndex, status: OUTCOME_STATUS.SKIPPED };
 		}
 
 		await atomicWrite(filePath.output, processedFileBuffer);
@@ -122,18 +123,9 @@ async function processFile({
 			description: `${before} → ${after}. Ratio: ${ratio}%`,
 			progressBarContainer,
 		});
-		return { after: processedFileSize, before: fileSize, planIndex, status: 'processed' };
+		return { after: processedFileSize, before: fileSize, planIndex, status: OUTCOME_STATUS.PROCESSED };
 	} catch (error) {
-		if (error.message) {
-			logProgress(getRelativePath(filePath.output), {
-				type: LOG_TYPES.ERROR,
-				description: (error.message || '').trim(),
-				progressBarContainer,
-			});
-		} else {
-			progressBarContainer.log(error);
-		}
-		return { error, output: filePath.output, planIndex, status: 'failed' };
+		return { error, output: filePath.output, planIndex, status: OUTCOME_STATUS.FAILED };
 	} finally {
 		progressBar.increment();
 	}

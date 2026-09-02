@@ -7,7 +7,7 @@ import { LOG_TYPES, log } from '../lib/log.js';
 test.each([
 	[undefined, 'i'],
 	[LOG_TYPES.INFO, 'i'],
-	[LOG_TYPES.SUCCESS, '√'],
+	[LOG_TYPES.SUCCESS, 'v'],
 	[LOG_TYPES.WARNING, '!'],
 	[LOG_TYPES.ERROR, 'x'],
 ])('logs %s messages to stderr', (type, symbol) => {
