@@ -1,0 +1,13 @@
+name: optimizt
+
+services:
+  app:
+    image: node:24.18.0-trixie-slim
+    command: sleep infinity
+    environment:
+      - SSH_AUTH_SOCK=/ssh-auth.sock
+    volumes:
+      - ../:/workspace:cached
+      - ~/.gitconfig:/root/.gitconfig:ro
+      - ~/.config/git/ignore:/root/.config/git/ignore:ro
+      - /run/host-services/ssh-auth.sock:/ssh-auth.sock
