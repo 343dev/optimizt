@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed nondeterministic output when multiple inputs map to the same target by rejecting collisions during preflight.
 - Fixed animated progress and ANSI control sequences appearing in redirected output.
 - Fixed conversion summaries that described retained source images as disk savings.
+- Fixed interrupted runs that started an external encoder after the interrupt arrived, which delayed the summary until the forced five-second exit.
 
 ## [13.0.0] - 2026-06-27
 
