@@ -46,6 +46,35 @@ describe('process contract', () => {
 		expect(result.stderr).not.toContain('\u{1B}[');
 	});
 
+	test('redirected output contains no progress animation', async () => {
+		const directory = await makeTemporaryDirectory();
+		const imagePath = path.join(directory, 'image.png');
+		await fs.copyFile(fixturePath, imagePath);
+
+		const result = await runCli(['--avif', '--webp', imagePath]);
+
+		expect(result.code).toBe(0);
+		expect(result.stdout).toBe('');
+		expect(result.stderr).toContain('2 processed, 0 skipped, 0 failed');
+		expect(result.stderr).not.toMatch(/Processed \d+ of \d+/);
+		expect(result.stderr).not.toMatch(/[░▒█]/);
+		expect(result.stderr).not.toContain('\u{1B}[');
+	});
+
+	test('a dumb terminal gets ASCII diagnostics without progress or color', async () => {
+		const directory = await makeTemporaryDirectory();
+		const imagePath = path.join(directory, 'image.png');
+		await fs.copyFile(fixturePath, imagePath);
+
+		const result = await runCli([imagePath], { TERM: 'dumb' });
+
+		expect(result.code).toBe(0);
+		expect(result.stderr).toContain('i Optimizing 1 image');
+		expect(result.stderr).not.toMatch(/Processed \d+ of \d+/);
+		expect(result.stderr).not.toMatch(/[░▒█]/);
+		expect(result.stderr).not.toContain('\u{1B}[');
+	});
+
 	test('a corrupt image makes the invocation fail while independent work succeeds', async () => {
 		const directory = await makeTemporaryDirectory();
 		const validPath = path.join(directory, 'valid.png');
@@ -125,9 +154,10 @@ async function makeTemporaryDirectory() {
 	return directory;
 }
 
-function runCli(arguments_) {
+function runCli(arguments_, environment = {}) {
 	return new Promise((resolve, reject) => {
 		const child = spawn(process.execPath, [cliPath, ...arguments_], {
+			env: { ...process.env, ...environment },
 			stdio: ['ignore', 'pipe', 'pipe'],
 		});
 		let stdout = '';
