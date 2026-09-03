@@ -6,6 +6,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 import {
 	copyFixture,
 	fileSize,
+	hasCaseSensitivePaths,
 	isPrivileged,
 	isWindows,
 	makeTemporaryDirectory,
@@ -168,6 +169,35 @@ describe('output mapping', () => {
 		expect(await exists(output)).toBe(false);
 	});
 
+	test('a target that is not a regular file fails before encoding', async () => {
+		const directory = await makeTemporaryDirectory();
+		const imagePath = await copyFixture(directory, 'png-not-optimized.png');
+		const output = path.join(directory, 'output');
+		const blockedTarget = path.join(output, 'png-not-optimized.webp');
+		await fs.mkdir(blockedTarget, { recursive: true });
+
+		const result = await runCli(['--webp', '--output', output, imagePath]);
+
+		expect(result.code).toBe(1);
+		expect(result.stderr).toContain(`Output target is not a regular file: ${blockedTarget}`);
+		await expect(fs.readdir(blockedTarget)).resolves.toEqual([]);
+	});
+
+	test('an output whose existing parent is not a directory fails preflight', async () => {
+		const directory = await makeTemporaryDirectory();
+		const imagePath = await copyFixture(directory, 'png-not-optimized.png', path.join('input', 'nested', 'picture.png'));
+		const output = path.join(directory, 'output');
+		await fs.mkdir(output);
+		await fs.writeFile(path.join(output, 'nested'), 'occupied by a file');
+
+		const result = await runCli(['--output', output, path.join(directory, 'input')]);
+
+		expect(result.code).toBe(1);
+		expect(result.stderr).toContain('Output parent is not a directory');
+		await expect(fs.readFile(path.join(output, 'nested'), 'utf8')).resolves.toBe('occupied by a file');
+		await expect(fileSize(imagePath)).resolves.toBeGreaterThan(0);
+	});
+
 	test('an output root that is not a directory fails preflight', async () => {
 		const directory = await makeTemporaryDirectory();
 		const imagePath = await copyFixture(directory, 'png-not-optimized.png');
@@ -194,6 +224,25 @@ describe('collisions', () => {
 		expect(result.code).toBe(1);
 		expect(result.stderr).toContain('Output collision');
 		expect(await fs.readdir(output)).toEqual([]);
+	});
+
+	test.runIf(hasCaseSensitivePaths)('case variants are distinct targets on a case-sensitive filesystem', async () => {
+		const { arguments_, output } = await prepareCaseVariants();
+
+		const result = await runCli(arguments_);
+
+		expect(result.code).toBe(0);
+		await expect(fs.readdir(output)).resolves.toEqual(['Picture.png', 'picture.png']);
+	});
+
+	test.skipIf(hasCaseSensitivePaths)('case variants collide where path comparison ignores case', async () => {
+		const { arguments_, output } = await prepareCaseVariants();
+
+		const result = await runCli(arguments_);
+
+		expect(result.code).toBe(1);
+		expect(result.stderr).toContain('Output collision');
+		await expect(fs.readdir(output)).resolves.toEqual([]);
 	});
 
 	test('overlapping directory operands are rejected with an output root', async () => {
@@ -251,6 +300,17 @@ describe('generated names', () => {
 		await expect(fileSize(imagePath)).resolves.toBeLessThan(sizeBefore);
 	});
 });
+
+// Two inputs whose outputs differ only in case: distinct on a case-sensitive filesystem,
+// the same target where path comparison ignores case.
+async function prepareCaseVariants() {
+	const directory = await makeTemporaryDirectory();
+	const output = path.join(directory, 'output');
+	await fs.mkdir(output);
+	await copyFixture(directory, 'png-not-optimized.png', path.join('first', 'Picture.png'));
+	await copyFixture(directory, 'png-not-optimized.png', path.join('second', 'picture.png'));
+	return { arguments_: ['--output', output, path.join(directory, 'first'), path.join(directory, 'second')], output };
+}
 
 async function exists(targetPath) {
 	try {
