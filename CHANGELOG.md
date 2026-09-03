@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clarified codec failures by naming the mode, format, and configuration file behind the attempt while keeping the codec's own reason.
 - Updated GitHub Actions examples to use supported action and Node.js versions and pass changed filenames as separate shell arguments.
 - Updated the Docker example to run with the host user's UID and GID so generated files are not owned by root.
+- Documented how images are written: atomic replacement, preserved modes and ownership, link handling, and the absence of a durability guarantee after sudden power loss.
 - Documented that discovered CJS configuration executes with the current user's permissions and that JPEG processing in Lossless mode uses Guetzli and is not strictly lossless.
 
 ### Fixed

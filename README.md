@@ -72,6 +72,19 @@ Provides the best balance between file size reduction and minimal visual quality
 - **PNG/JPEG/GIF**: Maximizes image quality at the expense of larger file sizes.
 - **SVG**: Settings are identical in both modes.
 
+## How Files Are Written
+
+Every image is written to a temporary file in the destination directory, synchronized to disk, and then renamed over the target. An interrupted or failed run therefore leaves the original file untouched instead of half-written, and a reader never sees a partial image.
+
+Alongside that:
+
+- The existing permission mode of a replaced file is preserved, and its ownership is preserved when the operating system permits it.
+- A file with more than one hard link is never replaced, because renaming over it would break the shared inode. Creating a new output from such a source is allowed.
+- Optimizing a symbolic link replaces the file it points to and keeps the link itself; converting one writes the new variant next to the link.
+
+> [!NOTE]
+> Atomic replacement protects against partially written files. It does not guarantee that the directory entry itself survives sudden power loss, and it does not preserve file timestamps.
+
 ## Configuration
 
 Image processing leverages:
