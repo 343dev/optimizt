@@ -19,7 +19,7 @@ async function loadLifecycle() {
 	const lifecycle = await import('../lib/lifecycle.js');
 	const known = new Set(['SIGINT', 'SIGTERM'].flatMap(signal => process.listeners(signal)));
 
-	lifecycle.installSignalHandlers(vi.fn());
+	lifecycle.installSignalHandlers();
 	for (const signal of ['SIGINT', 'SIGTERM']) {
 		for (const listener of process.listeners(signal)) {
 			if (!known.has(listener)) installedListeners.push([signal, listener]);

@@ -34,7 +34,7 @@ program
 	.exitOverride();
 
 let exitCode = 0;
-installSignalHandlers(() => {});
+installSignalHandlers();
 try {
 	program.parse(process.argv);
 	if (program.args.length === 0) {
