@@ -9,6 +9,7 @@ import {
 	makeTemporaryDirectory,
 	removeTemporaryDirectories,
 	runCli,
+	summaryLine,
 } from './helpers/cli.js';
 
 afterEach(removeTemporaryDirectories);
@@ -74,7 +75,7 @@ describe('process contract', () => {
 		const result = await runCli([imagePath]);
 
 		expect(result.code).toBe(0);
-		expect(result.stderr).toContain('1 processed, 0 skipped, 0 failed');
+		expect(result.stderr).toContain(summaryLine('1 processed'));
 		await expect(fileSize(imagePath)).resolves.toBeLessThan(sizeBefore);
 	});
 
@@ -97,7 +98,7 @@ describe('process contract', () => {
 
 		expect(result.code).toBe(0);
 		expect(result.stdout).toBe('');
-		expect(result.stderr).toContain('2 processed, 0 skipped, 0 failed');
+		expect(result.stderr).toContain(summaryLine('2 processed'));
 		expect(result.stderr).not.toMatch(/Processed \d+ of \d+/);
 		expect(result.stderr).not.toMatch(/[░▒█]/);
 		expect(result.stderr).not.toContain('\u{1B}[');

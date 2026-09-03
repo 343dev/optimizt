@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
-import os from 'node:os';
+import os, { EOL } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -30,6 +30,17 @@ export async function copyFixture(directory, fixtureName, outputName = fixtureNa
 	await fs.mkdir(path.dirname(target), { recursive: true });
 	await fs.copyFile(path.join(fixturesPath, fixtureName), target);
 	return target;
+}
+
+// The whole summary line, so an assertion also states which outcomes were absent.
+export function summaryLine(counts) {
+	return `i ${counts}${EOL}`;
+}
+
+// Outcome counts are readable individually because absent outcomes are not printed.
+export function outcomeCount(stderr, label) {
+	const match = new RegExp(String.raw`(\d+) ${label}`).exec(stderr);
+	return match ? Number(match[1]) : 0;
 }
 
 export async function fileSize(filePath) {

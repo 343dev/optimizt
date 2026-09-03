@@ -16,13 +16,21 @@ beforeEach(() => {
 
 test('optimization summary reports savings for written operations', () => {
 	showTotal(100, 60, [{ status: OUTCOME_STATUS.PROCESSED }, { status: OUTCOME_STATUS.SKIPPED }]);
-	expect(log).toHaveBeenCalledWith('1 processed, 1 skipped, 0 failed');
+	expect(log).toHaveBeenCalledWith('1 processed, 1 skipped');
 	expect(log).toHaveBeenCalledWith('40 Bytes saved (40%)');
 });
 
 test('summary omits size when no operation was processed', () => {
 	showTotal(0, 0, [{ status: OUTCOME_STATUS.FAILED }]);
-	expect(log).toHaveBeenCalledWith('0 processed, 0 skipped, 1 failed');
+	expect(log).toHaveBeenCalledWith('1 failed');
+});
+
+test('summary names only the outcomes that occurred', () => {
+	showTotal(100, 60, [
+		{ after: 60, before: 100, status: OUTCOME_STATUS.PROCESSED },
+		{ status: OUTCOME_STATUS.PROCESSED },
+	]);
+	expect(log).toHaveBeenCalledWith('2 processed');
 });
 
 test('summary reports operations left unstarted by interruption', () => {
@@ -30,7 +38,7 @@ test('summary reports operations left unstarted by interruption', () => {
 		{ status: OUTCOME_STATUS.UNSTARTED },
 		{ status: OUTCOME_STATUS.UNSTARTED },
 	]);
-	expect(log).toHaveBeenCalledWith('0 processed, 0 skipped, 0 failed, 2 not started');
+	expect(log).toHaveBeenCalledWith('2 not started');
 });
 
 test('summary keeps work left undone by interruption out of failures', () => {
@@ -39,7 +47,7 @@ test('summary keeps work left undone by interruption out of failures', () => {
 		{ status: OUTCOME_STATUS.UNSTARTED },
 		{ status: OUTCOME_STATUS.UNSTARTED },
 	]);
-	expect(log).toHaveBeenCalledWith('1 processed, 0 skipped, 0 failed, 2 not started');
+	expect(log).toHaveBeenCalledWith('1 processed, 2 not started');
 	expect(log).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ type: 'error' }));
 });
 

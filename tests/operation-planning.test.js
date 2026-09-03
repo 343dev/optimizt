@@ -11,6 +11,7 @@ import {
 	makeTemporaryDirectory,
 	removeTemporaryDirectories,
 	runCli,
+	summaryLine,
 } from './helpers/cli.js';
 
 afterEach(removeTemporaryDirectories);
@@ -36,7 +37,7 @@ describe('eligibility', () => {
 
 		expect(result.code).toBe(0);
 		expect(result.stderr).toContain('Optimizing 1 image');
-		expect(result.stderr).toContain('1 processed, 0 skipped, 0 failed');
+		expect(result.stderr).toContain(summaryLine('1 processed'));
 	});
 
 	test('an explicit file that cannot be converted fails before processing', async () => {
@@ -82,7 +83,7 @@ describe('operand normalization', () => {
 
 		expect(result.code).toBe(0);
 		expect(result.stderr).toContain('Optimizing 1 image');
-		expect(result.stderr).toContain('1 processed, 0 skipped, 0 failed');
+		expect(result.stderr).toContain(summaryLine('1 processed'));
 		expect(result.stderr).toContain(`Duplicate of '${imagePath}'`);
 	});
 
@@ -108,7 +109,7 @@ describe('operand normalization', () => {
 
 		expect(result.code).toBe(0);
 		expect(result.stderr).toContain('Optimizing 2 images');
-		expect(result.stderr).toContain('2 processed, 0 skipped, 0 failed');
+		expect(result.stderr).toContain(summaryLine('2 processed'));
 		expect(result.stderr).toContain('Already planned once');
 	});
 
@@ -122,7 +123,7 @@ describe('operand normalization', () => {
 		const result = await runCli(['--output', output, input, path.join(input, '.')]);
 
 		expect(result.code).toBe(0);
-		expect(result.stderr).toContain('1 processed, 0 skipped, 0 failed');
+		expect(result.stderr).toContain(summaryLine('1 processed'));
 		await expect(exists(path.join(output, 'picture.png'))).resolves.toBe(true);
 	});
 });

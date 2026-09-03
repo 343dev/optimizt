@@ -8,6 +8,7 @@ import {
 	findTemporaryWriteLeftovers,
 	isWindows,
 	makeTemporaryDirectory,
+	outcomeCount,
 	removeTemporaryDirectories,
 	startCli,
 } from './helpers/cli.js';
@@ -83,9 +84,10 @@ describe.skipIf(isWindows)('interruption', () => {
 		run.child.kill('SIGINT');
 		const result = await run.finished;
 
-		const summary = result.stderr.match(/(\d+) processed, (\d+) skipped, (\d+) failed, (\d+) not started/);
-		expect(summary).not.toBeNull();
-		const [processed, skipped, failed, unstarted] = summary.slice(1).map(Number);
+		const processed = outcomeCount(result.stderr, 'processed');
+		const skipped = outcomeCount(result.stderr, 'skipped');
+		const failed = outcomeCount(result.stderr, 'failed');
+		const unstarted = outcomeCount(result.stderr, 'not started');
 		expect(processed + skipped + failed + unstarted).toBe(IMAGE_COUNT);
 		expect(unstarted).toBeGreaterThan(0);
 		expect(failed).toBe(0);

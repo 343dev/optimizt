@@ -12,6 +12,7 @@ import {
 	makeTemporaryDirectory,
 	removeTemporaryDirectories,
 	runCli,
+	summaryLine,
 } from './helpers/cli.js';
 
 afterEach(removeTemporaryDirectories);
@@ -27,7 +28,7 @@ describe('atomic replacement', () => {
 
 		expect(result.code).toBe(0);
 		expect(result.stdout).toBe('');
-		expect(result.stderr).toContain('1 processed, 0 skipped, 0 failed');
+		expect(result.stderr).toContain(summaryLine('1 processed'));
 		const after = await fs.stat(imagePath);
 		expect(after.size).toBeLessThan(sizeBefore);
 		expect(after.mode & 0o777).toBe(isWindows ? after.mode & 0o777 : 0o640);
@@ -44,7 +45,7 @@ describe('atomic replacement', () => {
 		expect(result.code).toBe(0);
 		const source = await fs.readFile(imagePath);
 		expect(source.equals(before)).toBe(true);
-		expect(result.stderr).toContain('2 processed, 0 skipped, 0 failed');
+		expect(result.stderr).toContain(summaryLine('2 processed'));
 		await expect(fileSize(path.join(directory, 'png-not-optimized.avif'))).resolves.toBeGreaterThan(0);
 		await expect(fileSize(path.join(directory, 'png-not-optimized.webp'))).resolves.toBeGreaterThan(0);
 		await expect(findTemporaryWriteLeftovers(directory)).resolves.toEqual([]);
@@ -58,7 +59,7 @@ describe('atomic replacement', () => {
 
 		const skipped = await runCli(['--verbose', '--webp', imagePath]);
 		expect(skipped.code).toBe(0);
-		expect(skipped.stderr).toContain('0 processed, 1 skipped, 0 failed');
+		expect(skipped.stderr).toContain(summaryLine('1 skipped'));
 		await expect(fs.readFile(target, 'utf8')).resolves.toBe('existing');
 
 		const forced = await runCli(['--force', '--webp', imagePath]);
@@ -152,7 +153,7 @@ describe.skipIf(isWindows)('symbolic links', () => {
 
 		expect(result.code).toBe(0);
 		expect(result.stderr).toContain('Optimizing 1 image');
-		expect(result.stderr).toContain('1 processed, 0 skipped, 0 failed');
+		expect(result.stderr).toContain(summaryLine('1 processed'));
 	});
 
 	test('an existing conversion-output symlink is skipped without force', async () => {
@@ -164,7 +165,7 @@ describe.skipIf(isWindows)('symbolic links', () => {
 
 		const skipped = await runCli(['--verbose', '--webp', imagePath]);
 		expect(skipped.code).toBe(0);
-		expect(skipped.stderr).toContain('0 processed, 1 skipped, 0 failed');
+		expect(skipped.stderr).toContain(summaryLine('1 skipped'));
 		await expect(fs.readFile(realTarget, 'utf8')).resolves.toBe('existing');
 
 		const forced = await runCli(['--force', '--webp', imagePath]);
