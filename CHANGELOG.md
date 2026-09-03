@@ -41,6 +41,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed conversion summaries that described retained source images as disk savings.
 - Fixed interrupted runs that started an external encoder after the interrupt arrived, which delayed the summary until the forced five-second exit.
 
+### Removed
+
+- Removed the `fdir` dependency along with the path-preparation modules replaced by operation planning.
+
 ## [13.0.0] - 2026-06-27
 
 ### Changed
