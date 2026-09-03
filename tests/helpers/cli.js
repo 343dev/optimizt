@@ -12,7 +12,7 @@ const fixturesPath = path.resolve(dirname, '..', 'images');
 const temporaryDirectories = [];
 
 // Re-exported so a process-level test file needs only this harness.
-export { isPrivileged, isWindows } from './platform.js';
+export { hasCaseSensitivePaths, isPrivileged, isWindows } from './platform.js';
 
 export async function makeTemporaryDirectory() {
 	const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'optimizt-test-'));
