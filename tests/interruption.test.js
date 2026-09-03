@@ -77,16 +77,19 @@ describe.skipIf(isWindows)('interruption', () => {
 		expect(Date.now() - startedAt).toBeLessThan(5000);
 	}, 30_000);
 
-	test('operations left unstarted are reported without being called skipped or failed', async () => {
+	test('every operation is accounted for without being called skipped or failed', async () => {
 		const { run } = await startInterruptibleRun();
 
 		run.child.kill('SIGINT');
 		const result = await run.finished;
 
-		const summary = result.stderr.match(/(\d+) processed, (\d+) skipped, (\d+) failed, (\d+) not started/);
+		const summary = result.stderr.match(
+			/(\d+) processed, (\d+) skipped, (\d+) failed(?:, (\d+) interrupted)?(?:, (\d+) not started)?/,
+		);
 		expect(summary).not.toBeNull();
-		const [processed, skipped, failed, unstarted] = summary.slice(1).map(Number);
-		expect(processed + skipped + failed + unstarted).toBe(IMAGE_COUNT);
-		expect(unstarted).toBeGreaterThan(0);
+		const [processed, skipped, failed, interrupted, unstarted] = summary.slice(1).map(part => Number(part ?? 0));
+		expect(processed + skipped + failed + interrupted + unstarted).toBe(IMAGE_COUNT);
+		expect(interrupted + unstarted).toBeGreaterThan(0);
+		expect(failed).toBe(0);
 	}, 30_000);
 });

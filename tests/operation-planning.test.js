@@ -71,17 +71,30 @@ describe('eligibility', () => {
 });
 
 describe('operand normalization', () => {
-	test('equivalent operands are processed once', async () => {
+	test('equivalent operands are processed once and reported in verbose output', async () => {
 		const directory = await makeTemporaryDirectory();
 		const imagePath = await copyFixture(directory, 'png-not-optimized.png');
-		const spelledThroughParent = path.join(directory, 'nested', '..', 'png-not-optimized.png');
+		// Joined without path.join, which would normalize the detour away before the CLI sees it.
+		const spelledThroughParent = [directory, 'nested', '..', 'png-not-optimized.png'].join(path.sep);
 		await fs.mkdir(path.join(directory, 'nested'));
 
-		const result = await runCli(['--verbose', directory, imagePath, spelledThroughParent]);
+		const result = await runCli(['--verbose', imagePath, spelledThroughParent]);
 
 		expect(result.code).toBe(0);
 		expect(result.stderr).toContain('Optimizing 1 image');
 		expect(result.stderr).toContain('1 processed, 0 skipped, 0 failed');
+		expect(result.stderr).toContain(`Duplicate of '${imagePath}'`);
+	});
+
+	test('deduplication stays quiet without verbose output', async () => {
+		const directory = await makeTemporaryDirectory();
+		const imagePath = await copyFixture(directory, 'png-not-optimized.png');
+
+		const result = await runCli([imagePath, imagePath]);
+
+		expect(result.code).toBe(0);
+		expect(result.stderr).toContain('Optimizing 1 image');
+		expect(result.stderr).not.toContain('Duplicate of');
 	});
 
 	test('overlapping directory operands are deduplicated when processing in place', async () => {
@@ -91,11 +104,26 @@ describe('operand normalization', () => {
 		await copyFixture(directory, 'png-not-optimized.png', 'top.png');
 		await copyFixture(nested, 'png-not-optimized.png', 'deep.png');
 
-		const result = await runCli([directory, nested]);
+		const result = await runCli(['--verbose', directory, nested]);
 
 		expect(result.code).toBe(0);
 		expect(result.stderr).toContain('Optimizing 2 images');
 		expect(result.stderr).toContain('2 processed, 0 skipped, 0 failed');
+		expect(result.stderr).toContain('Already planned once');
+	});
+
+	test('an output root accepts the same directory spelled two ways', async () => {
+		const directory = await makeTemporaryDirectory();
+		const input = path.join(directory, 'input');
+		const output = path.join(directory, 'output');
+		await fs.mkdir(output);
+		await copyFixture(input, 'png-not-optimized.png', 'picture.png');
+
+		const result = await runCli(['--output', output, input, path.join(input, '.')]);
+
+		expect(result.code).toBe(0);
+		expect(result.stderr).toContain('1 processed, 0 skipped, 0 failed');
+		await expect(exists(path.join(output, 'picture.png'))).resolves.toBe(true);
 	});
 });
 

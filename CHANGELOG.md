@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING:** Prefixes, suffixes, and generated filenames are validated and rejected when unsafe instead of being silently sanitized.
 - **BREAKING:** A custom CJS configuration now replaces the bundled configuration for the selected mode and must provide a non-null object for that mode.
 - Changed progress totals to count output operations, so converting one image to both AVIF and WebP counts as two operations. Animated progress and terminal decoration are now enabled only for a capable `stderr` TTY; `NO_COLOR` and `TERM=dumb` are honored.
-- Changed summaries to report processed, skipped, failed, and interrupted operations. Optimization savings include only written operations, while conversion summaries report created bytes.
+- Changed summaries to report processed, skipped, failed, and interrupted operations. Operations abandoned while shutting down are reported as interrupted rather than failed.
+- Changed verbose output to report operands and discovered inputs omitted as duplicates. Optimization savings include only written operations, while conversion summaries report created bytes.
 - Changed runtime failure reporting to print each failure once in deterministic operation-plan order.
 - Clarified configuration errors by distinguishing missing files, non-file paths, inspection failures, loading failures, and missing mode sections.
 - Updated GitHub Actions examples to use supported action and Node.js versions and pass changed filenames as separate shell arguments.

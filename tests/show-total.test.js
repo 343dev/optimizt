@@ -33,6 +33,16 @@ test('summary reports operations left unstarted by interruption', () => {
 	expect(log).toHaveBeenCalledWith('0 processed, 0 skipped, 0 failed, 2 not started');
 });
 
+test('summary separates work abandoned during shutdown from failures', () => {
+	showTotal(0, 0, [
+		{ status: OUTCOME_STATUS.PROCESSED, before: 100, after: 60 },
+		{ status: OUTCOME_STATUS.INTERRUPTED },
+		{ status: OUTCOME_STATUS.UNSTARTED },
+	]);
+	expect(log).toHaveBeenCalledWith('1 processed, 0 skipped, 0 failed, 1 interrupted, 1 not started');
+	expect(log).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ type: 'error' }));
+});
+
 test('failure details are reported once in deterministic plan order', () => {
 	showTotal(0, 0, [
 		{ error: new Error('second'), output: '/tmp/second.png', planIndex: 1, status: OUTCOME_STATUS.FAILED },
