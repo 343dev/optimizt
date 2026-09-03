@@ -83,13 +83,12 @@ describe.skipIf(isWindows)('interruption', () => {
 		run.child.kill('SIGINT');
 		const result = await run.finished;
 
-		const summary = result.stderr.match(
-			/(\d+) processed, (\d+) skipped, (\d+) failed(?:, (\d+) interrupted)?(?:, (\d+) not started)?/,
-		);
+		const summary = result.stderr.match(/(\d+) processed, (\d+) skipped, (\d+) failed, (\d+) not started/);
 		expect(summary).not.toBeNull();
-		const [processed, skipped, failed, interrupted, unstarted] = summary.slice(1).map(part => Number(part ?? 0));
-		expect(processed + skipped + failed + interrupted + unstarted).toBe(IMAGE_COUNT);
-		expect(interrupted + unstarted).toBeGreaterThan(0);
+		const [processed, skipped, failed, unstarted] = summary.slice(1).map(Number);
+		expect(processed + skipped + failed + unstarted).toBe(IMAGE_COUNT);
+		expect(unstarted).toBeGreaterThan(0);
 		expect(failed).toBe(0);
+		expect(result.stderr).not.toContain('exited with code null');
 	}, 30_000);
 });

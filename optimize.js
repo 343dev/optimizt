@@ -125,8 +125,8 @@ async function processFile({
 		});
 		return { after: processedFileSize, before: fileSize, planIndex, status: OUTCOME_STATUS.PROCESSED };
 	} catch (error) {
-		// Work abandoned during shutdown is the interruption's outcome, not a user-facing failure.
-		if (isInterrupted()) return { planIndex, status: OUTCOME_STATUS.INTERRUPTED };
+		// Work abandoned during shutdown is left undone by the interruption, not failed.
+		if (isInterrupted()) return { planIndex, status: OUTCOME_STATUS.UNSTARTED };
 		return { error, output: filePath.output, planIndex, status: OUTCOME_STATUS.FAILED };
 	} finally {
 		progressBar.increment();
