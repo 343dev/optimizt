@@ -219,7 +219,7 @@ describe('configuration', () => {
 		await expect(fileSize(imagePath)).resolves.toBeLessThan(bundledSize);
 	});
 
-	test('an invalid codec option is reported by the codec without a stack trace', async () => {
+	test('an invalid codec option names the mode, format, and configuration behind it', async () => {
 		const directory = await makeTemporaryDirectory();
 		const imagePath = await copyFixture(directory, 'png-not-optimized.png');
 		const configPath = path.join(directory, 'config.cjs');
@@ -228,9 +228,36 @@ describe('configuration', () => {
 		const result = await runCli(['--config', configPath, imagePath]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain('1 failed');
+		expect(result.stderr).toContain(summaryLine('1 failed'));
+		expect(result.stderr).toContain(`optimize png (lossy) using ${configPath}:`);
+		// The codec keeps ownership of the option schema, so its own reason survives.
 		expect(result.stderr).toContain('compressionLevel');
 		expect(result.stderr).not.toContain('    at ');
+	});
+
+	test('an invalid conversion option names the target format', async () => {
+		const directory = await makeTemporaryDirectory();
+		const imagePath = await copyFixture(directory, 'png-not-optimized.png');
+		const configPath = path.join(directory, 'config.cjs');
+		await fs.writeFile(configPath, 'module.exports = { convert: { avif: { lossless: { quality: 500 } } } };\n');
+
+		const result = await runCli(['--lossless', '--config', configPath, '--avif', imagePath]);
+
+		expect(result.code).toBe(1);
+		expect(result.stderr).toContain(`convert avif (lossless) using ${configPath}:`);
+		expect(result.stderr).toContain('quality');
+	});
+
+	test('a failure that is not a codec option keeps its own words', async () => {
+		const directory = await makeTemporaryDirectory();
+		const notAnImage = path.join(directory, 'broken.png');
+		await fs.writeFile(notAnImage, 'not an image');
+
+		const result = await runCli([notAnImage]);
+
+		expect(result.code).toBe(1);
+		expect(result.stderr).toContain('Unknown file format');
+		expect(result.stderr).not.toContain('using ');
 	});
 
 	test('debug mode adds a stack trace and version details', async () => {

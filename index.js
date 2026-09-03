@@ -44,5 +44,5 @@ export default async function optimizt({ inputPaths, outputDirectoryPath, config
 
 	if (isLossless) log('Lossless mode may take a long time; JPEG uses Guetzli and is not strictly lossless');
 	const processOperations = currentMode === 'convert' ? convert : optimize;
-	return processOperations({ config, operations });
+	return processOperations({ config, configPath, operations });
 }

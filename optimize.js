@@ -12,6 +12,7 @@ import { optimize as svgoOptimize } from 'svgo';
 import { atomicWrite } from './lib/atomic-write.js';
 import { calculateRatio } from './lib/calculate-ratio.js';
 import { createProgressBarContainer } from './lib/create-progress-bar-container.js';
+import { describeCodecFailure } from './lib/describe-codec-failure.js';
 import { formatBytes } from './lib/format-bytes.js';
 import { getPlural } from './lib/get-plural.js';
 import { getRelativePath } from './lib/get-relative-path.js';
@@ -28,7 +29,7 @@ import { parseImageMetadata } from './lib/parse-image-metadata.js';
 import { programOptions } from './lib/program-options.js';
 import { showTotal } from './lib/show-total.js';
 
-export async function optimize({ operations, config }) {
+export async function optimize({ operations, config, configPath }) {
 	const { isLossless } = programOptions;
 	const filePaths = operations.map(operation => ({ input: operation.input, output: operation.output }));
 
@@ -63,6 +64,7 @@ export async function optimize({ operations, config }) {
 				: processFile({
 					filePath,
 					config,
+					configPath,
 					progressBarContainer,
 					progressBar,
 					totalSize,
@@ -82,6 +84,7 @@ export async function optimize({ operations, config }) {
 async function processFile({
 	filePath,
 	config,
+	configPath,
 	progressBarContainer,
 	progressBar,
 	totalSize,
@@ -90,7 +93,7 @@ async function processFile({
 }) {
 	try {
 		const fileBuffer = await fs.promises.readFile(filePath.input);
-		const processedFileBuffer = await processFileByFormat({ fileBuffer, config, isLossless });
+		const processedFileBuffer = await processFileByFormat({ fileBuffer, config, configPath, isLossless });
 
 		const fileSize = fileBuffer.length;
 		const processedFileSize = processedFileBuffer.length;
@@ -133,35 +136,34 @@ async function processFile({
 	}
 }
 
-async function processFileByFormat({ fileBuffer, config, isLossless }) {
+async function processFileByFormat({ fileBuffer, config, configPath, isLossless }) {
 	const imageMetadata = await parseImageMetadata(fileBuffer);
+	const format = imageMetadata.format;
 
-	if (!imageMetadata.format) {
+	if (!format) {
 		throw new Error('Unknown file format');
 	}
 
-	switch (imageMetadata.format) {
-		case 'jpeg': {
-			return processJpeg({ fileBuffer, config, isLossless });
-		}
+	const processByFormat = PROCESS_BY_FORMAT.get(format);
+	if (!processByFormat) {
+		throw new Error(`Unsupported image format: "${format}"`);
+	}
 
-		case 'png': {
-			return processPng({ fileBuffer, config, isLossless });
-		}
-
-		case 'gif': {
-			return processGif({ fileBuffer, config, isLossless });
-		}
-
-		case 'svg': {
-			return processSvg({ fileBuffer, config });
-		}
-
-		default: {
-			throw new Error(`Unsupported image format: "${imageMetadata.format}"`);
-		}
+	// Only the codec call is enriched, so filesystem and detection errors keep speaking
+	// for themselves.
+	try {
+		return await processByFormat({ fileBuffer, config, isLossless });
+	} catch (error) {
+		throw describeCodecFailure({ configPath, error, format, isLossless, mode: 'optimize' });
 	}
 }
+
+const PROCESS_BY_FORMAT = new Map([
+	['gif', processGif],
+	['jpeg', processJpeg],
+	['png', processPng],
+	['svg', processSvg],
+]);
 
 async function processJpeg({ fileBuffer, config, isLossless }) {
 	const sharpImage = sharp(fileBuffer)

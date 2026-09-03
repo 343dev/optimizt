@@ -8,6 +8,7 @@ import { atomicWrite } from './lib/atomic-write.js';
 import { calculateRatio } from './lib/calculate-ratio.js';
 import { createProgressBarContainer } from './lib/create-progress-bar-container.js';
 import { SUPPORTED_FILE_TYPES } from './lib/constants.js';
+import { describeCodecFailure } from './lib/describe-codec-failure.js';
 import { formatBytes } from './lib/format-bytes.js';
 import { getPlural } from './lib/get-plural.js';
 import { getRelativePath } from './lib/get-relative-path.js';
@@ -23,7 +24,7 @@ import { parseImageMetadata } from './lib/parse-image-metadata.js';
 import { programOptions } from './lib/program-options.js';
 import { showTotal } from './lib/show-total.js';
 
-export async function convert({ operations, config }) {
+export async function convert({ operations, config, configPath }) {
 	const { isLossless } = programOptions;
 	const filePathsCount = new Set(operations.map(operation => operation.input)).size;
 
@@ -52,8 +53,10 @@ export async function convert({ operations, config }) {
 		const isAvif = operation.format === 'avif';
 		return processFile({
 			config: (isAvif ? avifConfig : webpConfig) || {},
+			configPath,
 			filePath: { input: operation.input, output: operation.output },
 			format: isAvif ? 'AVIF' : 'WebP',
+			isLossless,
 			processFunction: isAvif ? processAvif : processWebp,
 			progressBar,
 			progressBarContainer,
@@ -73,6 +76,8 @@ export async function convert({ operations, config }) {
 async function processFile({
 	filePath,
 	config,
+	configPath,
+	isLossless,
 	progressBarContainer,
 	progressBar,
 	planIndex,
@@ -94,7 +99,7 @@ async function processFile({
 		}
 
 		const fileBuffer = await fs.promises.readFile(filePath.input);
-		const processedFileBuffer = await processFunction({ fileBuffer, config });
+		const processedFileBuffer = await processFunction({ fileBuffer, config, configPath, isLossless });
 
 		await atomicWrite(outputFilePath, processedFileBuffer);
 
@@ -123,7 +128,7 @@ async function processFile({
 	}
 }
 
-async function processAvif({ fileBuffer, config }) {
+async function processAvif({ fileBuffer, config, configPath, isLossless }) {
 	const imageMetadata = await parseImageMetadata(fileBuffer);
 	checkImageFormat(imageMetadata.format);
 
@@ -133,22 +138,31 @@ async function processAvif({ fileBuffer, config }) {
 		throw new Error('Animated AVIF is not supported'); // See: https://github.com/strukturag/libheif/issues/377
 	}
 
-	return sharp(fileBuffer)
-		.rotate() // Rotate image using information from EXIF Orientation tag
-		.avif(config)
-		.toBuffer();
+	// Only the codec call is enriched, so detection and support errors keep speaking for themselves.
+	try {
+		return await sharp(fileBuffer)
+			.rotate() // Rotate image using information from EXIF Orientation tag
+			.avif(config)
+			.toBuffer();
+	} catch (error) {
+		throw describeCodecFailure({ configPath, error, format: 'avif', isLossless, mode: 'convert' });
+	}
 }
 
-async function processWebp({ fileBuffer, config }) {
+async function processWebp({ fileBuffer, config, configPath, isLossless }) {
 	const imageMetadata = await parseImageMetadata(fileBuffer);
 	checkImageFormat(imageMetadata.format);
 
 	const isAnimated = imageMetadata.pages > 1;
 
-	return sharp(fileBuffer, { animated: isAnimated })
-		.rotate() // Rotate image using information from EXIF Orientation tag
-		.webp(config)
-		.toBuffer();
+	try {
+		return await sharp(fileBuffer, { animated: isAnimated })
+			.rotate() // Rotate image using information from EXIF Orientation tag
+			.webp(config)
+			.toBuffer();
+	} catch (error) {
+		throw describeCodecFailure({ configPath, error, format: 'webp', isLossless, mode: 'convert' });
+	}
 }
 
 function checkImageFormat(imageFormat) {
