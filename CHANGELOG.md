@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING:** Missing or inaccessible explicit operands and explicitly supplied files with unsupported extensions now fail instead of being silently ignored. Unsupported files discovered while traversing directories remain ignored.
 - **BREAKING:** `--force` is now rejected unless `--avif` or `--webp` is selected.
 - **BREAKING:** Prefixes, suffixes, and generated filenames are validated and rejected when unsafe instead of being silently sanitized.
-- **BREAKING:** A custom CJS configuration now replaces the bundled configuration for the selected mode and must provide a non-null object for that mode.
+- **BREAKING:** A custom CJS configuration must now define an object for the selected mode. A missing or misspelled section fails instead of silently leaving every codec on its own defaults. As before, a custom configuration replaces the bundled one for that mode rather than merging with it.
 - Changed progress totals to count output operations, so converting one image to both AVIF and WebP counts as two operations. Animated progress and terminal decoration are now enabled only for a capable `stderr` TTY; `NO_COLOR` and `TERM=dumb` are honored.
 - Changed summaries to name only the outcomes that occurred: processed, skipped, failed, and the operations an interruption left undone. Work abandoned while shutting down counts as not started rather than failed.
 - Changed size reporting so optimization savings include only written operations, while conversion summaries report created bytes.
