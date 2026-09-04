@@ -7,6 +7,8 @@ export default [
 		ignores: [
 			'coverage/',
 			'.optimiztrc.cjs',
+			// Other checkouts of this repository, mounted below the root by tooling.
+			'.delta/',
 		],
 	},
 ];
