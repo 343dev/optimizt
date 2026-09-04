@@ -1,0 +1,9 @@
+{
+	"name": "optimizt",
+	"workspaceFolder": "/workspace",
+	"dockerComposeFile": "./docker-compose.yml",
+	"service": "app",
+	"remoteUser": "root",
+	"onCreateCommand": ".devcontainer/on-create.sh",
+	"postCreateCommand": ".devcontainer/post-create.sh"
+}
