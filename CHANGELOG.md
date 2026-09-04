@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Added deterministic operation planning before configuration loading or image processing. Optimizt now validates explicit operands, directory traversal, output mappings, path containment, collisions, generated filenames, symbolic links, and hard links before changing image files.
+- Added atomic image replacement with `write-file-atomic`. Completed writes are synchronized before replacement and preserve existing file modes and, when permitted, ownership.
+- Added `--no-color` and `--debug` flags. Debug output includes stack traces and Optimizt and Node.js versions without printing environment variables or configuration contents.
+- Added bounded handling for `SIGINT` and `SIGTERM`, including conventional POSIX exit statuses, termination of active external encoders, and a five-second forced-shutdown limit.
+- Added process-level CLI tests that pass arguments without shell interpretation and verify exit status, `stdout`, `stderr`, and filesystem effects.
+- Added a Windows CI job using the minimum supported Node.js version.
+
+### Changed
+
+- **BREAKING:** Processing now exits with status `1` when argument validation, filesystem preflight, configuration loading, or any image operation fails. Independent valid operations continue after runtime failures, and valid empty directories remain successful no-ops.
+- **BREAKING:** Human-readable status, progress, warnings, errors, and summaries now use `stderr`. `stdout` is reserved for help and version output and remains empty during normal image processing.
+- **BREAKING:** Missing or inaccessible explicit operands and explicitly supplied files with unsupported extensions now fail instead of being silently ignored. Unsupported files discovered while traversing directories remain ignored.
+- **BREAKING:** `--force` is now rejected unless `--avif` or `--webp` is selected.
+- **BREAKING:** Prefixes, suffixes, and generated filenames are validated and rejected when unsafe instead of being silently sanitized.
+- **BREAKING:** A custom CJS configuration must now define an object for the selected mode. A missing or misspelled section fails instead of silently leaving every codec on its own defaults. As before, a custom configuration replaces the bundled one for that mode rather than merging with it.
+- Changed progress totals to count output operations, so converting one image to both AVIF and WebP counts as two operations. Animated progress and terminal decoration are now enabled only for a capable `stderr` TTY; `NO_COLOR` and `TERM=dumb` are honored.
+- Changed summaries to name only the outcomes that occurred: processed, skipped, failed, and the operations an interruption left undone. Work abandoned while shutting down counts as not started rather than failed.
+- Changed size reporting so optimization savings include only written operations, while conversion summaries report created bytes.
+- Changed verbose output to report operands and discovered inputs omitted as duplicates.
+- Changed runtime failure reporting to print each failure once in deterministic operation-plan order.
+- Clarified configuration errors by distinguishing missing files, non-file paths, inspection failures, loading failures, and missing mode sections.
+- Clarified codec failures by naming the mode, format, and configuration file behind the attempt while keeping the codec's own reason.
+- Updated GitHub Actions examples to use supported action and Node.js versions and pass changed filenames as separate shell arguments.
+- Updated the Docker example to run with the host user's UID and GID so generated files are not owned by root.
+- Documented how images are written: atomic replacement, preserved modes and ownership, link handling, and the absence of a durability guarantee after sudden power loss.
+- Documented that discovered CJS configuration executes with the current user's permissions and that JPEG processing in Lossless mode uses Guetzli and is not strictly lossless.
+
+### Fixed
+
+- Fixed successful exit statuses after image-processing failures and unhandled asynchronous failures.
+- Fixed partial or corrupted targets caused by direct writes by atomically replacing complete temporary files.
+- Fixed nondeterministic output when multiple inputs map to the same target by rejecting collisions during preflight.
+- Fixed animated progress and ANSI control sequences appearing in redirected output.
+- Fixed conversion summaries that described retained source images as disk savings.
+- Fixed interrupted runs that started an external encoder after the interrupt arrived, which delayed the summary until the forced five-second exit.
+- Fixed an output whose existing parent is a file reporting a raw `ENOTDIR` instead of naming the offending path.
+
+### Removed
+
+- Removed the `fdir` dependency along with the path-preparation modules replaced by operation planning.
+
 ## [13.0.0] - 2026-06-27
 
 ### Changed

@@ -1,5 +1,77 @@
 # Migration
 
+## 13.0.0 → Unreleased
+
+The result of an Optimizt run is now its exit status and the files on disk, not its printed output.
+
+### Check the exit status instead of reading the log
+
+Optimizt exits `0` only when everything it was asked to do succeeded, and `1` when arguments, the filesystem request, the configuration, or any image operation failed. A valid run that finds no eligible images is still a success. On POSIX, an interrupted run exits `130` for `SIGINT` and `143` for `SIGTERM`; on Windows an interruption exits non-zero without those conventional codes.
+
+Steps that previously ignored the status because Optimizt always exited `0` will now fail when a real problem occurs, which is the intended behaviour. Steps that parsed the log to detect failures no longer need to.
+
+### Read human output from `stderr`
+
+Status lines, progress, warnings, errors, and summaries go to `stderr`. `stdout` carries help and version output only and stays empty during image processing.
+
+```shell
+# Before: the log ended up in the file
+optimizt ./images > optimizt.log
+
+# Now
+optimizt ./images 2> optimizt.log
+```
+
+The summary text is meant for people, not for parsing: it names only the outcomes that occurred, so a run without failures no longer prints `0 failed`. Use the exit status.
+
+Animated progress and colour appear only when `stderr` is a terminal, so redirected logs no longer contain progress bars or ANSI sequences. `--no-color`, a non-empty `NO_COLOR`, and `TERM=dumb` disable decoration explicitly.
+
+### Pass only paths that exist and can be processed
+
+A missing or inaccessible operand, and an explicitly named file with an unsupported extension, now fail before anything is processed instead of being skipped silently. Unsupported files found while traversing a directory are still ignored, so passing a directory keeps working as before.
+
+Generated file lists need filtering. For example, a list of changed files from a version control command may contain deleted paths or non-images:
+
+```shell
+# Fails now if the list contains a deleted file or a .md file
+optimizt $(git diff --name-only HEAD~1)
+
+# Filter the list first
+git diff --name-only --diff-filter=d HEAD~1 -- '*.png' '*.jpg' '*.jpeg' '*.gif' '*.svg' | xargs -r optimizt --
+```
+
+An incomplete directory traversal, such as a subdirectory that cannot be read, also fails before any image is changed.
+
+### `--force` requires a conversion
+
+`--force` replaces existing conversion targets, so it is now rejected unless `--avif` or `--webp` is selected. Remove it from optimization commands where it never had an effect.
+
+### Custom configuration must define the selected mode
+
+A custom `.optimiztrc.cjs` still replaces the bundled configuration for the selected mode rather than merging with it. What changed is that the section for that mode must exist and be an object:
+
+```js
+// Fails now: convert mode has no section to use
+module.exports = {
+	optimize: { /* … */ },
+};
+```
+
+Previously a missing or misspelled section left every codec on its own defaults without saying so. Configuration problems now name the absolute path and the reason, and codec errors name the mode, format, and configuration file behind the failed attempt.
+
+### File names are validated, not rewritten
+
+`--prefix` and `--suffix` may not contain path separators or NUL, and a generated file name that is not portable across supported platforms is rejected instead of being silently stripped of the offending characters. Existing names are left alone when optimizing in place.
+
+### Replacement is atomic and refuses unsafe targets
+
+Images are written to a temporary file and renamed over the target, preserving the existing permission mode and, where permitted, ownership. Two consequences are worth knowing:
+
+- A file with more than one hard link is not replaced; the run fails with an explanation. Break the link, or write the result elsewhere with `--output`.
+- Two inputs that would produce the same output file, and overlapping directory operands combined with `--output`, are rejected during preflight instead of racing each other.
+
+Optimizing a symbolic link replaces the file it points to and keeps the link; converting one writes the variant next to the link. Directory symlinks are not followed during traversal.
+
 ## 12.1.1 → 13.0.0
 
 Node.js version must be 22.22.1 or higher.

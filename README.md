@@ -72,6 +72,19 @@ Provides the best balance between file size reduction and minimal visual quality
 - **PNG/JPEG/GIF**: Maximizes image quality at the expense of larger file sizes.
 - **SVG**: Settings are identical in both modes.
 
+## How Files Are Written
+
+Every image is written to a temporary file in the destination directory, synchronized to disk, and then renamed over the target. An interrupted or failed run therefore leaves the original file untouched instead of half-written, and a reader never sees a partial image.
+
+Alongside that:
+
+- The existing permission mode of a replaced file is preserved, and its ownership is preserved when the operating system permits it.
+- A file with more than one hard link is never replaced, because renaming over it would break the shared inode. Creating a new output from such a source is allowed.
+- Optimizing a symbolic link replaces the file it points to and keeps the link itself; converting one writes the new variant next to the link.
+
+> [!NOTE]
+> Atomic replacement protects against partially written files. It does not guarantee that the directory entry itself survives sudden power loss, and it does not preserve file timestamps.
+
 ## Configuration
 
 Image processing leverages:
@@ -85,7 +98,10 @@ Image processing leverages:
 
 Default settings are defined in [.optimiztrc.cjs](./.optimiztrc.cjs), which includes all supported parameters. Disable any parameter by setting it to `false`.
 
-When using `--config path/to/.optimiztrc.cjs`, the specified configuration file will be used. If no `--config` is provided, Optimizt searches recursively from the current directory upward for `.optimiztrc.cjs`. If none is found, defaults are applied.
+When using `--config path/to/.optimiztrc.cjs`, the specified configuration file replaces the bundled settings for the selected mode. If no `--config` is provided, Optimizt searches recursively from the current directory upward for `.optimiztrc.cjs`. If none is found, defaults are applied.
+
+> [!WARNING]
+> `.optimiztrc.cjs` is executable code. Auto-discovered and explicitly selected configuration runs with your user permissions; use Optimizt only in repositories you trust.
 
 ## Troubleshooting
 
@@ -139,7 +155,7 @@ docker build --tag 343dev/optimizt https://github.com/343dev/optimizt.git
 
 ```bash
 # mount current directory to /src in the container
-docker run --rm --volume $(pwd):/src 343dev/optimizt --webp ./image.png
+docker run --rm --user "$(id -u):$(id -g)" --volume "$(pwd):/src" 343dev/optimizt --webp ./image.png
 ```
 
 ## Integrations
