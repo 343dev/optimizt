@@ -1,25 +1,66 @@
-import { expect, test, vi } from 'vitest';
+import { beforeEach, expect, test, vi } from 'vitest';
 
+import { OUTCOME_STATUS } from '../lib/outcome-status.js';
 import { showTotal } from '../lib/show-total.js';
 
-test('Savings size and compression ratio are displayed', () => {
-	const fileSize = 1_048_576;
+vi.mock('../lib/log.js', () => ({
+	log: vi.fn(),
+	logEmptyLine: vi.fn(),
+}));
 
-	const consoleSpy = vi.spyOn(console, 'log');
+import { log } from '../lib/log.js';
 
-	showTotal(fileSize, fileSize / 2);
-	expect(consoleSpy.mock.calls[1][1]).toBe('Yay! You saved 512 KB (50%)');
-
-	consoleSpy.mockRestore();
+beforeEach(() => {
+	log.mockClear();
 });
 
-test('Savings size and compression ratio are not displayed', () => {
-	const fileSize = 1_048_576;
+test('optimization summary reports savings for written operations', () => {
+	showTotal(100, 60, [{ status: OUTCOME_STATUS.PROCESSED }, { status: OUTCOME_STATUS.SKIPPED }]);
+	expect(log).toHaveBeenCalledWith('1 processed, 1 skipped');
+	expect(log).toHaveBeenCalledWith('40 Bytes saved (40%)');
+});
 
-	const consoleSpy = vi.spyOn(console, 'log');
+test('summary omits size when no operation was processed', () => {
+	showTotal(0, 0, [{ status: OUTCOME_STATUS.FAILED }]);
+	expect(log).toHaveBeenCalledWith('1 failed');
+});
 
-	showTotal(fileSize, fileSize * 2);
-	expect(consoleSpy.mock.calls[1][1]).toBe('Done!');
+test('summary names only the outcomes that occurred', () => {
+	showTotal(100, 60, [
+		{ after: 60, before: 100, status: OUTCOME_STATUS.PROCESSED },
+		{ status: OUTCOME_STATUS.PROCESSED },
+	]);
+	expect(log).toHaveBeenCalledWith('2 processed');
+});
 
-	consoleSpy.mockRestore();
+test('summary reports operations left unstarted by interruption', () => {
+	showTotal(0, 0, [
+		{ status: OUTCOME_STATUS.UNSTARTED },
+		{ status: OUTCOME_STATUS.UNSTARTED },
+	]);
+	expect(log).toHaveBeenCalledWith('2 not started');
+});
+
+test('summary keeps work left undone by interruption out of failures', () => {
+	showTotal(100, 60, [
+		{ after: 60, before: 100, status: OUTCOME_STATUS.PROCESSED },
+		{ status: OUTCOME_STATUS.UNSTARTED },
+		{ status: OUTCOME_STATUS.UNSTARTED },
+	]);
+	expect(log).toHaveBeenCalledWith('1 processed, 2 not started');
+	expect(log).not.toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ type: 'error' }));
+});
+
+test('failure details are reported once in deterministic plan order', () => {
+	showTotal(0, 0, [
+		{ error: new Error('second'), output: '/tmp/second.png', planIndex: 1, status: OUTCOME_STATUS.FAILED },
+		{ error: new Error('first'), output: '/tmp/first.png', planIndex: 0, status: OUTCOME_STATUS.FAILED },
+	]);
+	expect(log).toHaveBeenNthCalledWith(2, '/tmp/first.png', { description: 'first', type: 'error' });
+	expect(log).toHaveBeenNthCalledWith(3, '/tmp/second.png', { description: 'second', type: 'error' });
+});
+
+test('conversion summary reports created bytes', () => {
+	showTotal(100, 60, [{ status: OUTCOME_STATUS.PROCESSED }], { conversion: true });
+	expect(log).toHaveBeenCalledWith('60 Bytes created');
 });
