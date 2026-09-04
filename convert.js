@@ -1,36 +1,32 @@
 import fs from 'node:fs';
 import os from 'node:os';
-import path from 'node:path';
 
 import pLimit from 'p-limit';
 import sharp from 'sharp';
 
+import { atomicWrite } from './lib/atomic-write.js';
 import { calculateRatio } from './lib/calculate-ratio.js';
-import { checkPathAccessibility } from './lib/check-path-accessibility.js';
 import { createProgressBarContainer } from './lib/create-progress-bar-container.js';
 import { SUPPORTED_FILE_TYPES } from './lib/constants.js';
+import { describeCodecFailure } from './lib/describe-codec-failure.js';
 import { formatBytes } from './lib/format-bytes.js';
 import { getPlural } from './lib/get-plural.js';
 import { getRelativePath } from './lib/get-relative-path.js';
+import { isInterrupted } from './lib/lifecycle.js';
 import {
 	LOG_TYPES,
 	log,
 	logProgress,
 	logProgressVerbose,
 } from './lib/log.js';
+import { OUTCOME_STATUS } from './lib/outcome-status.js';
 import { parseImageMetadata } from './lib/parse-image-metadata.js';
 import { programOptions } from './lib/program-options.js';
 import { showTotal } from './lib/show-total.js';
 
-export async function convert({ filePaths, config }) {
-	const {
-		isForced,
-		isLossless,
-		shouldConvertToAvif,
-		shouldConvertToWebp,
-	} = programOptions;
-
-	const filePathsCount = filePaths.length;
+export async function convert({ operations, config, configPath }) {
+	const { isLossless } = programOptions;
+	const filePathsCount = new Set(operations.map(operation => operation.input)).size;
 
 	if (!filePathsCount) {
 		return;
@@ -38,9 +34,7 @@ export async function convert({ filePaths, config }) {
 
 	log(`Converting ${filePathsCount} ${getPlural(filePathsCount, 'image', 'images')} (${isLossless ? 'lossless' : 'lossy'})...`);
 
-	const progressBarTotal = shouldConvertToAvif && shouldConvertToWebp
-		? filePathsCount * 2
-		: filePathsCount;
+	const progressBarTotal = operations.length;
 	const progressBarContainer = createProgressBarContainer(progressBarTotal);
 	const progressBar = progressBarContainer.create(progressBarTotal, 0);
 
@@ -54,80 +48,60 @@ export async function convert({ filePaths, config }) {
 	const cpuCount = os.cpus().length;
 	const tasksSimultaneousLimit = pLimit(cpuCount);
 
-	const tasks = [];
-	for (const filePath of filePaths) {
-		if (shouldConvertToAvif) {
-			tasks.push(
-				tasksSimultaneousLimit(
-					() => processFile({
-						filePath,
-						config: avifConfig || {},
-						progressBarContainer,
-						progressBar,
-						totalSize,
-						isForced,
-						format: 'AVIF',
-						processFunction: processAvif,
-					}),
-				),
-			);
-		}
-
-		if (shouldConvertToWebp) {
-			tasks.push(
-				tasksSimultaneousLimit(
-					() => processFile({
-						filePath,
-						config: webpConfig || {},
-						progressBarContainer,
-						progressBar,
-						totalSize,
-						isForced,
-						format: 'WebP',
-						processFunction: processWebp,
-					}),
-				),
-			);
-		}
-	}
-	await Promise.all(tasks);
+	const outcomes = await Promise.all(operations.map((operation, planIndex) => tasksSimultaneousLimit(() => {
+		if (isInterrupted()) return { planIndex, status: OUTCOME_STATUS.UNSTARTED };
+		const isAvif = operation.format === 'avif';
+		return processFile({
+			config: (isAvif ? avifConfig : webpConfig) || {},
+			configPath,
+			filePath: { input: operation.input, output: operation.output },
+			format: isAvif ? 'AVIF' : 'WebP',
+			isLossless,
+			processFunction: isAvif ? processAvif : processWebp,
+			progressBar,
+			progressBarContainer,
+			planIndex,
+			skipReason: operation.skipReason,
+			totalSize,
+		});
+	})));
 
 	progressBarContainer.update(); // Prevent logs lost. See: https://github.com/npkgz/cli-progress/issues/145#issuecomment-1859594159
 	progressBarContainer.stop();
 
-	showTotal(totalSize.before, totalSize.after);
+	showTotal(totalSize.before, totalSize.after, outcomes, { conversion: true });
+	return { failed: outcomes.filter(outcome => outcome.status === OUTCOME_STATUS.FAILED).length, outcomes };
 }
 
 async function processFile({
 	filePath,
 	config,
+	configPath,
+	isLossless,
 	progressBarContainer,
 	progressBar,
+	planIndex,
 	totalSize,
-	isForced,
+	skipReason,
 	format,
 	processFunction,
 }) {
-	const { dir, name } = path.parse(filePath.output);
-	const outputFilePath = path.join(dir, `${name}.${format.toLowerCase()}`);
+	const outputFilePath = filePath.output;
 
 	try {
-		const isAccessible = await checkPathAccessibility(outputFilePath);
-
-		if (!isForced && isAccessible) {
+		if (skipReason) {
 			logProgressVerbose(getRelativePath(outputFilePath), {
 				description: `File already exists, '${outputFilePath}'`,
 				progressBarContainer,
 			});
 
-			return;
+			return { planIndex, status: OUTCOME_STATUS.SKIPPED };
 		}
 
 		const fileBuffer = await fs.promises.readFile(filePath.input);
-		const processedFileBuffer = await processFunction({ fileBuffer, config });
+		const processedFileBuffer = await processFunction({ fileBuffer, config, configPath, isLossless });
 
-		await fs.promises.mkdir(path.dirname(outputFilePath), { recursive: true });
-		await fs.promises.writeFile(outputFilePath, processedFileBuffer);
+		await atomicWrite(outputFilePath, processedFileBuffer);
 
 		const fileSize = fileBuffer.length;
 		const processedFileSize = processedFileBuffer.length;
@@ -144,22 +118,17 @@ async function processFile({
 			description: `${before} → ${format} ${after}. Ratio: ${ratio}%`,
 			progressBarContainer,
 		});
+		return { after: processedFileSize, before: fileSize, planIndex, status: OUTCOME_STATUS.PROCESSED };
 	} catch (error) {
-		if (error.message) {
-			logProgress(getRelativePath(outputFilePath), {
-				type: LOG_TYPES.ERROR,
-				description: (error.message || '').trim(),
-				progressBarContainer,
-			});
-		} else {
-			progressBarContainer.log(error);
-		}
+		// Work abandoned during shutdown is left undone by the interruption, not failed.
+		if (isInterrupted()) return { planIndex, status: OUTCOME_STATUS.UNSTARTED };
+		return { error, output: outputFilePath, planIndex, status: OUTCOME_STATUS.FAILED };
 	} finally {
 		progressBar.increment();
 	}
 }
 
-async function processAvif({ fileBuffer, config }) {
+async function processAvif({ fileBuffer, config, configPath, isLossless }) {
 	const imageMetadata = await parseImageMetadata(fileBuffer);
 	checkImageFormat(imageMetadata.format);
 
@@ -169,22 +138,31 @@ async function processAvif({ fileBuffer, config }) {
 		throw new Error('Animated AVIF is not supported'); // See: https://github.com/strukturag/libheif/issues/377
 	}
 
-	return sharp(fileBuffer)
-		.rotate() // Rotate image using information from EXIF Orientation tag
-		.avif(config)
-		.toBuffer();
+	// Only the codec call is enriched, so detection and support errors keep speaking for themselves.
+	try {
+		return await sharp(fileBuffer)
+			.rotate() // Rotate image using information from EXIF Orientation tag
+			.avif(config)
+			.toBuffer();
+	} catch (error) {
+		throw describeCodecFailure({ configPath, error, format: 'avif', isLossless, mode: 'convert' });
+	}
 }
 
-async function processWebp({ fileBuffer, config }) {
+async function processWebp({ fileBuffer, config, configPath, isLossless }) {
 	const imageMetadata = await parseImageMetadata(fileBuffer);
 	checkImageFormat(imageMetadata.format);
 
 	const isAnimated = imageMetadata.pages > 1;
 
-	return sharp(fileBuffer, { animated: isAnimated })
-		.rotate() // Rotate image using information from EXIF Orientation tag
-		.webp(config)
-		.toBuffer();
+	try {
+		return await sharp(fileBuffer, { animated: isAnimated })
+			.rotate() // Rotate image using information from EXIF Orientation tag
+			.webp(config)
+			.toBuffer();
+	} catch (error) {
+		throw describeCodecFailure({ configPath, error, format: 'webp', isLossless, mode: 'convert' });
+	}
 }
 
 function checkImageFormat(imageFormat) {

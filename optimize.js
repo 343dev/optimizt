@@ -9,11 +9,14 @@ import pLimit from 'p-limit';
 import sharp from 'sharp';
 import { optimize as svgoOptimize } from 'svgo';
 
+import { atomicWrite } from './lib/atomic-write.js';
 import { calculateRatio } from './lib/calculate-ratio.js';
 import { createProgressBarContainer } from './lib/create-progress-bar-container.js';
+import { describeCodecFailure } from './lib/describe-codec-failure.js';
 import { formatBytes } from './lib/format-bytes.js';
 import { getPlural } from './lib/get-plural.js';
 import { getRelativePath } from './lib/get-relative-path.js';
+import { isInterrupted, registerChild } from './lib/lifecycle.js';
 import {
 	LOG_TYPES,
 	log,
@@ -21,12 +24,14 @@ import {
 	logProgressVerbose,
 } from './lib/log.js';
 import { optionsToArguments } from './lib/options-to-arguments.js';
+import { OUTCOME_STATUS } from './lib/outcome-status.js';
 import { parseImageMetadata } from './lib/parse-image-metadata.js';
 import { programOptions } from './lib/program-options.js';
 import { showTotal } from './lib/show-total.js';
 
-export async function optimize({ filePaths, config }) {
+export async function optimize({ operations, config, configPath }) {
 	const { isLossless } = programOptions;
+	const filePaths = operations.map(operation => ({ input: operation.input, output: operation.output }));
 
 	const filePathsCount = filePaths.length;
 
@@ -45,8 +50,8 @@ export async function optimize({ filePaths, config }) {
 	const tasksSimultaneousLimit = pLimit(cpuCount);
 	const guetzliTasksSimultaneousLimit = pLimit(1); // Guetzli uses a large amount of memory and a significant amount of CPU time. To reduce system load, we only allow one instance of guetzli to run at the same time.
 
-	await Promise.all(
-		filePaths.map((filePath) => {
+	const outcomes = await Promise.all(
+		filePaths.map((filePath, planIndex) => {
 			const extension = path.extname(filePath.input).toLowerCase();
 			const isJpeg = extension === '.jpg' || extension === '.jpeg';
 
@@ -54,34 +59,41 @@ export async function optimize({ filePaths, config }) {
 				? guetzliTasksSimultaneousLimit
 				: tasksSimultaneousLimit;
 
-			return limit(() => processFile({
-				filePath,
-				config,
-				progressBarContainer,
-				progressBar,
-				totalSize,
-				isLossless,
-			}));
+			return limit(() => isInterrupted()
+				? { planIndex, status: OUTCOME_STATUS.UNSTARTED }
+				: processFile({
+					filePath,
+					config,
+					configPath,
+					progressBarContainer,
+					progressBar,
+					totalSize,
+					isLossless,
+					planIndex,
+				}));
 		}),
 	);
 
 	progressBarContainer.update(); // Prevent logs lost. See: https://github.com/npkgz/cli-progress/issues/145#issuecomment-1859594159
 	progressBarContainer.stop();
 
-	showTotal(totalSize.before, totalSize.after);
+	showTotal(totalSize.before, totalSize.after, outcomes);
+	return { failed: outcomes.filter(outcome => outcome.status === OUTCOME_STATUS.FAILED).length, outcomes };
 }
 
 async function processFile({
 	filePath,
 	config,
+	configPath,
 	progressBarContainer,
 	progressBar,
 	totalSize,
 	isLossless,
+	planIndex,
 }) {
 	try {
 		const fileBuffer = await fs.promises.readFile(filePath.input);
-		const processedFileBuffer = await processFileByFormat({ fileBuffer, config, isLossless });
+		const processedFileBuffer = await processFileByFormat({ fileBuffer, config, configPath, isLossless });
 
 		const fileSize = fileBuffer.length;
 		const processedFileSize = processedFileBuffer.length;
@@ -101,11 +113,10 @@ async function processFile({
 				progressBarContainer,
 			});
 
-			return;
+			return { planIndex, status: OUTCOME_STATUS.SKIPPED };
 		}
 
-		await fs.promises.mkdir(path.dirname(filePath.output), { recursive: true });
-		await fs.promises.writeFile(filePath.output, processedFileBuffer);
+		await atomicWrite(filePath.output, processedFileBuffer);
 
 		const before = formatBytes(fileSize);
 		const after = formatBytes(processedFileSize);
@@ -115,50 +126,44 @@ async function processFile({
 			description: `${before} → ${after}. Ratio: ${ratio}%`,
 			progressBarContainer,
 		});
+		return { after: processedFileSize, before: fileSize, planIndex, status: OUTCOME_STATUS.PROCESSED };
 	} catch (error) {
-		if (error.message) {
-			logProgress(getRelativePath(filePath.output), {
-				type: LOG_TYPES.ERROR,
-				description: (error.message || '').trim(),
-				progressBarContainer,
-			});
-		} else {
-			progressBarContainer.log(error);
-		}
+		// Work abandoned during shutdown is left undone by the interruption, not failed.
+		if (isInterrupted()) return { planIndex, status: OUTCOME_STATUS.UNSTARTED };
+		return { error, output: filePath.output, planIndex, status: OUTCOME_STATUS.FAILED };
 	} finally {
 		progressBar.increment();
 	}
 }
 
-async function processFileByFormat({ fileBuffer, config, isLossless }) {
+async function processFileByFormat({ fileBuffer, config, configPath, isLossless }) {
 	const imageMetadata = await parseImageMetadata(fileBuffer);
+	const format = imageMetadata.format;
 
-	if (!imageMetadata.format) {
+	if (!format) {
 		throw new Error('Unknown file format');
 	}
 
-	switch (imageMetadata.format) {
-		case 'jpeg': {
-			return processJpeg({ fileBuffer, config, isLossless });
-		}
+	const processByFormat = PROCESS_BY_FORMAT.get(format);
+	if (!processByFormat) {
+		throw new Error(`Unsupported image format: "${format}"`);
+	}
 
-		case 'png': {
-			return processPng({ fileBuffer, config, isLossless });
-		}
-
-		case 'gif': {
-			return processGif({ fileBuffer, config, isLossless });
-		}
-
-		case 'svg': {
-			return processSvg({ fileBuffer, config });
-		}
-
-		default: {
-			throw new Error(`Unsupported image format: "${imageMetadata.format}"`);
-		}
+	// Only the codec call is enriched, so filesystem and detection errors keep speaking
+	// for themselves.
+	try {
+		return await processByFormat({ fileBuffer, config, isLossless });
+	} catch (error) {
+		throw describeCodecFailure({ configPath, error, format, isLossless, mode: 'optimize' });
 	}
 }
+
+const PROCESS_BY_FORMAT = new Map([
+	['gif', processGif],
+	['jpeg', processJpeg],
+	['png', processPng],
+	['svg', processSvg],
+]);
 
 async function processJpeg({ fileBuffer, config, isLossless }) {
 	const sharpImage = sharp(fileBuffer)
@@ -226,6 +231,7 @@ function processSvg({ fileBuffer, config }) {
 function pipe({ command, commandOptions, inputBuffer }) {
 	return new Promise((resolve, reject) => {
 		const process = spawn(command, commandOptions);
+		registerChild(process);
 
 		process.stdin.write(inputBuffer);
 		process.stdin.end();
