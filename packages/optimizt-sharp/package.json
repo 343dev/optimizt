@@ -1,0 +1,72 @@
+{
+	"name": "@343dev/optimizt-sharp",
+	"version": "0.35.2-0",
+	"private": true,
+	"description": "Internal build workspace for Optimizt's vendored WASM-only sharp distribution",
+	"license": "Apache-2.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/343dev/optimizt.git",
+		"directory": "packages/optimizt-sharp"
+	},
+	"homepage": "https://github.com/343dev/optimizt/tree/main/packages/optimizt-sharp#readme",
+	"files": [
+		"dist/",
+		"LICENSE",
+		"NOTICE",
+		"README.md"
+	],
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.mts",
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.mts",
+				"default": "./dist/index.mjs"
+			},
+			"require": {
+				"types": "./dist/index.d.cts",
+				"default": "./dist/index.cjs"
+			}
+		}
+	},
+	"sideEffects": true,
+	"type": "module",
+	"config": {
+		"libvips": ">=8.18.3"
+	},
+	"scripts": {
+		"build": "node scripts/build.mjs",
+		"lint": "eslint ./scripts ./test vitest.config.js",
+		"test": "npm run build && vitest run --config vitest.config.js"
+	},
+	"dependencies": {
+		"@img/colour": "^1.1.0",
+		"@img/sharp-wasm32": "0.35.2",
+		"detect-libc": "^2.1.2",
+		"semver": "^7.8.4"
+	},
+	"devDependencies": {
+		"@343dev/eslint-config": "5.0.0",
+		"eslint": "10.5.0",
+		"tar": "7.5.22",
+		"vitest": "4.1.9"
+	},
+	"lint-staged": {
+		"*.js": [
+			"eslint --fix"
+		]
+	},
+	"engines": {
+		"node": ">=22.22.1"
+	},
+	"optimiztSharp": {
+		"upstream": {
+			"package": "sharp",
+			"version": "0.35.2",
+			"tarball": "https://registry.npmjs.org/sharp/-/sharp-0.35.2.tgz",
+			"integrity": "sha512-FVtFjtBCMiJS6yb5CX7Sop45WFMpeGw6oRKuJnXYgf/f1ms/D7LE/ZUSNxnW7rZ/dbslQWYkoqFHGPaDBtaK4w=="
+		}
+	}
+}

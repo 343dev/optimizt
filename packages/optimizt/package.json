@@ -1,0 +1,76 @@
+{
+	"name": "@343dev/optimizt",
+	"version": "13.0.0",
+	"description": "CLI image optimization tool",
+	"keywords": [
+		"svg",
+		"png",
+		"jpeg",
+		"gif",
+		"webp",
+		"avif",
+		"image-compression",
+		"sharp",
+		"svgo",
+		"gifsicle",
+		"guetzli"
+	],
+	"license": "MIT",
+	"author": "Andrey Warkentin (https://github.com/343dev)",
+	"repository": "343dev/optimizt",
+	"homepage": "https://github.com/343dev/optimizt#readme",
+	"bugs": {
+		"url": "https://github.com/343dev/optimizt/issues"
+	},
+	"exports": {},
+	"bin": {
+		"optimizt": "cli.js"
+	},
+	"files": [
+		"lib/",
+		".optimiztrc.cjs",
+		"cli.js",
+		"convert.js",
+		"index.js",
+		"MIGRATION.md",
+		"optimize.js",
+		"vendor/"
+	],
+	"scripts": {
+		"build": "node ../optimizt-sharp/scripts/build.mjs && node scripts/vendor-sharp.mjs",
+		"lint": "eslint ./ --ignore-pattern 'vendor/'",
+		"prepack": "npm run build",
+		"test": "npm run build && vitest run",
+		"test-coverage": "npm run build && vitest run --coverage",
+		"enable-git-hooks": "git config core.hooksPath .githooks"
+	},
+	"dependencies": {
+		"@343dev/gifsicle": "1.2.0",
+		"@343dev/guetzli": "1.3.0",
+		"@img/colour": "^1.1.0",
+		"@img/sharp-wasm32": "0.35.2",
+		"cli-progress": "3.12.0",
+		"commander": "15.0.0",
+		"detect-libc": "^2.1.2",
+		"p-limit": "7.3.0",
+		"semver": "^7.8.4",
+		"svgo": "4.0.1",
+		"write-file-atomic": "7.0.1"
+	},
+	"devDependencies": {
+		"@343dev/eslint-config": "5.0.0",
+		"@vitest/coverage-v8": "4.1.9",
+		"eslint": "10.5.0",
+		"lint-staged": "17.0.7",
+		"vitest": "4.1.9"
+	},
+	"engines": {
+		"node": ">=22.22.1"
+	},
+	"type": "module",
+	"lint-staged": {
+		"*.js": [
+			"eslint --fix"
+		]
+	}
+}

@@ -1,3 +1,6 @@
 #!/bin/sh
 
-npx lint-staged
+# lint-staged resolves each workspace's eslint.config.js from its own directory,
+# so it must run once per workspace rather than from the repository root.
+npx lint-staged --cwd packages/optimizt
+npx lint-staged --cwd packages/optimizt-sharp

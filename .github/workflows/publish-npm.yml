@@ -1,4 +1,4 @@
-name: Publish Package to npmjs
+name: Publish packages to npmjs
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  id-token: write # Required for OIDC
+  id-token: write # Required for npm trusted publishing
   contents: read
 
 jobs:
@@ -22,21 +22,16 @@ jobs:
         with:
           node-version: "latest"
           registry-url: "https://registry.npmjs.org"
-      - name: Check if package version has changed
-        id: check
-        run: |
-          LATEST_VERSION=$(npm view . version)
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          if [ "$LATEST_VERSION" != "$CURRENT_VERSION" ]; then
-            echo "Version changed from $LATEST_VERSION to $CURRENT_VERSION"
-            echo "VERSION_CHANGED=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "Version unchanged"
-            echo "VERSION_CHANGED=false" >> "$GITHUB_OUTPUT"
-          fi
       - name: Install dependencies
-        if: ${{ steps.check.outputs.VERSION_CHANGED == 'true' }}
         run: npm ci
-      - name: Publish to npm
-        if: ${{ steps.check.outputs.VERSION_CHANGED == 'true' }}
-        run: npm publish --access public
+      - name: Validate packages
+        run: npm run check
+      - name: Publish changed package
+        run: |
+          workspace=@343dev/optimizt
+          current_version=$(npm pkg get version --workspace "$workspace" | node -p "Object.values(JSON.parse(require('node:fs').readFileSync(0, 'utf8')))[0]")
+          if npm view "$workspace@$current_version" version >/dev/null 2>&1; then
+            echo "$workspace@$current_version is already published"
+            exit 0
+          fi
+          npm publish --workspace "$workspace" --access public --provenance

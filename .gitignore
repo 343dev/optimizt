@@ -1,2 +1,4 @@
 coverage/
 node_modules/
+packages/optimizt-sharp/dist/
+packages/optimizt/vendor/

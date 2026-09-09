@@ -6,7 +6,6 @@ import path from 'node:path';
 import gifsicle from '@343dev/gifsicle';
 import guetzli from '@343dev/guetzli';
 import pLimit from 'p-limit';
-import sharp from 'sharp';
 import { optimize as svgoOptimize } from 'svgo';
 
 import { atomicWrite } from './lib/atomic-write.js';
@@ -17,6 +16,7 @@ import { formatBytes } from './lib/format-bytes.js';
 import { getPlural } from './lib/get-plural.js';
 import { getRelativePath } from './lib/get-relative-path.js';
 import { isInterrupted, registerChild } from './lib/lifecycle.js';
+import sharp from './lib/sharp.js';
 import {
 	LOG_TYPES,
 	log,

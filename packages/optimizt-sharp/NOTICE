@@ -1,0 +1,7 @@
+This package contains a generated distribution derived from sharp 0.35.2.
+
+sharp copyright 2013 Lovell Fuller and others.
+https://github.com/lovell/sharp
+
+The derived sharp JavaScript files are licensed under Apache License 2.0.
+The @img/sharp-wasm32 runtime contains third-party libraries under the licenses declared by that package.

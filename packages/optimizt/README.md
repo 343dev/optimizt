@@ -1,0 +1,186 @@
+# @343dev/optimizt
+
+> This package lives in the `packages/optimizt` workspace of the Optimizt monorepo.
+
+<img align="right" width="176" height="176"
+     alt="Optimizt logo: OK hand sign with Mona Lisa image between the fingers"
+     src="https://raw.githubusercontent.com/343dev/optimizt/main/docs/logo.png">
+
+[![NPM Downloads](https://img.shields.io/npm/dw/%40343dev%2Foptimizt)](https://www.npmjs.com/package/@343dev/optimizt)
+[![npm](https://img.shields.io/npm/v/@343dev/optimizt.svg)](https://www.npmjs.com/package/@343dev/optimizt)
+[![Docker](https://img.shields.io/docker/v/343dev/optimizt?label=Docker)](https://hub.docker.com/r/343dev/optimizt)
+
+**Optimizt** is a command-line tool that helps prepare images for the web.
+
+It can compress PNG, JPEG, GIF, and SVG lossy or lossless, and create AVIF and WebP versions for raster images.
+
+## Rationale
+
+As frontend developers, we have to care about pictures: compress PNG and JPEG, remove useless parts of SVG, create AVIF and WebP for modern browsers, and so on. One day, we got tired of using a bunch of apps for that, and created one tool that does everything we want.
+
+## Usage
+
+Install:
+
+```sh
+npm install -g @343dev/optimizt
+```
+
+Optimize!
+
+```sh
+optimizt path/to/picture.jpg
+```
+
+## Command Line Flags
+
+- `--avif` — create AVIF versions of images.
+- `--webp` — create WebP versions of images.
+- `-f, --force` — recreate AVIF and WebP versions even if they already exist.
+- `-l, --lossless` — optimize losslessly instead of lossily.
+- `-v, --verbose` — show detailed output (e.g. skipped files).
+- `-c, --config` — use a custom configuration file instead of the default.
+- `-o, --output` — write results to the specified directory.
+- `-p, --prefix` — add prefix to optimized file names.
+- `-s, --suffix` — add suffix to optimized file names.
+- `-V, --version` — display the tool version.
+- `-h, --help` — show help message.
+
+## Usage Examples
+
+```bash
+# optimize a single image
+optimizt path/to/picture.jpg
+
+# optimize multiple images losslessly
+optimizt --lossless path/to/picture.jpg path/to/another/picture.png
+
+# recursively create AVIF and WebP versions for all images in a directory
+optimizt --avif --webp path/to/directory
+
+# recursively optimize JPEG files in the current directory
+find . -iname \*.jpg -exec optimizt {} +
+```
+
+## Differences Between Lossy and Lossless
+
+### Lossy (Default)
+
+Provides the best balance between file size reduction and minimal visual quality loss.
+
+### Lossless (`--lossless` flag)
+
+- **AVIF/WebP**: Uses lossless compression.
+- **PNG/JPEG/GIF**: Maximizes image quality at the expense of larger file sizes.
+- **SVG**: Settings are identical in both modes.
+
+## How Files Are Written
+
+Every image is written to a temporary file in the destination directory, synchronized to disk, and then renamed over the target. An interrupted or failed run therefore leaves the original file untouched instead of half-written, and a reader never sees a partial image.
+
+Alongside that:
+
+- The existing permission mode of a replaced file is preserved, and its ownership is preserved when the operating system permits it.
+- A file with more than one hard link is never replaced, because renaming over it would break the shared inode. Creating a new output from such a source is allowed.
+- Optimizing a symbolic link replaces the file it points to and keeps the link itself; converting one writes the new variant next to the link.
+
+> [!NOTE]
+> Atomic replacement protects against partially written files. It does not guarantee that the directory entry itself survives sudden power loss, and it does not preserve file timestamps.
+
+## Configuration
+
+Image processing leverages:
+
+- [sharp](https://github.com/lovell/sharp) for [JPEG](https://sharp.pixelplumbing.com/api-output#jpeg), [PNG](https://sharp.pixelplumbing.com/api-output#png), [WebP](https://sharp.pixelplumbing.com/api-output#webp), and [AVIF](https://sharp.pixelplumbing.com/api-output#avif).
+- [svgo](https://github.com/svg/svgo) for SVG.
+- [gifsicle](https://github.com/kohler/gifsicle) for GIF.
+
+> [!NOTE]
+> In Lossless mode for JPEG, [Guetzli](https://github.com/google/guetzli) is used. Repeated optimization may degrade visual quality.
+
+Default settings are defined in [.optimiztrc.cjs](./.optimiztrc.cjs), which includes all supported parameters. Disable any parameter by setting it to `false`.
+
+When using `--config path/to/.optimiztrc.cjs`, the specified configuration file replaces the bundled settings for the selected mode. If no `--config` is provided, Optimizt searches recursively from the current directory upward for `.optimiztrc.cjs`. If none is found, defaults are applied.
+
+> [!WARNING]
+> `.optimiztrc.cjs` is executable code. Auto-discovered and explicitly selected configuration runs with your user permissions; use Optimizt only in repositories you trust.
+
+## Troubleshooting
+
+### Errors like “spawn guetzli ENOENT”.
+
+Ensure the [ignore-scripts](https://docs.npmjs.com/cli/v6/using-npm/config#ignore-scripts) npm option is disabled.
+Details: [funbox/optimizt/issues/9](https://github.com/funbox/optimizt/issues/9).
+
+## Development
+
+After cloning the repository, enable Git hooks once:
+
+```sh
+npm run enable-git-hooks
+```
+
+This configures Git to use the versioned hooks from the [.githooks](./.githooks) directory.
+
+## Docker
+
+### Pre-Built Image
+
+```bash
+# pull latest
+docker pull 343dev/optimizt
+
+# pull specific version
+docker pull 343dev/optimizt:9.0.2
+```
+
+### Manual Build
+
+```bash
+# clone repository
+git clone https://github.com/343dev/optimizt.git
+cd optimizt
+
+# build image
+docker build --tag 343dev/optimizt .
+```
+
+Alternatively:
+
+```bash
+# build directly from GitHub
+# ignores .dockerignore (see: https://github.com/docker/cli/issues/2827)
+docker build --tag 343dev/optimizt https://github.com/343dev/optimizt.git
+```
+
+### Run Container
+
+```bash
+# mount current directory to /src in the container
+docker run --rm --user "$(id -u):$(id -g)" --volume "$(pwd):/src" 343dev/optimizt --webp ./image.png
+```
+
+## Integrations
+
+Optimizt works seamlessly with:
+
+- [JetBrains IDEs](https://github.com/343dev/optimizt/blob/main/docs/jetbrains.md)
+- [Visual Studio Code](https://github.com/343dev/optimizt/blob/main/docs/vscode.md)
+- [Sublime Text 3](https://github.com/343dev/optimizt/blob/main/docs/sublime-text.md)
+- [GitHub Actions Workflow](https://github.com/343dev/optimizt/blob/main/docs/github.md)
+
+## Articles
+
+- [anuwong.com](https://anuwong.com/blog/2023-08-21-save-tons-of-gbs-with-optimizt/) — Compress files before uploading, save tons of GBs. 🇹🇭
+- [Linux Format, Issue 277 (July 2021)](https://www.linuxformat.com/archives?issue=277#:~:text=Kitchen%20Tales%2C%20zFRAG%2C-,Optimizt,-and%20SingleFileZ.) — Optimizt is ideal for reducing the disk footprint of images without any reduction in quality.
+
+## Credits
+
+Cute picture for the project was made by [Igor Garybaldi](http://pandabanda.com/).
+
+## Other projects
+
+- 📦 [harold](https://github.com/343dev/harold) — CLI tool that compares frontend project bundle sizes between snapshots
+- 🐳 [jailbot](https://github.com/343dev/jailbot) — Docker container wrapper with automatic filesystem path mounting
+- 📝 [markdown-lint](https://github.com/343dev/markdown-lint) — Markdown code style linter based on Prettier, Remark, and Typograf
+- 🔤 [languagetool-node](https://github.com/343dev/languagetool-node) — CLI spell and grammar checker powered by LanguageTool

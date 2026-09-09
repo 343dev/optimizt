@@ -1,71 +1,17 @@
 {
-	"name": "@343dev/optimizt",
-	"version": "13.0.0",
-	"description": "CLI image optimization tool",
-	"keywords": [
-		"svg",
-		"png",
-		"jpeg",
-		"gif",
-		"webp",
-		"avif",
-		"image-compression",
-		"sharp",
-		"svgo",
-		"gifsicle",
-		"guetzli"
-	],
-	"license": "MIT",
-	"author": "Andrey Warkentin (https://github.com/343dev)",
-	"repository": "343dev/optimizt",
-	"homepage": "https://github.com/343dev/optimizt#readme",
-	"bugs": {
-		"url": "https://github.com/343dev/optimizt/issues"
-	},
-	"exports": {},
-	"bin": {
-		"optimizt": "cli.js"
-	},
-	"files": [
-		"lib/",
-		".optimiztrc.cjs",
-		"cli.js",
-		"convert.js",
-		"index.js",
-		"MIGRATION.md",
-		"optimize.js"
+	"name": "@343dev/optimizt-monorepo",
+	"private": true,
+	"workspaces": [
+		"packages/*"
 	],
 	"scripts": {
-		"license-check": "npx license-compliance@3.0.1 --report detailed --allow '0BSD;Apache-2.0;Artistic-2.0;BlueOak-1.0.0;BSD-2-Clause;BSD-3-Clause;BSD-4-Clause;CC0-1.0;CC-BY-4.0;ISC;LGPL-2.1-or-later;LGPL-3.0-or-later;MIT;MPL-1.1;MPL-2.0;Python-2.0;Unlicense;W3C;W3C-20150513;X11;Zlib' --exclude 'spdx-exceptions;@343dev/gifsicle'",
-		"lint": "eslint ./",
-		"test": "vitest run",
-		"test-coverage": "vitest run --coverage",
-		"enable-git-hooks": "git config core.hooksPath .githooks"
-	},
-	"dependencies": {
-		"@343dev/gifsicle": "1.2.0",
-		"@343dev/guetzli": "1.3.0",
-		"cli-progress": "3.12.0",
-		"commander": "15.0.0",
-		"p-limit": "7.3.0",
-		"sharp": "0.35.2",
-		"svgo": "4.0.1",
-		"write-file-atomic": "7.0.1"
-	},
-	"devDependencies": {
-		"@343dev/eslint-config": "5.0.0",
-		"@vitest/coverage-v8": "4.1.9",
-		"eslint": "10.5.0",
-		"lint-staged": "17.0.7",
-		"vitest": "4.1.9"
+		"build": "npm run build --workspace @343dev/optimizt",
+		"check": "npm run build && npm run lint && npm test && npm run license-check",
+		"lint": "npm run lint --workspaces --if-present",
+		"test": "npm test --workspaces --if-present",
+		"license-check": "npx license-compliance@3.0.1 --report detailed --allow '0BSD;Apache-2.0;Artistic-2.0;BlueOak-1.0.0;BSD-2-Clause;BSD-3-Clause;BSD-4-Clause;CC0-1.0;CC-BY-4.0;ISC;LGPL-2.1-or-later;LGPL-3.0-or-later;MIT;MPL-1.1;MPL-2.0;Python-2.0;Unlicense;W3C;W3C-20150513;X11;Zlib' --exclude 'spdx-exceptions;@343dev/gifsicle'"
 	},
 	"engines": {
 		"node": ">=22.22.1"
-	},
-	"type": "module",
-	"lint-staged": {
-		"*.js": [
-			"eslint --fix"
-		]
 	}
 }

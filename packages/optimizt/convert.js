@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import os from 'node:os';
 
 import pLimit from 'p-limit';
-import sharp from 'sharp';
 
 import { atomicWrite } from './lib/atomic-write.js';
 import { calculateRatio } from './lib/calculate-ratio.js';
@@ -13,6 +12,7 @@ import { formatBytes } from './lib/format-bytes.js';
 import { getPlural } from './lib/get-plural.js';
 import { getRelativePath } from './lib/get-relative-path.js';
 import { isInterrupted } from './lib/lifecycle.js';
+import sharp from './lib/sharp.js';
 import {
 	LOG_TYPES,
 	log,
