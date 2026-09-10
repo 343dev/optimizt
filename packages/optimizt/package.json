@@ -37,7 +37,7 @@
 		"vendor/"
 	],
 	"scripts": {
-		"build": "node ../optimizt-sharp/scripts/build.mjs && node scripts/vendor-sharp.mjs",
+		"build": "node ../optimizt-sharp/scripts/build.mjs && node scripts/vendor-sharp.mjs && node scripts/vendor-guetzli.mjs",
 		"lint": "eslint ./ --ignore-pattern 'vendor/'",
 		"prepack": "npm run build",
 		"test": "npm run build && vitest run",
@@ -46,7 +46,6 @@
 	},
 	"dependencies": {
 		"@343dev/gifsicle": "1.2.0",
-		"@343dev/guetzli": "1.3.0",
 		"@img/colour": "^1.1.0",
 		"@img/sharp-wasm32": "0.35.2",
 		"cli-progress": "3.12.0",

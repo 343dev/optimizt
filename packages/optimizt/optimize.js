@@ -4,11 +4,11 @@ import os from 'node:os';
 import path from 'node:path';
 
 import gifsicle from '@343dev/gifsicle';
-import guetzli from '@343dev/guetzli';
 import pLimit from 'p-limit';
 import { optimize as svgoOptimize } from 'svgo';
 
 import { atomicWrite } from './lib/atomic-write.js';
+import { guetzliRunner, nodeExecutable } from './lib/guetzli.js';
 import { calculateRatio } from './lib/calculate-ratio.js';
 import { createProgressBarContainer } from './lib/create-progress-bar-container.js';
 import { describeCodecFailure } from './lib/describe-codec-failure.js';
@@ -181,15 +181,14 @@ async function processJpeg({ fileBuffer, config, isLossless }) {
 		.toBuffer();
 
 	const commandOptions = [
+		guetzliRunner,
 		...optionsToArguments({
 			options: config?.jpeg?.lossless || {},
 		}),
-		'-',
-		'-',
 	];
 
 	return pipe({
-		command: guetzli,
+		command: nodeExecutable,
 		commandOptions,
 		inputBuffer,
 	});

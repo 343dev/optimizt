@@ -15,9 +15,7 @@ module.exports = {
 			},
 			// https://github.com/google/guetzli
 			lossless: {
-				quality: 90, // visual quality to aim for, expressed as a JPEG quality value; should be >= 84, otherwise the output will have noticeable artifacts
-				memlimit: 6000, // memory limit in MB; guetzli will fail if unable to stay under the limit
-				nomemlimit: false, // do not limit memory usage
+				quality: 90, // visual quality to aim for, expressed as a JPEG quality value; must be between 84 and 110
 			},
 		},
 

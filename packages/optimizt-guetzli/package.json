@@ -1,0 +1,30 @@
+{
+	"name": "@343dev/optimizt-guetzli",
+	"version": "1.0.1-0",
+	"private": true,
+	"description": "Internal Guetzli WebAssembly runner for Optimizt",
+	"license": "Apache-2.0",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/343dev/optimizt.git",
+		"directory": "packages/optimizt-guetzli"
+	},
+	"type": "module",
+	"scripts": {
+		"setup-emsdk": "./scripts/setup-emsdk.sh",
+		"build:wasm": "./scripts/build-wasm.sh",
+		"build:native": "./scripts/build-native.sh",
+		"benchmark": "node ./scripts/benchmark.js",
+		"lint": "npx eslint ./",
+		"test": "node --test --test-concurrency=1",
+		"verify:upstream": "node ./scripts/verify-upstream.js",
+		"verify:dist": "./scripts/verify-dist.sh"
+	},
+	"devDependencies": {
+		"@343dev/eslint-config": "5.0.0",
+		"eslint": "10.5.0"
+	},
+	"engines": {
+		"node": ">=22.22.1"
+	}
+}
