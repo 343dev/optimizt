@@ -1,0 +1,33 @@
+{
+	"name": "@343dev/optimizt-gifsicle",
+	"version": "1.96.0-0",
+	"private": true,
+	"description": "Internal Gifsicle WebAssembly runtime for Optimizt",
+	"license": "GPL-2.0-only",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/343dev/optimizt.git",
+		"directory": "packages/optimizt-gifsicle"
+	},
+	"type": "module",
+	"scripts": {
+		"setup-emsdk": "./scripts/setup-emsdk.sh",
+		"build:wasm": "./scripts/build-wasm.sh",
+		"build:native": "./scripts/build-native.sh",
+		"benchmark": "node ./scripts/benchmark.js",
+		"lint": "npx eslint ./",
+		"test": "node --test --test-concurrency=1",
+		"verify:upstream": "node ./scripts/verify-upstream.js",
+		"verify:patch": "./scripts/verify-patch.sh",
+		"verify:dist": "./scripts/verify-dist.sh",
+		"verify:native-sanitizers": "./scripts/verify-native-sanitizers.sh",
+		"verify:parity": "node ./scripts/verify-parity.js"
+	},
+	"devDependencies": {
+		"@343dev/eslint-config": "5.0.0",
+		"eslint": "10.5.0"
+	},
+	"engines": {
+		"node": ">=22.22.1"
+	}
+}

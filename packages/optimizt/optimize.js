@@ -3,7 +3,6 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import gifsicle from '@343dev/gifsicle';
 import pLimit from 'p-limit';
 import { optimize as svgoOptimize } from 'svgo';
 
@@ -13,9 +12,10 @@ import { calculateRatio } from './lib/calculate-ratio.js';
 import { createProgressBarContainer } from './lib/create-progress-bar-container.js';
 import { describeCodecFailure } from './lib/describe-codec-failure.js';
 import { formatBytes } from './lib/format-bytes.js';
+import { createGifOperation } from './lib/gifsicle.js';
 import { getPlural } from './lib/get-plural.js';
 import { getRelativePath } from './lib/get-relative-path.js';
-import { isInterrupted, registerChild } from './lib/lifecycle.js';
+import { isInterrupted, registerCancellable, registerChild } from './lib/lifecycle.js';
 import sharp from './lib/sharp.js';
 import {
 	LOG_TYPES,
@@ -201,21 +201,12 @@ function processPng({ fileBuffer, config, isLossless }) {
 }
 
 function processGif({ fileBuffer, config, isLossless }) {
-	const commandOptions = [
-		...optionsToArguments({
-			options: (isLossless ? config?.gif?.lossless : config?.gif?.lossy) || {},
-			concat: true,
-		}),
-		`--threads=${os.cpus().length}`,
-		'--no-warnings',
-		'-',
-	];
-
-	return pipe({
-		command: gifsicle,
-		commandOptions,
-		inputBuffer: fileBuffer,
-	});
+	const operation = createGifOperation(
+		fileBuffer,
+		(isLossless ? config?.gif?.lossless : config?.gif?.lossy) || {},
+	);
+	registerCancellable(operation.terminate, operation.promise);
+	return operation.promise;
 }
 
 function processSvg({ fileBuffer, config }) {

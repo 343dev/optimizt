@@ -53,7 +53,7 @@ module.exports = {
 				gamma: 1, // set the color space/gamma correction to gamma, which can be a real number, ‘srgb’ (the default), or ‘oklab’
 			},
 			lossless: {
-				optimize: 0,
+				optimize: 3,
 				careful: true,
 				colors: 256,
 				lossy: 0,

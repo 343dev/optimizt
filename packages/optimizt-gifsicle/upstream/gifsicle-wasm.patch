@@ -1,0 +1,771 @@
+diff --git a/include/lcdfgif/gif.h b/include/lcdfgif/gif.h
+index 28b1c83..7f05c66 100644
+--- a/include/lcdfgif/gif.h
++++ b/include/lcdfgif/gif.h
+@@ -38,6 +38,9 @@ typedef uint16_t Gif_Code;
+ 
+ /** GIF_STREAM **/
+ 
++#define GIF_READ_STATUS_OK               0
++#define GIF_READ_STATUS_LIMIT            1
++
+ struct Gif_Stream {
+     Gif_Image **images;
+     int nimages;
+@@ -54,6 +57,7 @@ struct Gif_Stream {
+     Gif_Extension* end_extension_list;
+ 
+     unsigned errors;
++    unsigned read_status;
+     uint32_t user_flags;
+ 
+     const char* landmark;
+@@ -248,6 +252,12 @@ struct Gif_Record {
+     uint32_t length;
+ };
+ 
++typedef struct {
++    uint32_t max_frames;
++    uint64_t max_logical_area;
++    uint64_t max_total_frame_area;
++} Gif_ReadLimits;
++
+ #define GIF_READ_COMPRESSED             1
+ #define GIF_READ_UNCOMPRESSED           2
+ #define GIF_READ_CONST_RECORD           4
+@@ -265,9 +275,17 @@ Gif_Stream*     Gif_ReadRecord(const Gif_Record* record);
+ Gif_Stream*     Gif_FullReadRecord(const Gif_Record* record, int flags,
+                                    const char* landmark,
+                                    Gif_ReadErrorHandler handler);
++Gif_Stream*     Gif_FullReadRecordLimited(const Gif_Record* record, int flags,
++                                          const char* landmark,
++                                          const Gif_ReadLimits* limits,
++                                          Gif_ReadErrorHandler handler);
+ int             Gif_WriteFile(Gif_Stream *gfs, FILE *f);
+ int             Gif_FullWriteFile(Gif_Stream *gfs,
+                                   const Gif_CompressInfo *gcinfo, FILE *f);
++int             Gif_FullWriteRecord(Gif_Stream *gfs,
++                                    const Gif_CompressInfo *gcinfo,
++                                    Gif_Record *record);
++void            Gif_FreeRecord(Gif_Record *record);
+ 
+ #define Gif_ReadFile(f)         Gif_FullReadFile((f),GIF_READ_UNCOMPRESSED,0,0)
+ #define Gif_ReadRecord(r)       Gif_FullReadRecord((r),GIF_READ_UNCOMPRESSED,0,0)
+@@ -299,6 +317,8 @@ void            Gif_Debug(char *x, ...);
+ #define         GIF_DEBUG(x)
+ #endif
+ 
++typedef void    (*Gif_AllocationFailureHandler)(void);
++void            Gif_SetAllocationFailureHandler(Gif_AllocationFailureHandler handler);
+ void*           Gif_Realloc(void* p, size_t s, size_t n,
+                             const char* file, int line);
+ void            Gif_Free(void* p);
+diff --git a/src/fmalloc.c b/src/fmalloc.c
+index bddfca6..906de2a 100644
+--- a/src/fmalloc.c
++++ b/src/fmalloc.c
+@@ -9,6 +9,18 @@
+ extern "C" {
+ #endif
+ extern const char* program_name;
++static Gif_AllocationFailureHandler allocation_failure_handler;
++
++void Gif_SetAllocationFailureHandler(Gif_AllocationFailureHandler handler) {
++    allocation_failure_handler = handler;
++}
++
++static void allocation_failed(const char* message) {
++    if (allocation_failure_handler)
++        allocation_failure_handler();
++    fprintf(stderr, "%s: %s\n", program_name, message);
++    exit(1);
++}
+ 
+ void* Gif_Realloc(void* p, size_t s, size_t n, const char* file, int line) {
+     (void) file, (void) line;
+@@ -16,15 +28,12 @@ void* Gif_Realloc(void* p, size_t s, size_t n, const char* file, int line) {
+         Gif_Free(p);
+         return (void*) 0;
+     } else if (s == 1 || n == 1 || s <= ((size_t) -1) / n) {
+-        p = realloc(p, s * n);
+-        if (!p) {
+-            fprintf(stderr, "%s: Out of memory, giving up\n", program_name);
+-            exit(1);
+-        }
+-        return p;
++        void* q = realloc(p, s * n);
++        if (!q)
++            allocation_failed("Out of memory, giving up");
++        return q;
+     } else {
+-        fprintf(stderr, "%s: Out of memory, giving up (huge allocation)\n", program_name);
+-        exit(1);
++        allocation_failed("Out of memory, giving up (huge allocation)");
+         return (void*) 0;
+     }
+ }
+diff --git a/src/giffunc.c b/src/giffunc.c
+index 3ddf2df..74bbae2 100644
+--- a/src/giffunc.c
++++ b/src/giffunc.c
+@@ -33,6 +33,7 @@ Gif_NewStream(void)
+   gfs->end_comment = 0;
+   gfs->end_extension_list = 0;
+   gfs->errors = 0;
++  gfs->read_status = GIF_READ_STATUS_OK;
+   gfs->user_flags = 0;
+   gfs->refcount = 0;
+   gfs->landmark = 0;
+diff --git a/src/gifread.c b/src/gifread.c
+index 6be5e18..cb350e4 100644
+--- a/src/gifread.c
++++ b/src/gifread.c
+@@ -41,6 +41,9 @@ typedef struct {
+   Gif_ReadErrorHandler handler;
+   int errors[2];
+ 
++  const Gif_ReadLimits *limits;
++  uint64_t total_frame_area;
++
+ } Gif_Context;
+ 
+ 
+@@ -413,15 +416,24 @@ read_color_table(int size, Gif_Reader *grr)
+ 
+ 
+ static int
+-read_logical_screen_descriptor(Gif_Stream *gfs, Gif_Reader *grr)
+-     /* returns 0 on memory error */
++read_logical_screen_descriptor(Gif_Context *gfc, Gif_Reader *grr)
++     /* returns 0 on memory or policy error */
+ {
++  Gif_Stream *gfs = gfc->stream;
+   uint8_t packed;
+ 
+   /* we don't care about logical screen width or height */
+   gfs->screen_width = gifgetunsigned(grr);
+   gfs->screen_height = gifgetunsigned(grr);
+ 
++  if (gfc->limits
++      && (uint64_t) gfs->screen_width * gfs->screen_height
++           > gfc->limits->max_logical_area) {
++      gfs->read_status = GIF_READ_STATUS_LIMIT;
++      gif_read_error(gfc, 1, "logical screen exceeds resource limit");
++      return 0;
++  }
++
+   packed = gifgetbyte(grr);
+   gfs->background = gifgetbyte(grr);
+ 
+@@ -593,6 +605,17 @@ read_image(Gif_Reader *grr, Gif_Context *gfc, Gif_Image *gfi, int read_flags)
+       Gif_MakeImageEmpty(gfi);
+       read_flags = 0;
+   }
++  if (gfc->limits) {
++      uint64_t area = (uint64_t) gfi->width * gfi->height;
++      if (area > gfc->limits->max_total_frame_area
++          || gfc->total_frame_area
++               > gfc->limits->max_total_frame_area - area) {
++          gfc->stream->read_status = GIF_READ_STATUS_LIMIT;
++          gif_read_error(gfc, 1, "total frame area exceeds resource limit");
++          return 0;
++      }
++      gfc->total_frame_area += area;
++  }
+   GIF_DEBUG(("<%ux%u> ", gfi->width, gfi->height));
+ 
+   packed = gifgetbyte(grr);
+@@ -786,7 +809,8 @@ read_comment_extension(Gif_Image *gfi, Gif_Reader *grr)
+ 
+ static Gif_Stream *
+ read_gif(Gif_Reader *grr, int read_flags,
+-         const char* landmark, Gif_ReadErrorHandler handler)
++         const char* landmark, const Gif_ReadLimits *limits,
++         Gif_ReadErrorHandler handler)
+ {
+   Gif_Stream *gfs;
+   Gif_Image *gfi;
+@@ -811,13 +835,15 @@ read_gif(Gif_Reader *grr, int read_flags,
+   gfc.handler = handler;
+   gfc.gfi = gfi;
+   gfc.errors[0] = gfc.errors[1] = 0;
++  gfc.limits = limits;
++  gfc.total_frame_area = 0;
+ 
+   if (!gfs || !gfi || !gfc.prefix || !gfc.suffix || !gfc.length)
+     goto done;
+   gfs->landmark = landmark;
+ 
+   GIF_DEBUG(("\nGIF "));
+-  if (!read_logical_screen_descriptor(gfs, grr))
++  if (!read_logical_screen_descriptor(&gfc, grr))
+     goto done;
+   GIF_DEBUG(("logscrdesc "));
+ 
+@@ -830,6 +856,12 @@ read_gif(Gif_Reader *grr, int read_flags,
+      case ',': /* image block */
+       GIF_DEBUG(("imageread %d ", gfs->nimages));
+ 
++      if (limits && (uint32_t) gfs->nimages >= limits->max_frames) {
++          gfs->read_status = GIF_READ_STATUS_LIMIT;
++          gif_read_error(&gfc, 1, "frame count exceeds resource limit");
++          goto done;
++      }
++
+       gfi->identifier = last_name;
+       last_name = 0;
+       if (!Gif_AddImage(gfs, gfi))
+@@ -938,19 +970,27 @@ Gif_FullReadFile(FILE *f, int read_flags,
+   grr.byte_getter = file_byte_getter;
+   grr.block_getter = file_block_getter;
+   grr.eofer = file_eofer;
+-  return read_gif(&grr, read_flags, landmark, h);
++  return read_gif(&grr, read_flags, landmark, NULL, h);
+ }
+ 
+ Gif_Stream *
+-Gif_FullReadRecord(const Gif_Record *gifrec, int read_flags,
+-                   const char* landmark, Gif_ReadErrorHandler h)
++Gif_FullReadRecordLimited(const Gif_Record *gifrec, int read_flags,
++                          const char* landmark, const Gif_ReadLimits *limits,
++                          Gif_ReadErrorHandler h)
+ {
+   Gif_Reader grr;
+   if (!gifrec) return 0;
+   make_data_reader(&grr, gifrec->data, gifrec->length);
+   if (read_flags & GIF_READ_CONST_RECORD)
+     read_flags |= GIF_READ_COMPRESSED;
+-  return read_gif(&grr, read_flags, landmark, h);
++  return read_gif(&grr, read_flags, landmark, limits, h);
++}
++
++Gif_Stream *
++Gif_FullReadRecord(const Gif_Record *gifrec, int read_flags,
++                   const char* landmark, Gif_ReadErrorHandler h)
++{
++  return Gif_FullReadRecordLimited(gifrec, read_flags, landmark, NULL, h);
+ }
+ 
+ 
+diff --git a/src/gifsicle.c b/src/gifsicle.c
+index 6b9fe8e..b285585 100644
+--- a/src/gifsicle.c
++++ b/src/gifsicle.c
+@@ -903,8 +903,8 @@ set_new_fixed_colormap(const char *name, int exact)
+   def_output_data.colormap_fixed_exact = exact;
+ }
+ 
+-static void
+-do_colormap_change(Gif_Stream *gfs)
++void
++gifsicle_apply_colormap(Gif_Stream *gfs)
+ {
+   if (active_output_data.colormap_fixed)
+     colormap_stream(gfs, active_output_data.colormap_fixed,
+@@ -1035,7 +1035,7 @@ merge_and_write_frames(const char *outfile, int f1, int f2)
+                     active_output_data.scale_method,
+                     active_output_data.scale_colors);
+     if (colormap_change)
+-      do_colormap_change(out);
++      gifsicle_apply_colormap(out);
+     if (output_transforms)
+       apply_color_transforms(output_transforms, out);
+     if (active_output_data.optimizing & GT_OPT_MASK)
+diff --git a/src/gifsicle.h b/src/gifsicle.h
+index 55b2f85..7731173 100644
+--- a/src/gifsicle.h
++++ b/src/gifsicle.h
+@@ -186,6 +186,9 @@ extern int no_warnings;
+ extern int thread_count;
+ extern Gif_CompressInfo gif_write_info;
+ 
++typedef void (*Gt_DiagnosticHandler)(const char *message, size_t length);
++void set_diagnostic_handler(Gt_DiagnosticHandler handler);
++
+ void fatal_error(const char* format, ...) NORETURN;
+ void warning(int need_file, const char* format, ...);
+ void lwarning(const char* landmark, const char* format, ...);
+@@ -281,6 +284,7 @@ enum {
+ };
+ int     set_dither_type(Gt_OutputData* od, const char* name);
+ void    colormap_stream(Gif_Stream*, Gif_Colormap*, Gt_OutputData*, int allow_shrink);
++void    gifsicle_apply_colormap(Gif_Stream *);
+ 
+ struct kchist;
+ Gif_Colormap* colormap_blend_diversity(struct kchist* kch, Gt_OutputData* od);
+diff --git a/src/gifsicle_bridge.c b/src/gifsicle_bridge.c
+new file mode 100644
+index 0000000..cbae32d
+--- /dev/null
++++ b/src/gifsicle_bridge.c
+@@ -0,0 +1,241 @@
++/* gifsicle_bridge.c - Filesystem-free WebAssembly interface.
++   Copyright (C) 2026 Andrey Warkentin
++   SPDX-License-Identifier: GPL-2.0-only */
++
++#include <setjmp.h>
++#include <stddef.h>
++#include <stdint.h>
++#include <string.h>
++#include <lcdfgif/gif.h>
++#include "gifsicle.h"
++#include "gifsicle_bridge.h"
++
++#define ERROR_CAPACITY 4096
++
++static Gif_Record output_record;
++static char error_message[ERROR_CAPACITY];
++static size_t error_length;
++static jmp_buf allocation_jump;
++static int allocation_jump_active;
++static int serious_read_error;
++
++static void
++allocation_failed(void)
++{
++  if (allocation_jump_active)
++    longjmp(allocation_jump, 1);
++}
++
++void
++gifsicle_bridge_set_error(const char *message)
++{
++  error_length = 0;
++  error_message[0] = 0;
++  if (message)
++    gifsicle_bridge_append_error(message, strlen(message));
++}
++
++void
++gifsicle_bridge_append_error(const char *message, size_t length)
++{
++  size_t available = ERROR_CAPACITY - 1 - error_length;
++  if (length > available)
++    length = available;
++  if (length) {
++    memcpy(error_message + error_length, message, length);
++    error_length += length;
++    error_message[error_length] = 0;
++  }
++}
++
++static void
++bridge_read_error(Gif_Stream *gfs, Gif_Image *gfi,
++                  int is_error, const char *message)
++{
++  (void) gfs, (void) gfi;
++  if (is_error > 0)
++    serious_read_error = 1;
++  if (message)
++    gifsicle_bridge_set_error(message);
++}
++
++static void
++initialize_frame(Gt_Frame *frame, Gif_Stream *stream, Gif_Image *image)
++{
++  memset(frame, 0, sizeof(*frame));
++  frame->stream = stream;
++  frame->image = image;
++  frame->use = 1;
++  frame->interlacing = -1;
++  frame->left = -1;
++  frame->top = -1;
++  frame->delay = -1;
++  frame->disposal = -1;
++}
++
++static void
++initialize_output(Gt_OutputData *output, const Gifsicle_BridgeOptions *options)
++{
++  memset(output, 0, sizeof(*output));
++  output->screen_width = -1;
++  output->screen_height = -1;
++  output->loopcount = -2;
++  output->colormap_size = options->colors;
++  output->colormap_algorithm = COLORMAP_DIVERSITY;
++  output->dither_type = dither_none;
++  output->dither_name = "none";
++  output->colormap_gamma_type = options->gamma_type;
++  output->colormap_gamma = options->gamma;
++  output->optimizing = options->optimize;
++  output->scaling = GT_SCALING_NONE;
++  output->scale_method = SCALE_METHOD_MIX;
++}
++
++static int
++process(const uint8_t *data, uint32_t length,
++        const Gifsicle_BridgeOptions *options)
++{
++  Gif_Record input_record;
++  Gif_ReadLimits limits;
++  Gif_Stream *source;
++  Gif_Stream *result;
++  Gt_Frameset bridge_frames;
++  Gt_OutputData output_data;
++  int huge_stream = 0;
++  int compress_immediately;
++  int i;
++
++  input_record.data = data;
++  input_record.length = length;
++  limits.max_frames = GIFSICLE_BRIDGE_MAX_FRAMES;
++  limits.max_logical_area = GIFSICLE_BRIDGE_MAX_AREA;
++  limits.max_total_frame_area = GIFSICLE_BRIDGE_MAX_AREA;
++
++  no_warnings = 1;
++  error_count = 0;
++  serious_read_error = 0;
++  clp = 0;
++  set_diagnostic_handler(gifsicle_bridge_append_error);
++
++  source = Gif_FullReadRecordLimited(
++    &input_record,
++    GIF_READ_UNCOMPRESSED | GIF_READ_CONST_RECORD,
++    "<input>",
++    &limits,
++    bridge_read_error
++  );
++  if (!source
++      || source->read_status == GIF_READ_STATUS_LIMIT
++      || serious_read_error
++      || source->nimages == 0) {
++    Gif_DeleteStream(source);
++    set_diagnostic_handler(0);
++    return GIFSICLE_BRIDGE_INVALID_INPUT;
++  }
++
++  bridge_frames.count = source->nimages;
++  bridge_frames.cap = source->nimages;
++  bridge_frames.f = Gif_NewArray(Gt_Frame, source->nimages);
++  for (i = 0; i < source->nimages; ++i) {
++    initialize_frame(&bridge_frames.f[i], source, source->images[i]);
++    source->refcount++;
++    source->images[i]->refcount++;
++  }
++  source->refcount++;
++
++  initialize_output(&output_data, options);
++  Gif_InitCompressInfo(&gif_write_info);
++  gif_write_info.loss = options->lossy;
++  gif_write_info.flags = options->careful
++    ? GIF_WRITE_CAREFUL_MIN_CODE_SIZE | GIF_WRITE_EAGER_CLEAR : 0;
++
++  compress_immediately = options->optimize == 0
++    && options->colors == 0
++    && options->lossy == 0
++    && !options->careful;
++  result = merge_frame_interval(
++    &bridge_frames, 0, -1, &output_data, compress_immediately, &huge_stream
++  );
++  blank_frameset(&bridge_frames, 0, -1, 0);
++  Gif_DeleteArray(bridge_frames.f);
++  Gif_DeleteStream(source);
++
++  if (!result) {
++    set_diagnostic_handler(0);
++    return GIFSICLE_BRIDGE_PROCESSING_FAILED;
++  }
++
++  active_output_data = output_data;
++  kc_set_gamma(output_data.colormap_gamma_type, output_data.colormap_gamma);
++  if (output_data.colormap_size > 0)
++    gifsicle_apply_colormap(result);
++  if (output_data.optimizing & GT_OPT_MASK)
++    optimize_fragments(result, output_data.optimizing, huge_stream);
++
++  if (!Gif_FullWriteRecord(result, &gif_write_info, &output_record)) {
++    Gif_DeleteStream(result);
++    set_diagnostic_handler(0);
++    return GIFSICLE_BRIDGE_PROCESSING_FAILED;
++  }
++
++  Gif_DeleteStream(result);
++  set_diagnostic_handler(0);
++  return GIFSICLE_BRIDGE_OK;
++}
++
++void
++gifsicle_reset(void)
++{
++  Gif_FreeRecord(&output_record);
++  gifsicle_bridge_set_error(0);
++}
++
++int
++gifsicle_optimize(const uint8_t *data, uint32_t length,
++                   int optimize, int careful, int colors, int lossy,
++                   int gamma_type, double gamma)
++{
++  Gifsicle_BridgeOptions options;
++  int status;
++
++  gifsicle_reset();
++  options.optimize = optimize;
++  options.careful = careful;
++  options.colors = colors;
++  options.lossy = lossy;
++  options.gamma_type = gamma_type;
++  options.gamma = gamma;
++
++  Gif_SetAllocationFailureHandler(allocation_failed);
++  allocation_jump_active = 1;
++  if (setjmp(allocation_jump)) {
++    allocation_jump_active = 0;
++    Gif_SetAllocationFailureHandler(0);
++    gifsicle_bridge_set_error("WebAssembly memory allocation failed");
++    return GIFSICLE_BRIDGE_OUT_OF_MEMORY;
++  }
++
++  status = process(data, length, &options);
++  allocation_jump_active = 0;
++  Gif_SetAllocationFailureHandler(0);
++  return status;
++}
++
++const uint8_t *
++gifsicle_output_data(void)
++{
++  return output_record.data;
++}
++
++uint32_t
++gifsicle_output_size(void)
++{
++  return output_record.length;
++}
++
++
++const char *
++gifsicle_error_message(void)
++{
++  return error_message;
++}
+diff --git a/src/gifsicle_bridge.h b/src/gifsicle_bridge.h
+new file mode 100644
+index 0000000..5ece550
+--- /dev/null
++++ b/src/gifsicle_bridge.h
+@@ -0,0 +1,34 @@
++/* gifsicle_bridge.h - Filesystem-free WebAssembly interface.
++   Copyright (C) 2026 Andrey Warkentin
++   SPDX-License-Identifier: GPL-2.0-only */
++
++#ifndef GIFSICLE_BRIDGE_H
++#define GIFSICLE_BRIDGE_H
++
++#include <stddef.h>
++#include <stdint.h>
++#include <lcdfgif/gif.h>
++
++#define GIFSICLE_BRIDGE_MAX_FRAMES 100000U
++#define GIFSICLE_BRIDGE_MAX_AREA UINT64_C(134217728)
++
++enum {
++  GIFSICLE_BRIDGE_OK = 0,
++  GIFSICLE_BRIDGE_INVALID_INPUT = 1,
++  GIFSICLE_BRIDGE_PROCESSING_FAILED = 2,
++  GIFSICLE_BRIDGE_OUT_OF_MEMORY = 3
++};
++
++typedef struct {
++  int optimize;
++  int careful;
++  int colors;
++  int lossy;
++  int gamma_type;
++  double gamma;
++} Gifsicle_BridgeOptions;
++
++void gifsicle_bridge_set_error(const char *message);
++void gifsicle_bridge_append_error(const char *message, size_t length);
++
++#endif
+diff --git a/src/gifwrite.c b/src/gifwrite.c
+index a087a71..a737070 100644
+--- a/src/gifwrite.c
++++ b/src/gifwrite.c
+@@ -129,27 +129,53 @@ file_block_putter(const uint8_t *block, size_t size, Gif_Writer *grr)
+ }
+ 
+ 
++static int
++memory_reserve(Gif_Writer *grr, size_t len)
++{
++  uint32_t cap;
++  uint8_t *v;
++  if (grr->errors)
++    return 0;
++  if (len > UINT32_MAX - grr->pos) {
++    grr->errors = 1;
++    return 0;
++  }
++  cap = grr->cap;
++  while (grr->pos + len > cap) {
++    if (cap == 0)
++      cap = 1024;
++    else if (cap > UINT32_MAX / 2)
++      cap = UINT32_MAX;
++    else
++      cap *= 2;
++    if (cap < grr->pos + len) {
++      grr->errors = 1;
++      return 0;
++    }
++  }
++  if (cap != grr->cap) {
++    v = Gif_Realloc(grr->v, sizeof(uint8_t), cap, __FILE__, __LINE__);
++    if (!v) {
++      grr->errors = 1;
++      return 0;
++    }
++    grr->v = v;
++    grr->cap = cap;
++  }
++  return 1;
++}
++
+ static void
+ memory_byte_putter(uint8_t b, Gif_Writer *grr)
+ {
+-  if (grr->pos >= grr->cap) {
+-    grr->cap = (grr->cap ? grr->cap * 2 : 1024);
+-    Gif_ReArray(grr->v, uint8_t, grr->cap);
+-  }
+-  if (grr->v) {
+-    grr->v[grr->pos] = b;
+-    grr->pos++;
+-  }
++  if (memory_reserve(grr, 1))
++    grr->v[grr->pos++] = b;
+ }
+ 
+ static void
+ memory_block_putter(const uint8_t *data, size_t len, Gif_Writer *grr)
+ {
+-  while (grr->pos + len >= grr->cap) {
+-    grr->cap = (grr->cap ? grr->cap * 2 : 1024);
+-    Gif_ReArray(grr->v, uint8_t, grr->cap);
+-  }
+-  if (grr->v) {
++  if (memory_reserve(grr, len)) {
+     memcpy(grr->v + grr->pos, data, len);
+     grr->pos += len;
+   }
+@@ -194,7 +220,7 @@ gif_writer_init(Gif_Writer* grr, FILE* f, const Gif_CompressInfo* gcinfo)
+     grr->byte_putter = memory_byte_putter;
+     grr->block_putter = memory_block_putter;
+   }
+-  return gfc_init(&grr->code_table, gcinfo);
++  return gfc_init(&grr->code_table, &grr->gcinfo);
+ }
+ 
+ static void
+@@ -951,14 +977,16 @@ write_image(Gif_Stream* gfs, Gif_Image* gfi, Gif_Writer* grr)
+     }
+ 
+   } else if (!gfi->img) {
+-    Gif_UncompressImage(gfs, gfi);
+-    write_compressed_data(gfs, gfi, min_code_bits, grr);
++    int ok = Gif_UncompressImage(gfs, gfi)
++      && write_compressed_data(gfs, gfi, min_code_bits, grr);
+     Gif_ReleaseUncompressedImage(gfi);
++    return ok && !grr->errors;
+ 
+   } else
+-    write_compressed_data(gfs, gfi, min_code_bits, grr);
++    return write_compressed_data(gfs, gfi, min_code_bits, grr)
++      && !grr->errors;
+ 
+-  return 1;
++  return !grr->errors;
+ }
+ 
+ 
+@@ -1141,11 +1169,44 @@ Gif_FullWriteFile(Gif_Stream *gfs, const Gif_CompressInfo *gcinfo,
+ {
+   Gif_Writer grr;
+   int ok = gif_writer_init(&grr, f, gcinfo)
+-           && write_gif(gfs, &grr);
++           && write_gif(gfs, &grr)
++           && !grr.errors;
+   gif_writer_cleanup(&grr);
+   return ok;
+ }
+ 
++int
++Gif_FullWriteRecord(Gif_Stream *gfs, const Gif_CompressInfo *gcinfo,
++                    Gif_Record *record)
++{
++  Gif_Writer grr;
++  int ok;
++  if (!record)
++    return 0;
++  record->data = NULL;
++  record->length = 0;
++  ok = gif_writer_init(&grr, NULL, gcinfo)
++    && write_gif(gfs, &grr)
++    && !grr.errors;
++  if (ok) {
++    record->data = grr.v;
++    record->length = grr.pos;
++    grr.v = NULL;
++  }
++  gif_writer_cleanup(&grr);
++  return ok;
++}
++
++void
++Gif_FreeRecord(Gif_Record *record)
++{
++  if (record) {
++    Gif_DeleteArray(record->data);
++    record->data = NULL;
++    record->length = 0;
++  }
++}
++
+ 
+ Gif_Writer*
+ Gif_IncrementalWriteFileInit(Gif_Stream* gfs, const Gif_CompressInfo* gcinfo,
+diff --git a/src/support.c b/src/support.c
+index 60e6f86..5d78f26 100644
+--- a/src/support.c
++++ b/src/support.c
+@@ -20,6 +20,13 @@ const char *program_name = "gifsicle";
+ static int verbose_pos = 0;
+ int error_count = 0;
+ int no_warnings = 0;
++static Gt_DiagnosticHandler diagnostic_handler;
++
++void
++set_diagnostic_handler(Gt_DiagnosticHandler handler)
++{
++    diagnostic_handler = handler;
++}
+ 
+ 
+ static void
+@@ -49,7 +56,10 @@ verror(const char* landmark, int need_file,
+     snprintf(pbuf, sizeof(pbuf), xfmt, program_name, landmark, *landmark ? ":" : "");
+     p = strlen(pbuf);
+ 
+-    Clp_vsnprintf(clp, buf, sizeof(buf), fmt, val);
++    if (clp)
++        Clp_vsnprintf(clp, buf, sizeof(buf), fmt, val);
++    else
++        vsnprintf(buf, sizeof(buf), fmt, val);
+     n = strlen(buf);
+     if ((size_t) n + 1 < sizeof(buf) && (n == 0 || buf[n - 1] != '\n')) {
+         buf[n++] = '\n';
+@@ -73,7 +83,10 @@ verror(const char* landmark, int need_file,
+         error_count++;
+ 
+     verbose_endline();
+-    fwrite(xbuf, 1, xi, stderr);
++    if (diagnostic_handler)
++        diagnostic_handler(xbuf, xi);
++    else
++        fwrite(xbuf, 1, xi, stderr);
+ }
+ 
+ void fatal_error(const char* format, ...) {

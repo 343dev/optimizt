@@ -1,0 +1,62 @@
+# Win32 Makefile originally by Emil Mikulic <darkmoon@connexus.net.au>
+# Updates by Eddie Kohler <ekohler@gmail.com> and
+# Steven Marthouse <comments@vrml3d.com>
+
+# This makefile should work under Win32 (95/98/NT/whatever) or Win64.
+# It should work out-of-the-box with Visual C++ 5.
+#
+# C:\GIFSICLE> nmake -f Makefile.w32
+
+# *** MAKING UNGIFSICLE ***
+# If `GIFWRITE_OBJ' is defined to `gifwrite.obj', Gifsicle will use
+# Unisys-patented LZW compression. If it is defined to `ungifwrt.obj', it
+# will use unpatented run-length compression, which creates larger GIFs but
+# is completely free software. If you downloaded the ungifsicle package,
+# which doesn't have `gifwrite.c', you MUST define `GIFWRITE_OBJ' to
+# `ungifwrt.obj' by commenting the first line below and uncommenting the
+# second.
+GIFWRITE_OBJ = gifwrite.obj
+#GIFWRITE_OBJ = ungifwrt.obj
+
+CC = cl
+CFLAGS = -I.. -I..\include -DHAVE_CONFIG_H -D_CONSOLE /W2 /O2
+LDLIBS = setargv.obj
+
+GIFSICLE_OBJS = clp.obj fmalloc.obj giffunc.obj gifread.obj gifunopt.obj \
+	$(GIFWRITE_OBJ) merge.obj optimize.obj quantize.obj support.obj \
+	xform.obj gifsicle.obj
+
+GIFDIFF_OBJS = clp.obj fmalloc.obj giffunc.obj gifread.obj gifdiff.obj
+
+.c.obj:
+	$(CC) $(CFLAGS) /c $<
+
+gifsicle.exe: $(GIFSICLE_OBJS)
+	$(CC) $(CFLAGS) /Fegifsicle.exe $(GIFSICLE_OBJS) /link $(LDLIBS)
+
+gifdiff.exe: $(GIFDIFF_OBJS)
+	$(CC) $(CFLAGS) /Fegifdiff.exe $(GIFDIFF_OBJS) /link $(LDLIBS)
+
+clp.obj: ..\config.h ..\include\lcdf\clp.h clp.c
+
+fmalloc.obj: ..\config.h fmalloc.c
+
+giffunc.obj: ..\config.h giffunc.c ..\include\lcdfgif\gif.h
+gifread.obj: ..\config.h gifread.c ..\include\lcdfgif\gif.h
+gifwrite.obj: ..\config.h gifwrite.c ..\include\lcdfgif\gif.h
+ungifwrt.obj: ..\config.h ungifwrt.c ..\include\lcdfgif\gif.h
+gifunopt.obj: ..\config.h gifunopt.c ..\include\lcdfgif\gif.h
+
+merge.obj: ..\config.h gifsicle.h merge.c
+optimize.obj: ..\config.h gifsicle.h optimize.c
+quantize.obj: ..\config.h gifsicle.h quantize.c
+support.obj: ..\config.h gifsicle.h support.c
+xform.obj: ..\config.h gifsicle.h xform.c
+gifsicle.obj: ..\config.h gifsicle.h gifsicle.c
+
+..\config.h: win32cfg.h
+	copy win32cfg.h ..\config.h
+
+clean:
+	del *.obj
+	del *.exe

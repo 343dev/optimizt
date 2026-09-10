@@ -1,5 +1,6 @@
 const state = {
 	activeChildren: new Set(),
+	activeCancellations: new Set(),
 	forceExitTimer: undefined,
 	interruptCount: 0,
 	interruptedSignal: undefined,
@@ -14,6 +15,16 @@ export function registerChild(child) {
 	if (isInterrupted()) child.kill('SIGTERM');
 }
 
+export function registerCancellable(cancel, completion) {
+	state.activeCancellations.add(cancel);
+	void completion.then(
+		() => state.activeCancellations.delete(cancel),
+		() => state.activeCancellations.delete(cancel),
+	);
+
+	if (isInterrupted()) void cancel();
+}
+
 export function installSignalHandlers() {
 	for (const signal of ['SIGINT', 'SIGTERM']) {
 		process.on(signal, () => {
@@ -22,6 +33,7 @@ export function installSignalHandlers() {
 			// A second interrupt is the emergency escape hatch and must not wait for cleanup.
 			if (state.interruptCount > 1) process.exit(signalExitCode(signal)); // eslint-disable-line n/no-process-exit
 			for (const child of state.activeChildren) child.kill('SIGTERM');
+			for (const cancel of state.activeCancellations) void cancel();
 			// Sharp offers no cancellation for a running pipeline, so shutdown is bounded
 			// instead: whatever is still native-bound loses the process after five seconds.
 			state.forceExitTimer = setTimeout(() => process.exit(signalExitCode(signal)), 5000); // eslint-disable-line n/no-process-exit
