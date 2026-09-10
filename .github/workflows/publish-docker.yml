@@ -8,6 +8,7 @@ on:
 env:
   IMAGE_NAME: 343dev/optimizt
   IMAGE_PLATFORMS: linux/amd64,linux/arm64
+  PACKAGE_JSON: packages/optimizt/package.json
 
 permissions:
   contents: read
@@ -24,7 +25,7 @@ jobs:
       - name: Define variables
         id: package
         run: |
-          version=$(node -p "require('./package.json').version")
+          version=$(node -p "require('./${{ env.PACKAGE_JSON }}').version")
           echo "pkg_version=${version}" >> "$GITHUB_OUTPUT"
 
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
@@ -39,7 +40,12 @@ jobs:
             exit 0
           fi
 
-          previous_version=$(git show "${before_sha}:package.json" | node -p "JSON.parse(require('node:fs').readFileSync(0, 'utf8')).version")
+          if ! previous_package=$(git show "${before_sha}:${{ env.PACKAGE_JSON }}" 2>/dev/null); then
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          previous_version=$(node -p "JSON.parse(process.argv[1]).version" "$previous_package")
 
           if [[ "${version}" == "${previous_version}" ]]; then
             echo "should_publish=false" >> "$GITHUB_OUTPUT"
@@ -62,6 +68,11 @@ jobs:
         if: steps.package.outputs.should_publish == 'true'
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
         with:
+          context: .
           push: true
           platforms: ${{ env.IMAGE_PLATFORMS }}
           tags: ${{ env.IMAGE_NAME }}:${{ steps.package.outputs.pkg_version }},${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: mode=max
+          sbom: true
