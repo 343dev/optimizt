@@ -24,8 +24,8 @@ node cli.js --quality 90 < input.jpg > output.jpg
 Guetzli is deliberately CPU- and memory-intensive. Upstream estimates
 approximately 300 MiB per megapixel and about one minute of CPU time per
 megapixel. The integration does not estimate or limit memory before encoding.
-WebAssembly's wasm32 address-space ceiling and the host operating system are the
-effective limits.
+WebAssembly's wasm64 address-space ceiling and the host operating system are the
+effective limits. The Guetzli runtime requires Node.js 24.0.0 or newer.
 
 Guetzli expects high-quality sRGB JPEG input with gamma 2.2. It ignores embedded
 color-profile metadata and produces sequential JPEG output. A true

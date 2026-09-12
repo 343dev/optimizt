@@ -18,5 +18,7 @@ The official release binary is corroborating evidence only. The source commit is
 - Emscripten SDK: 6.0.9
 - emsdk commit: `5eb0bde7585670252e8ba05e9d361627bffd08b5`
 - Emscripten compiler revision: `4e4223852a0835923411059a3929907d7df1232e`
+- WebAssembly target: `wasm64` (`-m64`), with a 16 GiB maximum linear memory
+- Exported pointer signatures use Emscripten `SIGNATURE_CONVERSIONS`; the JavaScript API continues to use numeric pointers
 
 The WebAssembly distribution is built from the unmodified Guetzli library sources plus `src/wasm/bridge.cc`. The original filesystem CLI and PNG reader are not compiled. The internal Optimizt integration intentionally supports JPEG input only and applies no preflight memory limit.

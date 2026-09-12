@@ -28,6 +28,16 @@ import { pathToFileURL } from 'node:url';
 const modulePath = `${process.env.GUETZLI_VERIFY_ROOT}/dist/guetzli.mjs`;
 const createModule = (await import(pathToFileURL(modulePath).href)).default;
 const module = await createModule();
+const largeAllocation = module._malloc(5 * 1024 ** 3);
+if (largeAllocation === 0) {
+  throw new Error('WebAssembly distribution cannot allocate beyond 4 GiB');
+}
+const probe = largeAllocation + 4 * 1024 ** 3;
+module.HEAPU8[probe] = 123;
+if (module.HEAPU8[probe] !== 123) {
+  throw new Error('WebAssembly distribution cannot address memory beyond 4 GiB');
+}
+module._free(largeAllocation);
 const expected = [
   '_free',
   '_guetzli_encode',

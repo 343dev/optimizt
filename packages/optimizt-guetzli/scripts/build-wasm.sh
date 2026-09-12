@@ -49,6 +49,7 @@ mkdir -p "$OUTPUT_DIR"
 # Compile the integration code separately so new warnings fail the build while
 # warning-only issues in the unmodified 2017 upstream snapshot remain visible.
 "$EMXX" \
+  -m64 \
   -O3 \
   -DNDEBUG \
   -std=c++11 \
@@ -68,6 +69,7 @@ for source in "${sources[@]}"; do
   object="$OUTPUT_DIR/upstream/${relative%.cc}.o"
   mkdir -p "$(dirname "$object")"
   "$EMXX" \
+    -m64 \
     -O3 \
     -DNDEBUG \
     -std=c++11 \
@@ -81,6 +83,7 @@ for source in "${sources[@]}"; do
 done
 
 "$EMXX" \
+  -m64 \
   -O3 \
   -DNDEBUG \
   -std=c++11 \
@@ -90,7 +93,8 @@ done
   -sEXPORT_ES6=1 \
   -sENVIRONMENT=node \
   -sALLOW_MEMORY_GROWTH=1 \
-  -sMAXIMUM_MEMORY=4GB \
+  -sMAXIMUM_MEMORY=16GB \
+  -sSIGNATURE_CONVERSIONS=guetzli_encode:_pp_,guetzli_output_data:p,guetzli_output_size:p \
   -sFILESYSTEM=0 \
   -sINCOMING_MODULE_JS_API= \
   -sEXPORTED_FUNCTIONS=_malloc,_free,_guetzli_encode,_guetzli_output_data,_guetzli_output_size \

@@ -31,7 +31,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.22.1'
+          node-version: '24.18.0'
 
       - run: npm install --global @343dev/optimizt
 

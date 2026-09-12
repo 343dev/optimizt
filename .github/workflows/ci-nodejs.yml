@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        node-version: [22.22.1, latest]
+        node-version: [24.18.0, latest]
         os: [
             ubuntu-latest, # x64
             ubuntu-24.04-arm, # arm64
@@ -22,7 +22,7 @@ jobs:
           ]
         include:
           - os: windows-latest
-            node-version: 22.22.1
+            node-version: 24.18.0
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5

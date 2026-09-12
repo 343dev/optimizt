@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22.22.1-alpine3.23 AS build
+FROM node:24.18.0-alpine3.23 AS build
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ RUN --mount=type=cache,target=/root/.npm,sharing=locked \
 	&& npm pack --workspace @343dev/optimizt --ignore-scripts --pack-destination /tmp \
 	&& mv /tmp/343dev-optimizt-*.tgz /tmp/optimizt.tgz
 
-FROM node:22.22.1-alpine3.23
+FROM node:24.18.0-alpine3.23
 LABEL maintainer="Andrey Warkentin (https://github.com/343dev)"
 
 COPY --from=build /tmp/optimizt.tgz /tmp/optimizt.tgz
