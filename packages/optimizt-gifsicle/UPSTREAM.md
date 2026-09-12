@@ -43,3 +43,8 @@ and optimization logic while making exact cross-platform parity deterministic.
 The exact native/WebAssembly cases and hashes are retained in
 `verification/parity-manifest.json` and checked by `npm run verify:parity`. The
 canonical native toolchain is documented in `verification/native-reference.md`.
+
+The WebAssembly build targets wasm64 with Emscripten's `-m64` option and allows
+linear memory to grow to 16 GiB. Pointer-bearing exported functions use
+Emscripten signature conversions so the existing JavaScript API continues to
+receive numeric pointers.

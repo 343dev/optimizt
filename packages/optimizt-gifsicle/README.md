@@ -5,7 +5,8 @@ monorepo. This directory is not a public package.
 
 The internal runtime accepts a `Buffer` or `Uint8Array` containing one GIF and
 returns a `Promise<Buffer>`. Every operation uses a fresh Worker Thread and
-WebAssembly instance. The module has no filesystem interface, runtime
+WebAssembly instance. The module uses wasm64 linear memory with a 16 GiB maximum
+and requires Node.js 24.0.0 or newer. It has no filesystem interface, runtime
 dependencies, native executables, install scripts, platform allowlist, or
 first-run downloads.
 

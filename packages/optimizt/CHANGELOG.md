@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **BREAKING:** Guetzli now uses wasm64 and requires Node.js 24.0.0 or newer.
+- **BREAKING:** Guetzli and Gifsicle now use wasm64 and require Node.js 24.0.0 or newer.
 - **BREAKING:** Processing now exits with status `1` when argument validation, filesystem preflight, configuration loading, or any image operation fails. Independent valid operations continue after runtime failures, and valid empty directories remain successful no-ops.
 - **BREAKING:** Human-readable status, progress, warnings, errors, and summaries now use `stderr`. `stdout` is reserved for help and version output and remains empty during normal image processing.
 - **BREAKING:** Missing or inaccessible explicit operands and explicitly supplied files with unsupported extensions now fail instead of being silently ignored. Unsupported files discovered while traversing directories remain ignored.

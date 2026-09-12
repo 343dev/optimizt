@@ -94,11 +94,8 @@ test('accepts exactly 128 MiB and rejects one byte more before Worker creation',
 	assert.ok(await optimize(atLimit) instanceof Buffer);
 
 	const overLimit = Buffer.allocUnsafe(128 * 1024 * 1024 + 1);
-	// Node marks this API experimental despite supporting it in every required release.
-	// eslint-disable-next-line n/no-unsupported-features/node-builtins
 	const before = process.getActiveResourcesInfo();
 	await expectCode(optimize(overLimit), errorCodes.INVALID_INPUT);
-	// eslint-disable-next-line n/no-unsupported-features/node-builtins
 	assert.deepEqual(process.getActiveResourcesInfo(), before);
 });
 
@@ -157,11 +154,8 @@ test('classifies malformed GIF input and recovers supported truncation', async (
 test('settles only after its Worker resource exits', async () => {
 	const fixture = await readFile(fixtureUrl);
 	const operation = optimize(fixture);
-	// Node marks this API experimental despite supporting it in every required release.
-	// eslint-disable-next-line n/no-unsupported-features/node-builtins
 	assert.ok(process.getActiveResourcesInfo().includes('MessagePort'));
 	await operation;
-	// eslint-disable-next-line n/no-unsupported-features/node-builtins
 	assert.ok(!process.getActiveResourcesInfo().includes('MessagePort'));
 });
 

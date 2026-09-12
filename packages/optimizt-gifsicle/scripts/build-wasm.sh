@@ -57,6 +57,7 @@ sources=(
 objects=()
 mkdir -p "$build_dir/objects" "$OUTPUT_DIR"
 "$EMCC" \
+  -m64 \
   -O3 \
   -DNDEBUG \
   -DHAVE_CONFIG_H=1 \
@@ -76,6 +77,7 @@ for source in "${sources[@]}"; do
     extra+=(-Dmain=gifsicle_cli_main)
   fi
   "$EMCC" \
+    -m64 \
     -O3 \
     -DNDEBUG \
     -DHAVE_CONFIG_H=1 \
@@ -90,6 +92,7 @@ for source in "${sources[@]}"; do
 done
 
 "$EMCC" \
+  -m64 \
   -O3 \
   -DNDEBUG \
   "${objects[@]}" \
@@ -97,7 +100,8 @@ done
   -sEXPORT_ES6=1 \
   -sENVIRONMENT=node \
   -sALLOW_MEMORY_GROWTH=1 \
-  -sMAXIMUM_MEMORY=4GB \
+  -sMAXIMUM_MEMORY=16GB \
+  -sSIGNATURE_CONVERSIONS=gifsicle_optimize:_p_______,gifsicle_output_data:p,gifsicle_error_message:p \
   -sFILESYSTEM=0 \
   -sINCOMING_MODULE_JS_API=print,printErr \
   -sEXPORTED_FUNCTIONS=_malloc,_free,_gifsicle_optimize,_gifsicle_output_data,_gifsicle_output_size,_gifsicle_error_message,_gifsicle_reset \
