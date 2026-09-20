@@ -1,7 +1,7 @@
 {
 	"name": "@343dev/optimizt",
 	"version": "13.0.0",
-	"description": "CLI image optimization tool",
+	"description": "Optimize images in place or create AVIF and WebP variants",
 	"keywords": [
 		"svg",
 		"png",

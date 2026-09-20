@@ -26,7 +26,7 @@ describe('eligibility', () => {
 		const result = await runCli([notAnImage]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain(`Unsupported explicit file: ${notAnImage}`);
+		expect(result.stderr).toContain(`Unable to process ${notAnImage}`);
 	});
 
 	test('unsupported files discovered inside a directory are ignored', async () => {
@@ -48,7 +48,7 @@ describe('eligibility', () => {
 		const result = await runCli(['--webp', svgPath]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain(`Unsupported explicit file: ${svgPath}`);
+		expect(result.stderr).toContain(`Unable to process ${svgPath}`);
 	});
 
 	test.skipIf(isWindows || isPrivileged)('an incomplete directory traversal fails before any image changes', async () => {
@@ -85,7 +85,7 @@ describe('operand normalization', () => {
 		expect(result.code).toBe(0);
 		expect(result.stderr).toContain('Optimizing 1 image');
 		expect(result.stderr).toContain(summaryLine('1 processed'));
-		expect(result.stderr).toContain(`Duplicate of '${imagePath}'`);
+		expect(result.stderr).toContain(`Duplicate of "${imagePath}". Skipped.`);
 	});
 
 	test('deduplication stays quiet without verbose output', async () => {
@@ -111,7 +111,7 @@ describe('operand normalization', () => {
 		expect(result.code).toBe(0);
 		expect(result.stderr).toContain('Optimizing 2 images');
 		expect(result.stderr).toContain(summaryLine('2 processed'));
-		expect(result.stderr).toContain('Already planned once');
+		expect(result.stderr).toContain('Already included. Skipped duplicate.');
 	});
 
 	test('an output root accepts the same directory spelled two ways', async () => {
@@ -165,7 +165,7 @@ describe('output mapping', () => {
 		const result = await runCli(['--output', output, imagePath]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain(`Output path does not exist or is inaccessible: ${output}`);
+		expect(result.stderr).toContain(`Output directory does not exist or is inaccessible: ${output}`);
 		expect(await exists(output)).toBe(false);
 	});
 
@@ -179,7 +179,7 @@ describe('output mapping', () => {
 		const result = await runCli(['--webp', '--output', output, imagePath]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain(`Output target is not a regular file: ${blockedTarget}`);
+		expect(result.stderr).toContain(`Unable to replace output file ${blockedTarget}`);
 		await expect(fs.readdir(blockedTarget)).resolves.toEqual([]);
 	});
 
@@ -193,7 +193,7 @@ describe('output mapping', () => {
 		const result = await runCli(['--output', output, path.join(directory, 'input')]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain('Output parent is not a directory');
+		expect(result.stderr).toContain('Remove the conflicting file or choose a different --output directory.');
 		await expect(fs.readFile(path.join(output, 'nested'), 'utf8')).resolves.toBe('occupied by a file');
 		await expect(fileSize(imagePath)).resolves.toBeGreaterThan(0);
 	});
@@ -207,7 +207,7 @@ describe('output mapping', () => {
 		const result = await runCli(['--output', outputPath, imagePath]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain(`Output path is not a directory: ${outputPath}`);
+		expect(result.stderr).toContain(`Unable to use output directory ${outputPath}`);
 	});
 });
 
@@ -222,7 +222,7 @@ describe('collisions', () => {
 		const result = await runCli(['--output', output, path.join(directory, 'first'), path.join(directory, 'second')]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain('Output collision');
+		expect(result.stderr).toContain('Multiple inputs produce the same output file');
 		expect(await fs.readdir(output)).toEqual([]);
 	});
 
@@ -241,7 +241,7 @@ describe('collisions', () => {
 		const result = await runCli(arguments_);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain('Output collision');
+		expect(result.stderr).toContain('Multiple inputs produce the same output file');
 		await expect(fs.readdir(output)).resolves.toEqual([]);
 	});
 
@@ -255,7 +255,7 @@ describe('collisions', () => {
 		const result = await runCli(['--output', output, input, path.join(input, 'nested')]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain('Overlapping directory operands cannot be used with --output');
+		expect(result.stderr).toContain('Unable to use overlapping input directories with --output');
 		expect(await fs.readdir(output)).toEqual([]);
 	});
 });
@@ -270,7 +270,7 @@ describe('generated names', () => {
 		const result = await runCli(['--prefix', '<unsafe>', '--output', output, imagePath]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain('not portable');
+		expect(result.stderr).toContain('create a portable filename');
 		expect(await fs.readdir(output)).toEqual([]);
 	});
 

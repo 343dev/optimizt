@@ -21,7 +21,7 @@ program
 	.option('-f, --force', 'replace existing conversion targets')
 	.option('-l, --lossless', 'use the lossless processing profile')
 	.option('-v, --verbose', 'show skipped and deduplicated work')
-	.option('-c, --config <path>', 'replace defaults with this executable CJS configuration')
+	.option('-c, --config <path>', 'use this CJS configuration file instead of the defaults')
 	.option('-o, --output <path>', 'write under an existing output directory')
 	.option('-p, --prefix <text>', 'add a prefix to output file names')
 	.option('-s, --suffix <text>', 'add a suffix to output file names')
@@ -30,7 +30,7 @@ program
 	.allowExcessArguments()
 	.usage('[options] [--] <dir|file ...>')
 	.version(packageJson.version, '-V, --version')
-	.description(`${packageJson.description}. Optimizes in place by default; --avif and --webp create variants.`)
+	.description(`${packageJson.description}.`)
 	.exitOverride();
 
 let exitCode = 0;

@@ -97,7 +97,7 @@ describe('atomic replacement', () => {
 		const result = await runCli([imagePath]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain(`Refusing to replace multiply hard-linked file: ${imagePath}`);
+		expect(result.stderr).toContain(`Unable to replace output file ${imagePath}`);
 		const current = await fs.readFile(imagePath);
 		expect(current.equals(before)).toBe(true);
 	});
@@ -187,7 +187,7 @@ describe.skipIf(isWindows)('symbolic links', () => {
 		const result = await runCli(['--force', '--webp', '--output', output, imagePath]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain('Output escapes permitted root');
+		expect(result.stderr).toContain('Unable to write outside the output directory');
 		await expect(fs.readFile(escapeTarget, 'utf8')).resolves.toBe('outside the root');
 	});
 });

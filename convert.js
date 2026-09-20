@@ -32,7 +32,7 @@ export async function convert({ operations, config, configPath }) {
 		return;
 	}
 
-	log(`Converting ${filePathsCount} ${getPlural(filePathsCount, 'image', 'images')} (${isLossless ? 'lossless' : 'lossy'})...`);
+	log(`Converting ${filePathsCount} ${getPlural(filePathsCount, 'image', 'images')} (${isLossless ? 'lossless' : 'lossy'})`);
 
 	const progressBarTotal = operations.length;
 	const progressBarContainer = createProgressBarContainer(progressBarTotal);
@@ -91,7 +91,7 @@ async function processFile({
 	try {
 		if (skipReason) {
 			logProgressVerbose(getRelativePath(outputFilePath), {
-				description: `File already exists, '${outputFilePath}'`,
+				description: `Output file already exists: ${outputFilePath}. Use --force to replace it.`,
 				progressBarContainer,
 			});
 
@@ -135,7 +135,7 @@ async function processAvif({ fileBuffer, config, configPath, isLossless }) {
 	const isAnimated = imageMetadata.pages > 1;
 
 	if (isAnimated) {
-		throw new Error('Animated AVIF is not supported'); // See: https://github.com/strukturag/libheif/issues/377
+		throw new Error('Unable to create an animated AVIF. Use WebP or provide a non-animated image.'); // See: https://github.com/strukturag/libheif/issues/377
 	}
 
 	// Only the codec call is enriched, so detection and support errors keep speaking for themselves.
@@ -167,7 +167,7 @@ async function processWebp({ fileBuffer, config, configPath, isLossless }) {
 
 function checkImageFormat(imageFormat) {
 	if (!imageFormat) {
-		throw new Error('Unknown file format');
+		throw new Error('Unable to read the image format. Check that the file is a valid, supported image.');
 	}
 
 	if (!SUPPORTED_FILE_TYPES.CONVERT.includes(imageFormat)) {

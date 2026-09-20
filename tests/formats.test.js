@@ -109,7 +109,7 @@ describe('conversion by format', () => {
 
 		expect(result.code).toBe(1);
 		expect(result.stderr).toContain(summaryLine('1 failed'));
-		expect(result.stderr).toContain('Animated AVIF is not supported');
+		expect(result.stderr).toContain('Unable to create an animated AVIF');
 		await expect(fs.stat(path.join(directory, 'gif-not-optimized.avif'))).rejects.toThrow();
 	});
 });

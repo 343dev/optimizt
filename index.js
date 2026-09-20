@@ -35,11 +35,11 @@ export default async function optimizt({ inputPaths, outputDirectoryPath, config
 	try {
 		configData = await import(`${pathToFileURL(configPath).href}?loaded=${Date.now()}`);
 	} catch (error) {
-		throw new Error(`Could not load configuration ${configPath}: ${error.message}`, { cause: error });
+		throw new Error(`Unable to load configuration file ${configPath}: ${error.message}`, { cause: error });
 	}
 	const config = configData.default?.[currentMode];
 	if (!config || typeof config !== 'object' || Array.isArray(config)) {
-		throw new Error(`Configuration ${configPath} must define an object-valued "${currentMode}" section`);
+		throw new Error(`Unable to use configuration file ${configPath}. Define "${currentMode}" as an object.`);
 	}
 
 	if (isLossless) log('Lossless mode may take a long time; JPEG uses Guetzli and is not strictly lossless');

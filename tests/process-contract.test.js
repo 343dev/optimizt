@@ -27,7 +27,7 @@ describe('process contract', () => {
 		const result = await runCli(['--help', '--unknown', '/missing']);
 
 		expect(result.code).toBe(0);
-		expect(result.stdout).toContain('Optimizes in place by default');
+		expect(result.stdout).toContain('Optimize images in place or create AVIF and WebP variants.');
 		expect(result.stderr).toBe('');
 	});
 
@@ -159,7 +159,7 @@ describe('configuration', () => {
 		const result = await runCli(['--config', configPath, imagePath]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain(`Config file does not exist: ${configPath}`);
+		expect(result.stderr).toContain(`Configuration file does not exist: ${configPath}`);
 		expect(result.stderr).not.toContain('Configuration file is invalid');
 	});
 
@@ -170,7 +170,7 @@ describe('configuration', () => {
 		const result = await runCli(['--config', directory, imagePath]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain(`Config path does not refer to a file: ${directory}`);
+		expect(result.stderr).toContain(`Unable to use ${directory} as a configuration file`);
 		expect(result.stderr).not.toContain('Configuration file is invalid');
 	});
 
@@ -183,7 +183,7 @@ describe('configuration', () => {
 		const result = await runCli(['--config', configPath, imagePath]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain(`Could not load configuration ${configPath}`);
+		expect(result.stderr).toContain(`Unable to load configuration file ${configPath}`);
 		expect(result.stderr).toContain('broken configuration');
 		expect(result.stderr).not.toContain('    at ');
 	});
@@ -201,7 +201,7 @@ describe('configuration', () => {
 		const result = await runCli(['--config', configPath, imagePath]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain(`Configuration ${configPath} must define an object-valued "optimize" section`);
+		expect(result.stderr).toContain(`Unable to use configuration file ${configPath}. Define "optimize" as an object.`);
 	});
 
 	test('a custom configuration replaces the bundled defaults for the selected mode', async () => {
@@ -229,7 +229,7 @@ describe('configuration', () => {
 
 		expect(result.code).toBe(1);
 		expect(result.stderr).toContain(summaryLine('1 failed'));
-		expect(result.stderr).toContain(`optimize png (lossy) using ${configPath}:`);
+		expect(result.stderr).toContain(`Unable to optimize the PNG image with the lossy profile and configuration file ${configPath}:`);
 		// The codec keeps ownership of the option schema, so its own reason survives.
 		expect(result.stderr).toContain('compressionLevel');
 		expect(result.stderr).not.toContain('    at ');
@@ -244,7 +244,7 @@ describe('configuration', () => {
 		const result = await runCli(['--lossless', '--config', configPath, '--avif', imagePath]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain(`convert avif (lossless) using ${configPath}:`);
+		expect(result.stderr).toContain(`Unable to convert the image to AVIF with the lossless profile and configuration file ${configPath}:`);
 		expect(result.stderr).toContain('quality');
 	});
 
@@ -256,7 +256,7 @@ describe('configuration', () => {
 		const result = await runCli([notAnImage]);
 
 		expect(result.code).toBe(1);
-		expect(result.stderr).toContain('Unknown file format');
+		expect(result.stderr).toContain('Unable to read the image format');
 		expect(result.stderr).not.toContain('using ');
 	});
 

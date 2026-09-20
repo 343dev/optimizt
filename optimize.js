@@ -39,7 +39,7 @@ export async function optimize({ operations, config, configPath }) {
 		return;
 	}
 
-	log(`Optimizing ${filePathsCount} ${getPlural(filePathsCount, 'image', 'images')} (${isLossless ? 'lossless' : 'lossy'})...`);
+	log(`Optimizing ${filePathsCount} ${getPlural(filePathsCount, 'image', 'images')} (${isLossless ? 'lossless' : 'lossy'})`);
 
 	const progressBarContainer = createProgressBarContainer(filePathsCount);
 	const progressBar = progressBarContainer.create(filePathsCount, 0);
@@ -141,7 +141,7 @@ async function processFileByFormat({ fileBuffer, config, configPath, isLossless 
 	const format = imageMetadata.format;
 
 	if (!format) {
-		throw new Error('Unknown file format');
+		throw new Error('Unable to read the image format. Check that the file is a valid, supported image.');
 	}
 
 	const processByFormat = PROCESS_BY_FORMAT.get(format);
@@ -242,12 +242,12 @@ function pipe({ command, commandOptions, inputBuffer }) {
 		});
 
 		process.on('error', (error) => {
-			reject(new Error(`Error processing image: ${error.message}`));
+			reject(new Error(`Unable to optimize the image: ${error.message}`));
 		});
 
 		process.on('close', (code) => {
 			if (code !== 0) {
-				reject(new Error(`Image optimization process exited with code ${code}`));
+				reject(new Error(`Unable to optimize the image. The encoder exited with code ${code}.`));
 				return;
 			}
 
