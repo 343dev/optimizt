@@ -111,13 +111,6 @@ Use `--config path/to/.optimiztrc.cjs` to load your own settings instead of the 
 > [!WARNING]
 > `.optimiztrc.cjs` is executable code and runs with your permissions. This applies whether Optimizt finds the file automatically or you select it with `--config`. Use Optimizt only in repositories you trust.
 
-## Troubleshooting
-
-### Errors like `spawn guetzli ENOENT`
-
-Make sure the [ignore-scripts](https://docs.npmjs.com/cli/v6/using-npm/config#ignore-scripts) npm option is disabled.
-Details: [funbox/optimizt/issues/9](https://github.com/funbox/optimizt/issues/9).
-
 ## Development
 
 After cloning the repository, enable Git hooks once:
