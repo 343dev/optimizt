@@ -8,13 +8,13 @@
 [![npm](https://img.shields.io/npm/v/@343dev/optimizt.svg)](https://www.npmjs.com/package/@343dev/optimizt)
 [![Docker](https://img.shields.io/docker/v/343dev/optimizt?label=Docker)](https://hub.docker.com/r/343dev/optimizt)
 
-**Optimizt** is a command-line tool that helps prepare images for the web.
+Optimizt is a command-line tool for compressing images and converting them to AVIF and WebP.
 
-It compresses PNG, JPEG, GIF, and SVG files and creates AVIF and WebP versions of raster images.
+It compresses PNG, JPEG, GIF, and SVG files. You can process individual files or entire directories, including their subdirectories.
 
 ## Why Optimizt?
 
-I built Optimizt because preparing images for the web meant switching between several tools. I wanted one command to compress images, clean up SVGs, and create AVIF and WebP versions.
+I built Optimizt while working on images for the web. I kept switching between tools to compress images and convert formats. I wanted one command-line tool for both.
 
 ## Usage
 
