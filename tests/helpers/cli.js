@@ -15,7 +15,10 @@ const temporaryDirectories = [];
 export { hasCaseSensitivePaths, isPrivileged, isWindows } from './platform.js';
 
 export async function makeTemporaryDirectory() {
-	const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'optimizt-test-'));
+	const createdDirectory = await fs.mkdtemp(path.join(os.tmpdir(), 'optimizt-test-'));
+	// macOS commonly exposes /tmp and /var through symbolic links. Use the
+	// canonical spelling because operation planning canonicalizes filesystem paths.
+	const directory = await fs.realpath(createdDirectory);
 	temporaryDirectories.push(directory);
 	return directory;
 }
