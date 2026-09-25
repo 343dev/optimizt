@@ -1,8 +1,12 @@
 import { canUseColor } from './stream-capabilities.js';
 
 export function colorize(...arguments_) {
+	return colorizeFor(undefined, ...arguments_);
+}
+
+export function colorizeFor(shouldUseColor, ...arguments_) {
 	const string_ = arguments_.join(' ');
-	const shouldColor = canUseColor();
+	const shouldColor = canUseColor(shouldUseColor);
 	const buildColor = (start, end) => `${shouldColor ? start : ''}${string_}${shouldColor ? end : ''}`;
 
 	return {

@@ -1,9 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { getRelativePath } from './get-relative-path.js';
-import { logProgressVerbose } from './log.js';
-
 const WINDOWS_RESERVED_NAME = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i;
 const INVALID_GENERATED_CHARACTERS = /[<>:"|?*]/;
 // A path that does not exist reports ENOENT, or ENOTDIR when one of its ancestors is a file.
@@ -32,13 +29,14 @@ export async function prepareOperationPlan({
 
 	// Operands are inspected in the given order so that deduplication keeps the first
 	// spelling and reports the rest deterministically.
+	const notices = [];
 	const operands = [];
 	const keptOperands = new Map();
 	for (const inputPath of inputPaths) {
 		const operand = await inspectOperand(inputPath, extensions);
 		const kept = keptOperands.get(pathKey(operand.realPath));
 		if (kept) {
-			reportDuplicate(operand, kept);
+			notices.push(duplicateNotice(operand, kept));
 			continue;
 		}
 		keptOperands.set(pathKey(operand.realPath), operand);
@@ -61,7 +59,7 @@ export async function prepareOperationPlan({
 	for (const input of discovered) {
 		const kept = uniqueInputs.get(pathKey(input.realPath));
 		if (kept) {
-			reportDuplicate(input, kept);
+			notices.push(duplicateNotice(input, kept));
 			continue;
 		}
 		uniqueInputs.set(pathKey(input.realPath), input);
@@ -82,7 +80,7 @@ export async function prepareOperationPlan({
 
 	operations.sort((left, right) => left.input.localeCompare(right.input) || left.format.localeCompare(right.format) || left.output.localeCompare(right.output));
 	await validateOutputs(operations, { force, outputRoot });
-	return operations;
+	return { notices, operations };
 }
 
 async function inspectOperand(inputPath, extensions) {
@@ -196,15 +194,12 @@ async function canonicalizeThroughExistingAncestor(output) {
 
 // Omitted work must be explainable, so deduplication is visible in verbose output. Two
 // operands can also reach one file through the same path, as overlapping roots do.
-function reportDuplicate(dropped, kept) {
-	// Explicit operands are named as the user spelled them; discovered files have only a path.
-	const droppedPath = getRelativePath(dropped.givenPath ?? dropped.operandPath);
-	const keptPath = getRelativePath(kept.givenPath ?? kept.operandPath);
-	logProgressVerbose(droppedPath, {
-		description: droppedPath === keptPath
-			? 'Already included. Skipped duplicate.'
-			: `Duplicate of "${keptPath}". Skipped.`,
-	});
+function duplicateNotice(dropped, kept) {
+	return {
+		droppedPath: dropped.givenPath ?? dropped.operandPath,
+		keptPath: kept.givenPath ?? kept.operandPath,
+		type: 'duplicate',
+	};
 }
 
 function validateDirectoryOverlap(directories) {

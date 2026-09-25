@@ -1,62 +1,60 @@
-const state = {
-	activeChildren: new Set(),
-	activeCancellations: new Set(),
-	forceExitTimer: undefined,
-	interruptCount: 0,
-	interruptedSignal: undefined,
-};
+export function createLifecycle({ forceExit = defaultForceExit, shutdownMilliseconds = 5000 } = {}) {
+	const state = {
+		activeChildren: new Set(),
+		activeCancellations: new Set(),
+		forceExitTimer: undefined,
+		interruptCount: 0,
+		interruptedSignal: undefined,
+		listeners: new Map(),
+	};
 
-export function registerChild(child) {
-	state.activeChildren.add(child);
-	child.once('close', () => state.activeChildren.delete(child));
-
-	// An operation already in flight can reach its external encoder after the interrupt
-	// arrived. No encoder may keep running once shutdown started, whenever it was spawned.
-	if (isInterrupted()) child.kill('SIGTERM');
-}
-
-export function registerCancellable(cancel, completion) {
-	state.activeCancellations.add(cancel);
-	void completion.then(
-		() => state.activeCancellations.delete(cancel),
-		() => state.activeCancellations.delete(cancel),
-	);
-
-	if (isInterrupted()) void cancel();
-}
-
-export function installSignalHandlers() {
-	for (const signal of ['SIGINT', 'SIGTERM']) {
-		process.on(signal, () => {
-			state.interruptCount += 1;
-			state.interruptedSignal ||= signal;
-			// A second interrupt is the emergency escape hatch and must not wait for cleanup.
-			if (state.interruptCount > 1) return forceExit(signal);
-			for (const child of state.activeChildren) child.kill('SIGTERM');
-			for (const cancel of state.activeCancellations) void cancel();
-			// Sharp offers no cancellation for a running pipeline, so shutdown is bounded
-			// instead: whatever is still native-bound loses the process after five seconds.
-			state.forceExitTimer = setTimeout(() => forceExit(signal), 5000);
-			state.forceExitTimer.unref();
-		});
+	function interrupt(signal) {
+		state.interruptCount += 1;
+		state.interruptedSignal ||= signal;
+		if (state.interruptCount > 1) return forceExit(signalExitCode(signal));
+		for (const child of state.activeChildren) child.kill('SIGTERM');
+		for (const cancel of state.activeCancellations) void cancel();
+		state.forceExitTimer = setTimeout(() => forceExit(signalExitCode(signal)), shutdownMilliseconds);
+		state.forceExitTimer.unref();
 	}
+
+	return Object.freeze({
+		finish() {
+			if (state.forceExitTimer) clearTimeout(state.forceExitTimer);
+			return state.interruptedSignal ? signalExitCode(state.interruptedSignal) : undefined;
+		},
+		install() {
+			for (const signal of ['SIGINT', 'SIGTERM']) {
+				const listener = interrupt.bind(undefined, signal);
+				state.listeners.set(signal, listener);
+				process.on(signal, listener);
+			}
+			return release.bind(undefined, state);
+		},
+		interrupt,
+		isInterrupted: () => Boolean(state.interruptedSignal),
+		registerCancellable(cancel, completion) {
+			state.activeCancellations.add(cancel);
+			void completion.finally(() => state.activeCancellations.delete(cancel)).catch(() => {});
+			if (state.interruptedSignal) void cancel();
+		},
+		registerChild(child) {
+			state.activeChildren.add(child);
+			child.once('close', () => state.activeChildren.delete(child));
+			if (state.interruptedSignal) child.kill('SIGTERM');
+		},
+	});
 }
 
-export function isInterrupted() {
-	return Boolean(state.interruptedSignal);
-}
-
-export function finishLifecycle() {
+function release(state) {
+	for (const [signal, listener] of state.listeners) process.removeListener(signal, listener);
+	state.listeners.clear();
 	if (state.forceExitTimer) clearTimeout(state.forceExitTimer);
-	return state.interruptedSignal ? signalExitCode(state.interruptedSignal) : undefined;
 }
 
-function forceExit(signal) {
-	// Forced shutdown must bypass synchronous exit hooks too: Sharp WASM's hook
-	// waits for libvips workers and can deadlock while a pipeline is still active.
-	// Normal completion keeps these hooks; only the emergency paths abandon cleanup.
+function defaultForceExit(code) {
 	process.removeAllListeners('exit');
-	process.exit(signalExitCode(signal)); // eslint-disable-line n/no-process-exit
+	process.exit(code); // eslint-disable-line n/no-process-exit
 }
 
 function signalExitCode(signal) {

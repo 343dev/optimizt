@@ -7,8 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { Command, CommanderError } from 'commander';
 
 import optimizt from './index.js';
-import { finishLifecycle, installSignalHandlers } from './lib/lifecycle.js';
-import { setProgramOptions } from './lib/program-options.js';
+import { createLifecycle } from './lib/lifecycle.js';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(await fs.readFile(path.join(dirname, 'package.json'), 'utf8'));
@@ -27,47 +26,38 @@ program
 	.option('-s, --suffix <text>', 'add a suffix to output file names')
 	.option('--no-color', 'disable color output')
 	.option('--debug', 'include stack traces and version details in errors')
-	.allowExcessArguments()
-	.usage('[options] [--] <dir|file ...>')
+	.allowExcessArguments().usage('[options] [--] <dir|file ...>')
 	.version(packageJson.version, '-V, --version')
 	.description(`${packageJson.description}.`)
 	.exitOverride();
 
 let exitCode = 0;
-installSignalHandlers();
+const lifecycle = createLifecycle();
+const releaseSignals = lifecycle.install();
 try {
 	program.parse(process.argv);
-	if (program.args.length === 0) {
-		program.outputHelp();
-	} else {
-		const options = program.opts();
-		if (options.force && !options.avif && !options.webp) throw new Error('--force requires --avif or --webp');
-		setProgramOptions({
-			filePrefix: options.prefix || '',
-			fileSuffix: options.suffix || '',
-			isForced: Boolean(options.force),
-			isLossless: Boolean(options.lossless),
-			isVerbose: Boolean(options.verbose),
-			shouldConvertToAvif: Boolean(options.avif),
-			shouldConvertToWebp: Boolean(options.webp),
+	if (program.args.length === 0) program.outputHelp();
+	else {
+		const parsed = program.opts();
+		if (parsed.force && !parsed.avif && !parsed.webp) throw new Error('--force requires --avif or --webp');
+		const options = Object.freeze({
+			filePrefix: parsed.prefix || '', fileSuffix: parsed.suffix || '', isForced: Boolean(parsed.force),
+			isLossless: Boolean(parsed.lossless), isVerbose: Boolean(parsed.verbose),
+			shouldConvertToAvif: Boolean(parsed.avif), shouldConvertToWebp: Boolean(parsed.webp),
+			shouldUseColor: parsed.color !== false && !process.env.NO_COLOR,
 		});
-		if (options.color === false) process.env.NO_COLOR = '1';
-		const result = await optimizt({
-			configFilePath: options.config,
-			inputPaths: program.args,
-			outputDirectoryPath: options.output,
-		});
+		const result = await optimizt({ configFilePath: parsed.config, inputPaths: program.args, lifecycle, options, outputDirectoryPath: parsed.output });
 		exitCode = result.failed > 0 ? 1 : 0;
 	}
 } catch (error) {
-	if (error instanceof CommanderError && ['commander.helpDisplayed', 'commander.version'].includes(error.code)) {
-		exitCode = 0;
-	} else {
+	if (error instanceof CommanderError && ['commander.helpDisplayed', 'commander.version'].includes(error.code)) exitCode = 0;
+	else {
 		exitCode = 1;
 		const debug = program.opts().debug;
-		const message = debug && error.stack ? error.stack : error.message;
-		process.stderr.write(`Error: ${message}\n`);
+		process.stderr.write(`Error: ${debug && error.stack ? error.stack : error.message}\n`);
 		if (debug) process.stderr.write(`Optimizt ${packageJson.version}; Node.js ${process.version}\n`);
 	}
+} finally {
+	releaseSignals();
 }
-process.exitCode = finishLifecycle() ?? exitCode;
+process.exitCode = lifecycle.finish() ?? exitCode;
