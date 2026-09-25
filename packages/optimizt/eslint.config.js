@@ -6,6 +6,7 @@ export default [
 	{
 		ignores: [
 			'coverage/',
+			'vendor/',
 			'.optimiztrc.cjs',
 		],
 	},

@@ -1,4 +1,4 @@
-import sharp from 'sharp';
+import sharp from './sharp.js';
 
 export async function parseImageMetadata(buffer) {
 	try {

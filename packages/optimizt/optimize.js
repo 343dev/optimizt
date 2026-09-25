@@ -1,258 +1,64 @@
-import { spawn } from 'node:child_process';
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
+import fs from 'node:fs/promises';
 
-import gifsicle from '@343dev/gifsicle';
-import guetzli from '@343dev/guetzli';
-import pLimit from 'p-limit';
-import sharp from 'sharp';
 import { optimize as svgoOptimize } from 'svgo';
 
 import { atomicWrite } from './lib/atomic-write.js';
 import { calculateRatio } from './lib/calculate-ratio.js';
-import { createProgressBarContainer } from './lib/create-progress-bar-container.js';
 import { describeCodecFailure } from './lib/describe-codec-failure.js';
-import { formatBytes } from './lib/format-bytes.js';
-import { getPlural } from './lib/get-plural.js';
-import { getRelativePath } from './lib/get-relative-path.js';
-import { isInterrupted, registerChild } from './lib/lifecycle.js';
-import {
-	LOG_TYPES,
-	log,
-	logProgress,
-	logProgressVerbose,
-} from './lib/log.js';
-import { optionsToArguments } from './lib/options-to-arguments.js';
-import { OUTCOME_STATUS } from './lib/outcome-status.js';
+import { createGifOperation } from './lib/gifsicle.js';
+import { encodeWithGuetzli } from './lib/guetzli.js';
+import { createOperationRuntime } from './lib/operation-runtime.js';
 import { parseImageMetadata } from './lib/parse-image-metadata.js';
-import { programOptions } from './lib/program-options.js';
-import { showTotal } from './lib/show-total.js';
+import sharp from './lib/sharp.js';
 
-export async function optimize({ operations, config, configPath }) {
-	const { isLossless } = programOptions;
-	const filePaths = operations.map(operation => ({ input: operation.input, output: operation.output }));
-
-	const filePathsCount = filePaths.length;
-
-	if (filePathsCount <= 0) {
-		return;
-	}
-
-	log(`Optimizing ${filePathsCount} ${getPlural(filePathsCount, 'image', 'images')} (${isLossless ? 'lossless' : 'lossy'})`);
-
-	const progressBarContainer = createProgressBarContainer(filePathsCount);
-	const progressBar = progressBarContainer.create(filePathsCount, 0);
-
-	const totalSize = { before: 0, after: 0 };
-
-	const cpuCount = os.cpus().length;
-	const tasksSimultaneousLimit = pLimit(cpuCount);
-	const guetzliTasksSimultaneousLimit = pLimit(1); // Guetzli uses a large amount of memory and a significant amount of CPU time. To reduce system load, we only allow one instance of guetzli to run at the same time.
-
-	const outcomes = await Promise.all(
-		filePaths.map((filePath, planIndex) => {
-			const extension = path.extname(filePath.input).toLowerCase();
-			const isJpeg = extension === '.jpg' || extension === '.jpeg';
-
-			const limit = isJpeg && isLossless
-				? guetzliTasksSimultaneousLimit
-				: tasksSimultaneousLimit;
-
-			return limit(() => isInterrupted()
-				? { planIndex, status: OUTCOME_STATUS.UNSTARTED }
-				: processFile({
-					filePath,
-					config,
-					configPath,
-					progressBarContainer,
-					progressBar,
-					totalSize,
-					isLossless,
-					planIndex,
-				}));
-		}),
-	);
-
-	progressBarContainer.update(); // Prevent logs lost. See: https://github.com/npkgz/cli-progress/issues/145#issuecomment-1859594159
-	progressBarContainer.stop();
-
-	showTotal(totalSize.before, totalSize.after, outcomes);
-	return { failed: outcomes.filter(outcome => outcome.status === OUTCOME_STATUS.FAILED).length, outcomes };
+export async function optimize({ operations, config, configPath, lifecycle, options, reporter }) {
+	const runtime = createOperationRuntime({
+		detect: (_operation, input) => parseImageMetadata(input),
+		lifecycle,
+		read: operation => fs.readFile(operation.input),
+		writer: { write: atomicWrite },
+	});
+	return runtime.execute({
+		onCompleted: reporter.operationCompleted,
+		operations,
+		policy: {
+			complete({ encoded, input, metadata }) {
+				const ratio = calculateRatio(input.length, encoded.length);
+				const isChanged = !input.equals(encoded);
+				const isWrite = ratio > 0 || (metadata.format === 'svg' && isChanged);
+				return { before: input.length, after: isWrite ? encoded.length : input.length, ratio, write: isWrite }; // eslint-disable-line unicorn/prefer-minimal-ternary
+			},
+		},
+		selectCodec(metadata) {
+			const codec = CODECS.get(metadata.format);
+			if (!metadata.format) throw new Error('Unable to read the image format. Check that the file is a valid, supported image.');
+			if (!codec) throw new Error(`Unsupported image format: "${metadata.format}"`);
+			return {
+				resource: metadata.format === 'jpeg' && options.isLossless ? 'guetzli' : undefined,
+				async encode(input) {
+					try {
+						return await codec({ config, input, isLossless: options.isLossless, lifecycle });
+					} catch (error) {
+						throw describeCodecFailure({ configPath, error, format: metadata.format, isLossless: options.isLossless, mode: 'optimize' });
+					}
+				},
+			};
+		},
+	});
 }
 
-async function processFile({
-	filePath,
-	config,
-	configPath,
-	progressBarContainer,
-	progressBar,
-	totalSize,
-	isLossless,
-	planIndex,
-}) {
-	try {
-		const fileBuffer = await fs.promises.readFile(filePath.input);
-		const processedFileBuffer = await processFileByFormat({ fileBuffer, config, configPath, isLossless });
-
-		const fileSize = fileBuffer.length;
-		const processedFileSize = processedFileBuffer.length;
-
-		totalSize.before += fileSize;
-		totalSize.after += Math.min(fileSize, processedFileSize);
-
-		const ratio = calculateRatio(fileSize, processedFileSize);
-
-		const isOptimized = ratio > 0;
-		const isChanged = !fileBuffer.equals(processedFileBuffer);
-		const isSvg = path.extname(filePath.input).toLowerCase() === '.svg';
-
-		if (!isOptimized && (!isChanged || !isSvg)) {
-			logProgressVerbose(getRelativePath(filePath.output), {
-				description: `${(isChanged ? 'File size increased' : 'Nothing changed')}. Skipped`,
-				progressBarContainer,
-			});
-
-			return { planIndex, status: OUTCOME_STATUS.SKIPPED };
-		}
-
-		await atomicWrite(filePath.output, processedFileBuffer);
-
-		const before = formatBytes(fileSize);
-		const after = formatBytes(processedFileSize);
-
-		logProgress(getRelativePath(filePath.output), {
-			type: isOptimized ? LOG_TYPES.SUCCESS : LOG_TYPES.WARNING,
-			description: `${before} → ${after}. Ratio: ${ratio}%`,
-			progressBarContainer,
-		});
-		return { after: processedFileSize, before: fileSize, planIndex, status: OUTCOME_STATUS.PROCESSED };
-	} catch (error) {
-		// Work abandoned during shutdown is left undone by the interruption, not failed.
-		if (isInterrupted()) return { planIndex, status: OUTCOME_STATUS.UNSTARTED };
-		return { error, output: filePath.output, planIndex, status: OUTCOME_STATUS.FAILED };
-	} finally {
-		progressBar.increment();
-	}
-}
-
-async function processFileByFormat({ fileBuffer, config, configPath, isLossless }) {
-	const imageMetadata = await parseImageMetadata(fileBuffer);
-	const format = imageMetadata.format;
-
-	if (!format) {
-		throw new Error('Unable to read the image format. Check that the file is a valid, supported image.');
-	}
-
-	const processByFormat = PROCESS_BY_FORMAT.get(format);
-	if (!processByFormat) {
-		throw new Error(`Unsupported image format: "${format}"`);
-	}
-
-	// Only the codec call is enriched, so filesystem and detection errors keep speaking
-	// for themselves.
-	try {
-		return await processByFormat({ fileBuffer, config, isLossless });
-	} catch (error) {
-		throw describeCodecFailure({ configPath, error, format, isLossless, mode: 'optimize' });
-	}
-}
-
-const PROCESS_BY_FORMAT = new Map([
-	['gif', processGif],
-	['jpeg', processJpeg],
-	['png', processPng],
-	['svg', processSvg],
+const CODECS = new Map([
+	['gif', ({ config, input, isLossless, lifecycle }) => {
+		const operation = createGifOperation(input, (isLossless ? config?.gif?.lossless : config?.gif?.lossy) || {});
+		lifecycle.registerCancellable(operation.terminate, operation.promise);
+		return operation.promise;
+	}],
+	['jpeg', async ({ config, input, isLossless, lifecycle }) => {
+		const image = sharp(input).rotate();
+		if (!isLossless) return image.jpeg(config?.jpeg?.lossy || {}).toBuffer();
+		const prepared = await image.toColorspace('srgb').jpeg({ quality: 100, optimizeCoding: false }).toBuffer();
+		return encodeWithGuetzli(prepared, config?.jpeg?.lossless || {}, lifecycle);
+	}],
+	['png', ({ config, input, isLossless }) => sharp(input).png(isLossless ? config?.png?.lossless : config?.png?.lossy || {}).toBuffer()],
+	['svg', ({ config, input }) => Buffer.from(svgoOptimize(input, config.svg).data)],
 ]);
-
-async function processJpeg({ fileBuffer, config, isLossless }) {
-	const sharpImage = sharp(fileBuffer)
-		.rotate(); // Rotate image using information from EXIF Orientation tag
-
-	if (!isLossless) {
-		return sharpImage
-			.jpeg(config?.jpeg?.lossy || {})
-			.toBuffer();
-	}
-
-	const inputBuffer = await sharpImage
-		.toColorspace('srgb') // Replace colorspace (guetzli works only with sRGB)
-		.jpeg({ quality: 100, optimizeCoding: false }) // Applying maximum quality to minimize losses during image processing with sharp
-		.toBuffer();
-
-	const commandOptions = [
-		...optionsToArguments({
-			options: config?.jpeg?.lossless || {},
-		}),
-		'-',
-		'-',
-	];
-
-	return pipe({
-		command: guetzli,
-		commandOptions,
-		inputBuffer,
-	});
-}
-
-function processPng({ fileBuffer, config, isLossless }) {
-	return sharp(fileBuffer)
-		.png(isLossless ? config?.png?.lossless : config?.png?.lossy || {})
-		.toBuffer();
-}
-
-function processGif({ fileBuffer, config, isLossless }) {
-	const commandOptions = [
-		...optionsToArguments({
-			options: (isLossless ? config?.gif?.lossless : config?.gif?.lossy) || {},
-			concat: true,
-		}),
-		`--threads=${os.cpus().length}`,
-		'--no-warnings',
-		'-',
-	];
-
-	return pipe({
-		command: gifsicle,
-		commandOptions,
-		inputBuffer: fileBuffer,
-	});
-}
-
-function processSvg({ fileBuffer, config }) {
-	return Buffer.from(
-		svgoOptimize(
-			fileBuffer,
-			config.svg,
-		).data,
-	);
-}
-
-function pipe({ command, commandOptions, inputBuffer }) {
-	return new Promise((resolve, reject) => {
-		const process = spawn(command, commandOptions);
-		registerChild(process);
-
-		process.stdin.write(inputBuffer);
-		process.stdin.end();
-
-		const stdoutChunks = [];
-		process.stdout.on('data', (chunk) => {
-			stdoutChunks.push(chunk);
-		});
-
-		process.on('error', (error) => {
-			reject(new Error(`Unable to optimize the image: ${error.message}`));
-		});
-
-		process.on('close', (code) => {
-			if (code !== 0) {
-				reject(new Error(`Unable to optimize the image. The encoder exited with code ${code}.`));
-				return;
-			}
-
-			const processedFileBuffer = Buffer.concat(stdoutChunks);
-			resolve(processedFileBuffer);
-		});
-	});
-}
