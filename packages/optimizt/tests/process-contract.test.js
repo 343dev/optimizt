@@ -235,6 +235,21 @@ describe('configuration', () => {
 		expect(result.stderr).not.toContain('    at ');
 	});
 
+	test('an invalid Guetzli option preserves the codec validation reason and context', async () => {
+		const directory = await makeTemporaryDirectory();
+		const imagePath = await copyFixture(directory, 'jpeg-not-optimized.jpeg');
+		const configPath = path.join(directory, 'config.cjs');
+		await fs.writeFile(configPath, 'module.exports = { optimize: { jpeg: { lossless: { quality: 12 } } } };\n');
+
+		const result = await runCli(['--lossless', '--config', configPath, imagePath]);
+
+		expect(result.code).toBe(1);
+		expect(result.stdout).toBe('');
+		expect(result.stderr).toContain(`Unable to optimize the JPEG image with the lossless profile and configuration file ${configPath}:`);
+		expect(result.stderr).toContain('quality must be an integer between 84 and 110');
+		expect(result.stderr).toContain('exited with code 1');
+	});
+
 	test('an invalid conversion option names the target format', async () => {
 		const directory = await makeTemporaryDirectory();
 		const imagePath = await copyFixture(directory, 'png-not-optimized.png');

@@ -1,6 +1,4 @@
-import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
-import path from 'node:path';
 
 import { optimize as svgoOptimize } from 'svgo';
 
@@ -8,9 +6,8 @@ import { atomicWrite } from './lib/atomic-write.js';
 import { calculateRatio } from './lib/calculate-ratio.js';
 import { describeCodecFailure } from './lib/describe-codec-failure.js';
 import { createGifOperation } from './lib/gifsicle.js';
-import { guetzliRunner, nodeExecutable } from './lib/guetzli.js';
+import { encodeWithGuetzli } from './lib/guetzli.js';
 import { createOperationRuntime } from './lib/operation-runtime.js';
-import { optionsToArguments } from './lib/options-to-arguments.js';
 import { parseImageMetadata } from './lib/parse-image-metadata.js';
 import sharp from './lib/sharp.js';
 
@@ -32,12 +29,12 @@ export async function optimize({ operations, config, configPath, lifecycle, opti
 				return { before: input.length, after: isWrite ? encoded.length : input.length, ratio, write: isWrite }; // eslint-disable-line unicorn/prefer-minimal-ternary
 			},
 		},
-		selectCodec(metadata, operation) {
+		selectCodec(metadata) {
 			const codec = CODECS.get(metadata.format);
 			if (!metadata.format) throw new Error('Unable to read the image format. Check that the file is a valid, supported image.');
 			if (!codec) throw new Error(`Unsupported image format: "${metadata.format}"`);
 			return {
-				resource: ['.jpg', '.jpeg'].includes(path.extname(operation.input).toLowerCase()) && options.isLossless ? 'guetzli' : undefined,
+				resource: metadata.format === 'jpeg' && options.isLossless ? 'guetzli' : undefined,
 				async encode(input) {
 					try {
 						return await codec({ config, input, isLossless: options.isLossless, lifecycle });
@@ -65,23 +62,3 @@ const CODECS = new Map([
 	['png', ({ config, input, isLossless }) => sharp(input).png(isLossless ? config?.png?.lossless : config?.png?.lossy || {}).toBuffer()],
 	['svg', ({ config, input }) => Buffer.from(svgoOptimize(input, config.svg).data)],
 ]);
-
-function encodeWithGuetzli(input, options, lifecycle) {
-	return new Promise((resolve, reject) => {
-		const child = spawn(nodeExecutable, [guetzliRunner, ...optionsToArguments({ options })]);
-		lifecycle.registerChild(child);
-		child.stdin.end(input);
-		const stdout = [];
-		child.stdout.on('data', (chunk) => {
-			stdout.push(chunk);
-		});
-		child.on('error', error => reject(new Error(`Unable to optimize the image: ${error.message}`)));
-		child.on('close', (code) => {
-			if (code !== 0) {
-				reject(new Error(`Unable to optimize the image. The encoder exited with code ${code}.`));
-				return;
-			}
-			resolve(Buffer.concat(stdout));
-		});
-	});
-}
