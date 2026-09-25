@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "environment": {
+    "platform": "linux",
+    "architecture": "arm64",
+    "node": "v24.18.0",
+    "cpus": [
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "nativeProfile": "Linux x64, GCC 14.2.0, -O3 -DNDEBUG, no threads, no SIMD"
+  },
+  "method": {
+    "wasmDurationsIncludeFreshWorkerAndWebAssemblyInitialization": true,
+    "nativeDurationsIncludeFreshProcessInitialization": true,
+    "hardRatioGate": false
+  },
+  "input": {
+    "fixture": "animated.gif",
+    "size": 8703
+  },
+  "results": [
+    {
+      "name": "no-options",
+      "options": {},
+      "wasm": {
+        "iterations": 5,
+        "meanMilliseconds": 24.955196399999995,
+        "minimumMilliseconds": 22.49634899999998,
+        "maximumMilliseconds": 31.140494999999994,
+        "outputSize": 8703
+      },
+      "native": {
+        "iterations": 5,
+        "meanMilliseconds": 20.017408999999994,
+        "minimumMilliseconds": 17.72041999999999,
+        "maximumMilliseconds": 26.95790199999999,
+        "outputSize": 8703
+      }
+    },
+    {
+      "name": "lossless",
+      "options": {
+        "optimize": 3,
+        "careful": true,
+        "colors": 256,
+        "lossy": 0,
+        "gamma": 1
+      },
+      "wasm": {
+        "iterations": 5,
+        "meanMilliseconds": 27.558294799999988,
+        "minimumMilliseconds": 26.383482999999956,
+        "maximumMilliseconds": 29.06028200000003,
+        "outputSize": 8711
+      },
+      "native": {
+        "iterations": 5,
+        "meanMilliseconds": 21.889247,
+        "minimumMilliseconds": 21.172679000000016,
+        "maximumMilliseconds": 22.778391,
+        "outputSize": 8711
+      }
+    },
+    {
+      "name": "lossy",
+      "options": {
+        "optimize": 3,
+        "careful": false,
+        "colors": 256,
+        "lossy": 100,
+        "gamma": 1
+      },
+      "wasm": {
+        "iterations": 5,
+        "meanMilliseconds": 31.115703800000006,
+        "minimumMilliseconds": 30.21607700000004,
+        "maximumMilliseconds": 32.178122999999914,
+        "outputSize": 7449
+      },
+      "native": {
+        "iterations": 5,
+        "meanMilliseconds": 24.754871000000026,
+        "minimumMilliseconds": 23.890310999999997,
+        "maximumMilliseconds": 25.596857,
+        "outputSize": 7449
+      }
+    }
+  ]
+}

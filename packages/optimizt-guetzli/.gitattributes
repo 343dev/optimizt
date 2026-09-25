@@ -1,0 +1,6 @@
+# Keep source files consistent across platforms. In particular, the CLI
+# hashbang must end with LF for ESLint and Unix execution.
+* text=auto eol=lf
+
+# Preserve the exact bytes of the vendored upstream snapshot.
+/upstream/guetzli/** -text -eol

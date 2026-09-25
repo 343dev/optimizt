@@ -5,11 +5,13 @@ WORKDIR /app
 
 COPY . .
 
-ENV NODE_ENV="production"
-
-RUN npm ci \
-	&& npm link \
+RUN npm ci --include=dev \
+	&& npm run build \
+	&& npm prune --omit=dev \
+	&& npm link --workspace @343dev/optimizt \
 	&& npm cache clean --force
+
+ENV NODE_ENV="production"
 
 WORKDIR /src
 
