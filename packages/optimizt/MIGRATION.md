@@ -2,7 +2,7 @@
 
 ## 13.0.0 → Unreleased
 
-Optimizt now requires Node.js 24.0.0 or newer because its bundled Guetzli runtime uses WebAssembly memory64.
+Optimizt now requires Node.js 24.0.0 or newer because its bundled Guetzli and Gifsicle runtimes use WebAssembly memory64.
 
 It also treats the exit status and files on disk as the command result. Review scripts and custom configuration for the changes below.
 

@@ -4,5 +4,3 @@
 # so it must run once per workspace rather than from the repository root.
 npx lint-staged --cwd packages/optimizt
 npx lint-staged --cwd packages/optimizt-sharp
-
-npx lint-staged --cwd packages/optimizt-guetzli

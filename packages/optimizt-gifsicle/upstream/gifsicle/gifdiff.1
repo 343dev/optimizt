@@ -1,0 +1,97 @@
+.\" -*- mode: nroff -*-
+.ds V 1.96
+.ds E " \-\- 
+.if t .ds E \(em
+.de Op
+.BR "\\$1" "\\$2" "\\$3" "\\$4" "\\$5" "\\$6"
+..
+.de Sp
+.if n .sp
+.if t .sp 0.4
+..
+.de Es
+.Sp
+.RS 5
+.nf
+..
+.de Ee
+.fi
+.RE
+.PP
+..
+.TH GIFDIFF 1 "11 July 2017" "Version \*V"
+.SH NAME
+gifdiff \- compares GIF images
+.SH SYNOPSIS
+.B gifdiff
+\%[options]
+GIF\-file\-1
+GIF\-file\-2
+'
+.SH DESCRIPTION
+.B gifdiff
+compares two GIF files and determines if they appear identical. Differences
+that don't affect appearance (like colormap ordering or how much an
+animation is optimized) are not reported.
+.PP
+.B gifdiff
+prints details of any differences it finds. If the GIFs are the same, it
+prints nothing. It exits with status 0 if there were no differences, 1 if
+there were some differences, and 2 if there was trouble.
+'
+.SH OPTIONS
+
+.PD 0
+.TP 5
+.Op \-\-brief ", " \-q
+'
+Report only whether the GIFs differ, not the details of the differences.
+'
+.Sp
+.TP 5
+.Op \-\-ignore\-redundancy ", " \-w
+'
+Do not report differences in the numbers of redundant frames (frames which
+do not change the displayed image).
+'
+.Sp
+.TP 5
+.Op \-\-ignore\-background ", " \-B
+'
+Do not report differences in background colors.
+'
+.Sp
+.TP 5
+.Op \-\-help
+'
+Print usage information and exit.
+'
+.Sp
+.TP
+.Op \-\-version
+'
+Print the version number and some quickie warranty information and exit.
+'
+.PD
+'
+.SH SEE ALSO
+
+.BR gifsicle (1)
+'
+.SH BUGS
+
+Please email suggestions, additions, patches and bugs to
+ekohler@gmail.com.
+'
+.SH AUTHORS
+.na
+Eddie Kohler, ekohler@gmail.com
+.br
+http://www.read.seas.harvard.edu/~kohler/
+.PP
+http://www.lcdf.org/gifsicle/
+.br
+The 
+.B gifsicle
+home page.
+'

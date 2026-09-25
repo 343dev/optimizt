@@ -1,0 +1,7 @@
+# Keep project text files consistent across platforms.
+* text=auto eol=lf
+
+# The upstream provenance manifests and snapshot must retain repository bytes.
+upstream/gifsicle.sha256 text eol=lf
+upstream/gifsicle.modes text eol=lf
+upstream/gifsicle/** -text
