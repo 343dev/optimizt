@@ -34,14 +34,17 @@
 		"index.js",
 		"MIGRATION.md",
 		"optimize.js",
+		"THIRD_PARTY_NOTICES.md",
 		"vendor/"
 	],
 	"scripts": {
 		"build": "node ../optimizt-sharp/scripts/build.mjs && node scripts/vendor-sharp.mjs && node scripts/vendor-guetzli.mjs && node scripts/vendor-gifsicle.mjs",
+		"build:development": "node ../optimizt-sharp/scripts/build.mjs && node scripts/vendor-sharp.mjs && node scripts/vendor-guetzli.mjs && OPTIMIZT_SKIP_GIFSICLE_SOURCE_CHECK=1 node scripts/vendor-gifsicle.mjs",
 		"lint": "eslint ./",
 		"prepack": "npm run build",
-		"test": "npm run build && vitest run",
-		"test-coverage": "npm run build && vitest run --coverage",
+		"test": "npm run build:development && vitest run",
+		"test-coverage": "npm run build:development && vitest run --coverage",
+		"verify:package": "node scripts/verify-package.mjs",
 		"enable-git-hooks": "git config core.hooksPath .githooks"
 	},
 	"dependencies": {

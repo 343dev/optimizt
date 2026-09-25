@@ -1,0 +1,14 @@
+{
+	"approved": false,
+	"packageLicense": "MIT",
+	"noticeSha256": {
+		"packages/optimizt-gifsicle/GIFSICLE-LICENSE.md": "334df747d1ea1e4648c54a3c9c1728409ad10facac5eec00fd86eb1acc811e9d",
+		"packages/optimizt-gifsicle/LICENSE": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+		"packages/optimizt-gifsicle/MUSL-COPYRIGHT": "b870108ec5e7790e9f9919064f1b9421d62d5f9b0e6c230c6adf7ea2da62e97b",
+		"packages/optimizt-gifsicle/THIRD_PARTY_NOTICES.md": "c7f7a0334572236175588a0c507320439df94cf1a1ae52f12c461f88f2a31bff",
+		"packages/optimizt-guetzli/LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+		"packages/optimizt-guetzli/MUSL-COPYRIGHT": "b870108ec5e7790e9f9919064f1b9421d62d5f9b0e6c230c6adf7ea2da62e97b",
+		"packages/optimizt-guetzli/THIRD_PARTY_NOTICES.md": "4d2ceb7b4e2b0a887afe3554a487936564faae0d1a2dbb1a7ef698eb75e9acb1",
+		"packages/optimizt/THIRD_PARTY_NOTICES.md": "e6e2623947a7c0a03052fec77e5731716a0c45609162c9c391bdc1bde5051854"
+	}
+}
