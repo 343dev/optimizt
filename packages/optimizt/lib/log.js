@@ -1,8 +1,7 @@
 import { EOL } from 'node:os';
 import { format } from 'node:util';
 
-import { colorize } from './colorize.js';
-import { programOptions } from './program-options.js';
+import { colorizeFor } from './colorize.js';
 import { canUseUnicode } from './stream-capabilities.js';
 
 export const LOG_TYPES = {
@@ -26,31 +25,34 @@ const symbols = {
 	[LOG_TYPES.ERROR]: ['x', '✖'],
 };
 
-function formatLogMessage(title, { type = LOG_TYPES.INFO, description } = {}) {
-	if (!title) throw new Error('Title is required');
-	return [
-		colorize(symbols[type][canUseUnicode() ? 1 : 0])[colors[type]],
-		title,
-		...description ? [EOL, ' ', colorize(description).dim] : [],
-	];
-}
-
-export function log(title, { type, description } = {}) {
-	process.stderr.write(`${format(...formatLogMessage(title, { type, description }))}${EOL}`);
-}
-
-export function logEmptyLine() {
-	process.stderr.write(EOL);
-}
-
-export function logProgress(title, { type, description, progressBarContainer } = {}) {
-	if (progressBarContainer?.isRendering) {
-		progressBarContainer.log(`${formatLogMessage(title, { type, description }).join(' ')}${EOL}`);
-		return;
+export function createLog({ shouldUseColor } = {}) {
+	function formatLogMessage(title, { type = LOG_TYPES.INFO, description } = {}) {
+		if (!title) throw new Error('Title is required');
+		return [
+			colorizeFor(shouldUseColor, symbols[type][canUseUnicode() ? 1 : 0])[colors[type]],
+			title,
+			...description ? [EOL, ' ', colorizeFor(shouldUseColor, description).dim] : [],
+		];
 	}
-	log(title, { type, description });
+
+	function log(title, { type, description } = {}) {
+		process.stderr.write(`${format(...formatLogMessage(title, { type, description }))}${EOL}`);
+	}
+
+	return Object.freeze({
+		log,
+		logEmptyLine() {
+			process.stderr.write(EOL);
+		},
+		logProgress(title, { type, description, progressBarContainer } = {}) {
+			if (progressBarContainer?.isRendering) {
+				progressBarContainer.log(`${formatLogMessage(title, { type, description }).join(' ')}${EOL}`);
+				return;
+			}
+			log(title, { type, description });
+		},
+	});
 }
 
-export function logProgressVerbose(title, { type, description, progressBarContainer } = {}) {
-	if (programOptions.isVerbose) logProgress(title, { type, description, progressBarContainer });
-}
+const defaultLog = createLog();
+export const { log, logEmptyLine, logProgress } = defaultLog;

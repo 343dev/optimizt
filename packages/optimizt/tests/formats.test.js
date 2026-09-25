@@ -36,6 +36,18 @@ describe('optimization by format', () => {
 		await expect(fileSize(imagePath)).resolves.toBeLessThan(sizeBefore);
 	});
 
+	test('dispatches JPEG bytes under another eligible extension to Guetzli', async () => {
+		const directory = await makeTemporaryDirectory();
+		const imagePath = await copyFixture(directory, 'jpeg-not-optimized.jpeg', 'renamed.png');
+		const sizeBefore = await fileSize(imagePath);
+
+		const result = await runCli(['--lossless', imagePath]);
+
+		expect(result.code).toBe(0);
+		expect(result.stderr).toContain(summaryLine('1 processed'));
+		await expect(fileSize(imagePath)).resolves.toBeLessThan(sizeBefore);
+	}, 60_000);
+
 	test.each(OPTIMIZED_FORMATS)('optimizes %s in lossless mode', async (_name, fixture) => {
 		const directory = await makeTemporaryDirectory();
 		const imagePath = await copyFixture(directory, fixture);

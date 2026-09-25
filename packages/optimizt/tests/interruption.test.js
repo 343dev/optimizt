@@ -78,19 +78,17 @@ describe.skipIf(isWindows)('interruption', () => {
 		expect(Date.now() - startedAt).toBeLessThan(5000);
 	}, 30_000);
 
-	test('every operation is accounted for without being called skipped or failed', async () => {
+	test('reports completed work without assigning outcomes to abandoned operations', async () => {
 		const { run } = await startInterruptibleRun();
 
 		run.child.kill('SIGINT');
 		const result = await run.finished;
 
-		const processed = outcomeCount(result.stderr, 'processed');
-		const skipped = outcomeCount(result.stderr, 'skipped');
-		const failed = outcomeCount(result.stderr, 'failed');
-		const unstarted = outcomeCount(result.stderr, 'not started');
-		expect(processed + skipped + failed + unstarted).toBe(IMAGE_COUNT);
-		expect(unstarted).toBeGreaterThan(0);
-		expect(failed).toBe(0);
+		expect(result.stderr).toContain('Interrupted');
+		expect(result.stderr).toMatch(new RegExp(String.raw`\d+ of ${IMAGE_COUNT} operations completed`));
+		expect(outcomeCount(result.stderr, 'not started')).toBe(0);
+		expect(outcomeCount(result.stderr, 'failed')).toBe(0);
+		expect(result.stderr).not.toMatch(/\d+ (?:processed|skipped|failed)(?:,|\r?$)/m);
 		expect(result.stderr).not.toContain('exited with code null');
 	}, 30_000);
 });

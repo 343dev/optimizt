@@ -1,5 +1,5 @@
-export function canUseColor() {
-	return canUseUnicode() && !process.env.NO_COLOR;
+export function canUseColor(shouldUseColor = !process.env.NO_COLOR) {
+	return canUseUnicode() && shouldUseColor;
 }
 
 export function canUseUnicode() {
