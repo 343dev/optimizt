@@ -8,7 +8,7 @@ COPY . .
 ENV NODE_ENV="production"
 
 RUN npm ci \
-	&& npm link \
+	&& npm link --workspace @343dev/optimizt \
 	&& npm cache clean --force
 
 WORKDIR /src

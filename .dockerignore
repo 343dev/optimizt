@@ -1,9 +1,6 @@
 *
-!lib/
-!.optimiztrc.cjs
-!cli.js
-!convert.js
-!index.js
-!LICENSE
-!optimize.js
-!package*.json
+!package.json
+!package-lock.json
+!packages/
+!packages/optimizt/
+!packages/optimizt/**
