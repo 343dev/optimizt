@@ -40,13 +40,15 @@ This command can replace the original file. To keep it, use `--output` with a se
 | --- | --- |
 | `--avif` | Create AVIF versions of images. |
 | `--webp` | Create WebP versions of images. |
-| `-f, --force` | Replace existing AVIF and WebP versions. |
+| `-f, --force` | Replace existing conversion targets. Requires `--avif` or `--webp`. |
 | `-l, --lossless` | Use the lossless profile. JPEG compression is still lossy. |
-| `-v, --verbose` | Show detailed output, including skipped files. |
-| `-c, --config <path>` | Use a custom configuration file instead of the bundled defaults. |
-| `-o, --output <path>` | Write results to an existing directory. |
+| `-v, --verbose` | Show skipped and deduplicated work. |
+| `-c, --config <path>` | Use the specified CJS configuration file instead of the defaults. |
+| `-o, --output <path>` | Write results under an existing output directory. |
 | `-p, --prefix <text>` | Add a prefix to output file names. |
 | `-s, --suffix <text>` | Add a suffix to output file names. |
+| `--no-color` | Disable colored output. |
+| `--debug` | Include stack traces and Optimizt and Node.js version details in errors. |
 | `-V, --version` | Show the version. |
 | `-h, --help` | Show help. |
 
