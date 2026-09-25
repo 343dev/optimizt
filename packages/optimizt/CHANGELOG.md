@@ -27,7 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Independent operations continue after a runtime failure and keep their successful outputs, while the invocation still exits with status `1`.
 - Redirected output no longer contains animated progress or terminal decoration. Progress totals count generated outputs, and summaries distinguish optimization savings from bytes created by conversion.
 - Equivalent operands and inputs are processed once. Symbolic links retain their documented placement and replacement behavior.
+- Lossless JPEG scheduling now uses the detected image format instead of the file extension. Renamed JPEG files retain Guetzli's single-operation limit.
 - Interrupt handling now stops new work, terminates cancellable encoders, and reports conventional `SIGINT` and `SIGTERM` exit statuses on POSIX.
+- After an interruption, the summary reports completed operations separately. It does not classify abandoned operations as skipped or failed.
+
+### Fixed
+
+- Guetzli errors now preserve up to 64 KiB of encoder diagnostics. Messages distinguish startup failures, write failures, exit codes, and termination signals.
 
 ## [13.0.0](https://github.com/343dev/optimizt/releases/tag/v13.0.0) - 2026-06-27
 
