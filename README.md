@@ -20,4 +20,4 @@ npm run check
 
 Fast local validation is `npm run check`. Codec changes can be checked with `npm run provenance:setup` followed by `npm run provenance:verify`. Canonical codec provenance, exact committed distributions, parity, package contents, and artifact construction are checked by `npm run release:verify` in its supported pinned Linux environment. Publication fails closed until maintainers provide `release-distribution-policy.json` after licensing review; implementation code does not infer that policy.
 
-The release artifact command packs the npm archive once and verifies its contents and clean-installed behavior before publication.
+The release workflow packs the npm archive once, verifies it, publishes those exact bytes to npm, and installs the same archive in Docker. For a local image build, run `npm run release:artifact` and then `docker build .`; both consume `artifacts/optimizt.tgz`.

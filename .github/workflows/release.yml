@@ -1,0 +1,105 @@
+name: Verify and publish release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  artifact:
+    runs-on: ubuntu-latest
+    outputs:
+      should-publish: ${{ steps.package.outputs.should-publish }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.18.0
+      - run: npm ci
+      - run: npm run check
+      - run: npm run provenance:setup
+      - run: npm run release:verify
+      - id: package
+        run: |
+          version=$(tar -xOf artifacts/optimizt.tgz package/package.json | node -p "JSON.parse(require('node:fs').readFileSync(0)).version")
+          if npm view "@343dev/optimizt@$version" version >/dev/null 2>&1; then
+            echo "should-publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should-publish=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - name: Smoke-test image
+        run: |
+          docker build --load --tag optimizt-release-test .
+          docker run --rm optimizt-release-test --help >/dev/null
+          test "$(docker run --rm optimizt-release-test --version)" = "$(tar -xOf artifacts/optimizt.tgz package/package.json | node -p \"JSON.parse(require('node:fs').readFileSync(0)).version\")"
+          temporary=$(mktemp -d)
+          cp packages/optimizt/tests/images/png-not-optimized.png "$temporary/image.png"
+          cp packages/optimizt/tests/images/gif-not-optimized.gif "$temporary/image.gif"
+          cp packages/optimizt/tests/images/jpeg-one-pixel.jpg "$temporary/image.jpg"
+          chmod -R a+rwX "$temporary"
+          docker run --rm --user 12345:12345 --volume "$temporary:/src" optimizt-release-test image.png
+          docker run --rm --user 12345:12345 --volume "$temporary:/src" optimizt-release-test image.gif
+          docker run --rm --user 12345:12345 --volume "$temporary:/src" optimizt-release-test --lossless image.jpg
+          test -s "$temporary/image.png"
+          test -s "$temporary/image.gif"
+          test -s "$temporary/image.jpg"
+      - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+        with:
+          name: optimizt-package
+          path: artifacts/optimizt.tgz
+          if-no-files-found: error
+
+  publish-npm:
+    needs: artifact
+    if: needs.artifact.outputs.should-publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+        with:
+          name: optimizt-package
+          path: artifacts
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24.18.0
+          registry-url: https://registry.npmjs.org
+      - run: npm publish artifacts/optimizt.tgz --access public --provenance
+
+  publish-docker:
+    needs: artifact
+    if: needs.artifact.outputs.should-publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16
+        with:
+          name: optimizt-package
+          path: artifacts
+      - id: package
+        run: echo "version=$(tar -xOf artifacts/optimizt.tgz package/package.json | node -p \"JSON.parse(require('node:fs').readFileSync(0)).version\")" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: 343dev/optimizt:${{ steps.package.outputs.version }},343dev/optimizt:latest
+          provenance: mode=max
+          sbom: true
