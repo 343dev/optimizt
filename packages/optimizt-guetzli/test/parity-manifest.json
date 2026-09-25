@@ -1,0 +1,56 @@
+{
+	"nativeReference": {
+		"platform": "linux-x64",
+		"os": "Ubuntu 24.04",
+		"compiler": "GCC 14.2.0",
+		"target": "x86_64-linux-gnu",
+		"flags": [
+			"-O3",
+			"-std=c++11"
+		]
+	},
+	"cases": {
+		"rgb-444.jpg": {
+			"84": { "size": 2095, "sha256": "27e37f8bbf9c204efa078678b42111fa9f39cf70faaae86f43d1217a87e7c363", "parity": "byte" },
+			"90": { "size": 2362, "sha256": "4f9c06b28471a63e224b025cbfdc8af1ad284644e45df16140fbcd438fb85072", "parity": "byte" },
+			"95": { "size": 3240, "sha256": "6ee6d159d37d69b7d5071b2f81b3c69d16999b8a85ec1aea40f96003e02833eb", "parity": "byte" },
+			"100": { "size": 5289, "sha256": "948afa59e10e47af4b5df5f295ae54ad5794c2f1de88e30464572543ab86895b", "parity": "byte" },
+			"110": { "size": 5289, "sha256": "948afa59e10e47af4b5df5f295ae54ad5794c2f1de88e30464572543ab86895b", "parity": "byte" }
+		},
+		"rgb-420.jpg": {
+			"84": { "size": 1215, "sha256": "0dccd1d66c1a577904ba16e80f97fd7524bfe82aa7049c3600cf804e48de7d32", "parity": "byte" },
+			"90": { "size": 1536, "sha256": "b4bff0609306d1a212026d285fc522b502b7bf9e2ac26a9b62495879f0f5ba81", "parity": "byte" },
+			"95": { "size": 1949, "sha256": "d18d1cdda6c9114ffe3a552c5275d56622cf5f9d5b84a687e4c5992ad683328b", "parity": "byte" },
+			"100": { "size": 3111, "sha256": "29b97c01c2f313e86f8b933259f9f924489f32aeebfc84b8d04e47eccb6c5408", "parity": "byte" },
+			"110": { "size": 3129, "sha256": "dc89bbb19373ae0f6965e4dd38b42d171c0f033f2ff0bf2012434fb20ad9d76d", "parity": "byte" }
+		},
+		"progressive-420.jpg": {
+			"84": { "size": 1215, "sha256": "0dccd1d66c1a577904ba16e80f97fd7524bfe82aa7049c3600cf804e48de7d32", "parity": "byte" },
+			"90": { "size": 1536, "sha256": "b4bff0609306d1a212026d285fc522b502b7bf9e2ac26a9b62495879f0f5ba81", "parity": "byte" },
+			"95": { "size": 1949, "sha256": "d18d1cdda6c9114ffe3a552c5275d56622cf5f9d5b84a687e4c5992ad683328b", "parity": "byte" },
+			"100": { "size": 3111, "sha256": "29b97c01c2f313e86f8b933259f9f924489f32aeebfc84b8d04e47eccb6c5408", "parity": "byte" },
+			"110": { "size": 3129, "sha256": "dc89bbb19373ae0f6965e4dd38b42d171c0f033f2ff0bf2012434fb20ad9d76d", "parity": "byte" }
+		},
+		"metadata-444.jpg": {
+			"84": { "size": 2095, "sha256": "27e37f8bbf9c204efa078678b42111fa9f39cf70faaae86f43d1217a87e7c363", "parity": "byte" },
+			"90": { "size": 2362, "sha256": "4f9c06b28471a63e224b025cbfdc8af1ad284644e45df16140fbcd438fb85072", "parity": "byte" },
+			"95": { "size": 3240, "sha256": "6ee6d159d37d69b7d5071b2f81b3c69d16999b8a85ec1aea40f96003e02833eb", "parity": "byte" },
+			"100": { "size": 5289, "sha256": "948afa59e10e47af4b5df5f295ae54ad5794c2f1de88e30464572543ab86895b", "parity": "byte" },
+			"110": { "size": 5289, "sha256": "948afa59e10e47af4b5df5f295ae54ad5794c2f1de88e30464572543ab86895b", "parity": "byte" }
+		},
+		"grayscale-ycbcr.jpg": {
+			"84": { "size": 980, "sha256": "cbcb6c0d1ce0629799d426b51324d3eca15a9b8ec4d766b5eb23a8fc926966a7", "parity": "byte" },
+			"90": { "size": 1116, "sha256": "935bda5d2f0baa74dacd0dd31eaec3cfd451063a40ee9094cdcf231782f02185", "parity": "byte" },
+			"95": { "size": 1289, "sha256": "91f7cbaba57a7fe3c29bf664becff4809c81a5de19275d48c3be251f14b41635", "parity": "byte" },
+			"100": { "size": 1900, "sha256": "23985797f7740f98a5ec0ef9161b312e0667466a0f419306200d1f0ae7c160ff", "parity": "byte" },
+			"110": { "size": 1974, "sha256": "bcfb7cefa2c029f84a79058b8c23feaa4f161fd872deb72ea8b8d57ba3ecce06", "parity": "byte" }
+		},
+		"floating-point-boundary-444.jpg": {
+			"84": { "size": 1261, "sha256": "8851f5bc7796afb2972095e977184c7653ccb1da9086607013f4eae526f1254f", "parity": "byte" },
+			"90": { "size": 1591, "sha256": "72a97ee0b32fcc16c5ddb98796052179af5274b2f07137b4f42e28196ddb052f", "parity": "byte" },
+			"95": { "size": 2507, "sha256": "95b3e5d13041b407c9345ed31fed046719c8dcded3ea74e4357b6a0d6025ade1", "parity": "equivalent", "inputSha256": "5a9d67c90a42940b4159e4c99423436af00c4bcb43d03fae09071b31561dba25", "wasmSize": 2505, "wasmSha256": "d785856312e9f92bdc89c85b58c2951fd45ceb6a778ef8b90c62c38dcc211bad" },
+			"100": { "size": 4399, "sha256": "3eac122dd155aea5df19433443231ad1be037960aba63fa7a28d5840496511a8", "parity": "byte" },
+			"110": { "size": 4399, "sha256": "3eac122dd155aea5df19433443231ad1be037960aba63fa7a28d5840496511a8", "parity": "byte" }
+		}
+	}
+}

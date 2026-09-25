@@ -15,9 +15,7 @@ module.exports = {
 			},
 			// https://github.com/google/guetzli
 			lossless: {
-				quality: 90, // visual quality to aim for, expressed as a JPEG quality value; should be >= 84, otherwise the output will have noticeable artifacts
-				memlimit: 6000, // memory limit in MB; guetzli will fail if unable to stay under the limit
-				nomemlimit: false, // do not limit memory usage
+				quality: 90, // visual quality to aim for, expressed as a JPEG quality value; must be between 84 and 110
 			},
 		},
 
@@ -55,7 +53,7 @@ module.exports = {
 				gamma: 1, // set the color space/gamma correction to gamma, which can be a real number, ‘srgb’ (the default), or ‘oklab’
 			},
 			lossless: {
-				optimize: 0,
+				optimize: 3,
 				careful: true,
 				colors: 256,
 				lossy: 0,
