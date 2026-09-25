@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **BREAKING:** Guetzli and Gifsicle now use wasm64 and require Node.js 24.0.0 or newer.
+- **BREAKING:** Sharp, Guetzli, and Gifsicle now run from WebAssembly bundled with Optimizt instead of platform-specific native binaries. Guetzli and Gifsicle use wasm64, so Optimizt requires Node.js 24.0.0 or newer.
+- **BREAKING:** GIF optimization now rejects encoded inputs larger than 128 MiB, images with more than 100,000 frames, and images whose canvas or total frame area exceeds 134,217,728 pixels.
 - **BREAKING:** Processing now exits with status `1` when argument validation, filesystem preflight, configuration loading, or any image operation fails. A valid run with no eligible images still exits `0`.
 - **BREAKING:** Status, progress, warnings, errors, and summaries now use `stderr`. `stdout` is reserved for help and version output and remains empty during image processing.
 - **BREAKING:** Missing or inaccessible explicit operands and explicitly supplied files with unsupported extensions now fail instead of being silently ignored. Unsupported files found while traversing directories remain ignored.
