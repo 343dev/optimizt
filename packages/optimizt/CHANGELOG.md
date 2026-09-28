@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `--no-color` to disable colored output and `--debug` to include stack traces and version details in errors.
 - Added Guetzli WebAssembly memory64 support for JPEG processing beyond the 4 GiB wasm32 address-space limit.
+- Published npm packages now include third-party license notices and a link to the corresponding source for the bundled Gifsicle WebAssembly binary.
+- Published Docker images now include SBOM and provenance attestations.
 
 ### Changed
 
